@@ -1,7 +1,6 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
-
 
 EAPI="5"
 JAVA_PKG_IUSE="doc examples source"
@@ -58,7 +57,7 @@ java_prepare() {
 
 	epatch "${FILESDIR}/deploy-release-1.xml.patch"
 	epatch "${FILESDIR}/setup-linux-2.xml.patch"
-	
+
 	einfo "Remove Class-Path version atoms from setup-linux.xml"
 	sed -i -e '/Class-Path/ s/\(\-[0-9.]\+.[0-9]\+\)//g' setup-linux.xml || die
 
@@ -67,7 +66,7 @@ java_prepare() {
 
 	# Remove bundled libusb
 	rm -vrf linux/linux || die
-	
+
 	cd "${S}/libs"
 	# Remove bundled jars
 	rm -v commons-io*jar jdom*jar log4j*jar jna*jar jopt-simple*jar nsisant*.jar || die

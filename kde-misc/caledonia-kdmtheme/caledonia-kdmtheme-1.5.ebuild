@@ -13,7 +13,7 @@ HOMEPAGE="http://caledonia.sourceforge.net/get.html"
 SRC_URI="http://sourceforge.net/projects/caledonia/files/Caledonia%20KDM/${MY_PN}.tar.gz/download
 	-> ${PF}.tar.gz"
 
-LICENSE="CCPL-Attribution-ShareAlike-3.0"
+LICENSE="CC-BY-SA-3.0"
 KEYWORDS="~amd64 ~x86"
 SLOT="0"
 

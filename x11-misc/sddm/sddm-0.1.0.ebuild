@@ -1,4 +1,4 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -8,11 +8,11 @@ inherit cmake-utils toolchain-funcs
 DESCRIPTION="Simple Desktop Display Manager"
 HOMEPAGE="https://github.com/sddm/sddm"
 if [[ ${PV} == "9999" ]] ; then
-        EGIT_REPO_URI="git://github.com/sddm/sddm.git"
-        inherit git-2
-        SRC_URI=""
+	EGIT_REPO_URI="git://github.com/sddm/sddm.git"
+	inherit git-2
+	SRC_URI=""
 else
-        SRC_URI="http://github.com/${PN}/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz"
+	SRC_URI="http://github.com/${PN}/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz"
 fi
 
 LICENSE="GPL-2+ MIT CC-BY-3.0 public-domain"

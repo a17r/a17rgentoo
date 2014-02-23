@@ -1,4 +1,4 @@
-# Copyright 1999-2012 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -11,7 +11,7 @@ SRC_URI="http://www.eizo.com/global/support/db/files/software/icc/lcd/S2243WINF_
 
 LICENSE=""
 SLOT="0"
-KEYWORDS=""
+KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 #USE_EXPAND="DISPLAY_DEVICES"
@@ -24,9 +24,9 @@ DEPEND="app-arch/unzip"
 #				  eizo/
 
 src_unpack() {
-        for zip in ${A} ; do
-                echo ">>> Unpacking ${zip} to ${WORKDIR}"
-                unzip "${DISTDIR}"/${zip} -x *html *cat *inf > /dev/null \
-                        || die "failed to unpack ${zip}"
-        done
+	for zip in ${A} ; do
+		echo ">>> Unpacking ${zip} to ${WORKDIR}"
+		unzip "${DISTDIR}"/${zip} -x *html *cat *inf > /dev/null \
+			|| die "failed to unpack ${zip}"
+	done
 }

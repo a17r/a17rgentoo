@@ -1,4 +1,4 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: /var/cvsroot/gentoo-x86/dev-db/mariadb/mariadb-5.5.29.ebuild,v 1.1 2013/02/13 00:47:45 robbat2 Exp $
 
@@ -126,4 +126,3 @@ src_test() {
 		einfo "Skipping server tests due to minimal build."
 	fi
 }
-

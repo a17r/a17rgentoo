@@ -1,4 +1,4 @@
-# Copyright 1999-2012 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -13,7 +13,7 @@ HOMEPAGE="http://caledonia.sourceforge.net/get.html"
 SRC_URI="http://sourceforge.net/projects/caledonia/files/Caledonia%20KSplash/${MY_PN}.tar.gz/download
 	-> ${PF}.tar.gz"
 
-LICENSE="CCPL-Attribution-ShareAlike-3.0"
+LICENSE="CC-BY-SA-3.0"
 KEYWORDS="~amd64 ~x86"
 SLOT="0"
 
@@ -31,6 +31,6 @@ src_install() {
 
 	# Important: Install folder must have original theme name
 	local my_d="/usr/share/apps/ksplash/Themes/${MY_PN}"
-        mkdir -p "${D}/${my_d}" || die "Install failed!"
-        cp -R "${S}/"* "${D}/${my_d}" || die "Install failed!"
+	mkdir -p "${D}/${my_d}" || die "Install failed!"
+	cp -R "${S}/"* "${D}/${my_d}" || die "Install failed!"
 }

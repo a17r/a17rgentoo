@@ -1,4 +1,4 @@
-# Copyright 1999-2012 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: /var/cvsroot/gentoo-x86/media-libs/qt-gstreamer/qt-gstreamer-0.10.2.ebuild,v 1.4 2012/09/11 10:22:34 johu Exp $
 
@@ -46,7 +46,7 @@ DEPEND="
 src_prepare(){
 	#patches to rip out QtGstreamer
 	epatch "${FILESDIR}/${P}-rip-out-gstreamer.patch"
-	
+
 	#fix for boost-1.50
 	epatch "${FILESDIR}/${P}-fix-for-boost-1.50.patch"
 }

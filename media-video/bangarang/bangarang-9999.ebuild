@@ -1,4 +1,4 @@
-# Copyright 1999-2012 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -24,9 +24,9 @@ RDEPEND="
 	$(add_kdebase_dep kdelibs 'semantic-desktop')
 	$(add_kdebase_dep nepomuk)
 	|| (
-                $(add_kdebase_dep audiocd-kio)
-                $(add_kdebase_dep kdemultimedia-kioslaves)
-        )
+		$(add_kdebase_dep audiocd-kio)
+		$(add_kdebase_dep kdemultimedia-kioslaves)
+	)
 	media-libs/taglib
 	media-libs/phonon
 	dev-qt/qtscript:4
