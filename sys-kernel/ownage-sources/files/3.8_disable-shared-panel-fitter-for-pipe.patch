@@ -1,0 +1,40 @@
+From 6cad13e44d8ef068f7454bbefe65155b839c6b92 Mon Sep 17 00:00:00 2001
+From: Mika Kuoppala <mika.kuoppala@intel.com>
+Date: Tue, 5 Feb 2013 17:26:52 +0200
+Subject: [PATCH] drm/i915: disable shared panel fitter for pipe
+
+If encoder is switched off by BIOS, but the panel fitter is left on,
+we never try to turn off the panel fitter and leave it still attached
+to the pipe - which can cause blurry output elsewhere.
+
+Based on work by Chris Wilson <chris@chris-wilson.co.uk>
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=58867
+Signed-off-by: Mika Kuoppala <mika.kuoppala@intel.com>
+---
+ drivers/gpu/drm/i915/intel_display.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index da1ad9c..bb9fe36 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -3705,6 +3705,15 @@ static void i9xx_crtc_disable(struct drm_crtc *crtc)
+ 
+ 	intel_disable_plane(dev_priv, plane, pipe);
+ 	intel_disable_pipe(dev_priv, pipe);
++
++	if (!HAS_PCH_SPLIT(dev)) {
++		const u32 pctl = I915_READ(PFIT_CONTROL);
++
++		if ((pctl & PFIT_ENABLE) &&
++		    ((pctl & PFIT_PIPE_MASK) >> PFIT_PIPE_SHIFT) == pipe)
++			I915_WRITE(PFIT_CONTROL, 0);
++	}
++
+ 	intel_disable_pll(dev_priv, pipe);
+ 
+ 	intel_crtc->active = false;
+-- 
+1.7.9.5
+

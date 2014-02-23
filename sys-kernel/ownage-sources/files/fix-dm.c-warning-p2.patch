@@ -1,0 +1,22 @@
+--- a/drivers/md/dm.c	2011-10-30 14:33:58.000000000 +0100
++++ b/drivers/md/dm.c	2011-10-30 15:31:27.854042363 +0100
+@@ -1057,7 +1057,9 @@
+ 	clone->bi_flags |= 1 << BIO_CLONED;
+ 
+ 	if (bio_integrity(bio)) {
++#ifdef CONFIG_BLK_DEV_INTEGRITY
+ 		bio_integrity_clone(clone, bio, GFP_NOIO, bs);
+++#endif
+ 		bio_integrity_trim(clone,
+ 				   bio_sector_offset(bio, idx, offset), len);
+ 	}
+@@ -1084,7 +1086,9 @@
+ 	clone->bi_flags &= ~(1 << BIO_SEG_VALID);
+ 
+ 	if (bio_integrity(bio)) {
++#ifdef CONFIG_BLK_DEV_INTEGRITY
+ 		bio_integrity_clone(clone, bio, GFP_NOIO, bs);
++#endif
+ 
+ 		if (idx != bio->bi_idx || clone->bi_size < bio->bi_size)
+ 			bio_integrity_trim(clone,

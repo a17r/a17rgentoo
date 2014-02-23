@@ -1,0 +1,25 @@
+From 441ff32acc842827df2a493c1892f0450d45a88c Mon Sep 17 00:00:00 2001
+From: Markus Raab <elektra@markus-raab.org>
+Date: Thu, 16 Jan 2014 20:11:29 +0100
+Subject: [PATCH] fix man pages name collision to section .3elektra
+
+---
+ doc/Doxyfile |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/doc/Doxyfile b/doc/Doxyfile
+index cdc0804..8844232 100644
+--- a/doc/Doxyfile
++++ b/doc/Doxyfile
+@@ -1441,7 +1441,7 @@ MAN_OUTPUT             = man
+ # The MAN_EXTENSION tag determines the extension that is added to
+ # the generated man pages (default is the subroutine's section .3)
+ 
+-MAN_EXTENSION          = .3
++MAN_EXTENSION          = .3elektra
+ 
+ # If the MAN_LINKS tag is set to YES and Doxygen generates man output,
+ # then it will generate one additional man file for each entity
+-- 
+1.7.1
+

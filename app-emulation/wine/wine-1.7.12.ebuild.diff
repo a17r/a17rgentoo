@@ -1,0 +1,26 @@
+--- wine-1.7.11.ebuild	2014-01-22 07:58:56.000000000 +0100
++++ wine-1.7.12.ebuild	2014-02-08 12:23:00.585799691 +0100
+@@ -177,7 +177,13 @@
+ 				app-emulation/emul-linux-x86-soundlibs[development]
+ 				>=media-sound/pulseaudio-4.0-r1[abi_x86_32]
+ 			) )
+-			xml? ( >=app-emulation/emul-linux-x86-baselibs-20131008[development] )
++			xml? ( || (
++				>=app-emulation/emul-linux-x86-baselibs-20131008[development]
++				(
++					dev-libs/libxml2[abi_x86_32]
++					dev-libs/libxslt[abi_x86_32]
++				)
++			) )
+ 			scanner? ( app-emulation/emul-linux-x86-medialibs[development] )
+ 			ssl? ( app-emulation/emul-linux-x86-baselibs[development] )
+ 			png? ( || (
+@@ -267,7 +273,7 @@
+ 	local PATCHES=(
+ 		"${FILESDIR}"/${PN}-1.5.26-winegcc.patch #260726
+ 		"${FILESDIR}"/${PN}-1.4_rc2-multilib-portage.patch #395615
+-		"${FILESDIR}"/${PN}-1.7.2-osmesa-check.patch #429386
++		"${FILESDIR}"/${PN}-1.7.12-osmesa-check.patch #429386 #500352
+ 		"${FILESDIR}"/${PN}-1.6-memset-O3.patch #480508
+ 	)
+ 	use pulseaudio && PATCHES+=(

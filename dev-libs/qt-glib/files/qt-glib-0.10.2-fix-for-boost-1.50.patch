@@ -1,0 +1,10 @@
+diff -ub -rub qt-gstreamer-0.10.2.origin/src/QGlib/QtGLib-2.0.pc.in qt-gstreamer-0.10.2/src/QGlib/QtGLib-2.0.pc.in
+--- qt-gstreamer-0.10.2.origin/src/QGlib/QtGLib-2.0.pc.in	2012-04-15 13:03:08.000000000 +0400
++++ qt-gstreamer-0.10.2/src/QGlib/QtGLib-2.0.pc.in	2012-09-05 10:13:45.000000000 +0400
+@@ -8,5 +8,5 @@
+ Requires: QtCore
+ Requires.private: gobject-2.0
+ Version: @QTGSTREAMER_VERSION@
+-Cflags: -I${includedir}
++Cflags: -I${includedir} -I@Boost_INCLUDE_DIR@
+ Libs: -L${libdir} -lQtGLib-2.0

@@ -1,0 +1,22 @@
+--- a/x11-misc/sddm/sddm-9999.ebuild	2013-03-19 20:45:12.143082833 +0100
++++ b/x11-misc/sddm/sddm-0.1.0.ebuild	2013-03-23 17:11:11.009682633 +0100
+@@ -3,11 +3,17 @@
+ # $Header: $
+ 
+ EAPI=5
+-inherit cmake-utils git-2 toolchain-funcs
++inherit cmake-utils toolchain-funcs
+ 
+ DESCRIPTION="Simple Desktop Display Manager"
+ HOMEPAGE="https://github.com/sddm/sddm"
+-EGIT_REPO_URI="git://github.com/sddm/sddm.git"
++if [[ ${PV} == "9999" ]] ; then
++        EGIT_REPO_URI="git://github.com/sddm/sddm.git"
++        inherit git-2
++        SRC_URI=""
++else
++        SRC_URI="http://github.com/${PN}/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz"
++fi
+ 
+ LICENSE="GPL-2+ MIT CC-BY-3.0 public-domain"
+ SLOT="0"

@@ -1,0 +1,11 @@
+--- a/libreoffice-4.2.0.4.ebuild	2014-02-08 13:14:52.000000000 +0100
++++ b/libreoffice-4.2.1.1.ebuild	2014-02-20 21:33:25.449929734 +0100
+@@ -209,7 +209,7 @@
+ 	dev-util/cppunit
+ 	>=dev-util/gperf-3
+ 	dev-util/intltool
+-	>=dev-util/mdds-0.10.1:=
++	>=dev-util/mdds-0.10.2:=
+ 	virtual/pkgconfig
+ 	net-misc/npapi-sdk
+ 	>=sys-apps/findutils-4.4.2

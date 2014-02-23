@@ -1,0 +1,63 @@
+--- a/firefox-24.1.1.ebuild	2013-12-07 21:01:35.000000000 +0100
++++ b/firefox-24.2.0.ebuild	2013-12-10 15:41:34.332971292 +0100
+@@ -1,6 +1,6 @@
+ # Copyright 1999-2013 Gentoo Foundation
+ # Distributed under the terms of the GNU General Public License v2
+-# $Header: /var/cvsroot/gentoo-x86/www-client/firefox/firefox-24.1.1.ebuild,v 1.7 2013/12/07 19:52:41 ago Exp $
++# $Header: $
+ 
+ EAPI="3"
+ VIRTUALX_REQUIRED="pgo"
+@@ -39,7 +39,7 @@
+ KEYWORDS="~alpha amd64 arm hppa ~ia64 ppc ppc64 x86 ~amd64-linux ~x86-linux"
+ SLOT="0"
+ LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
+-IUSE="bindist gstreamer +jit +minimal pgo pulseaudio selinux system-cairo system-icu system-jpeg system-sqlite"
++IUSE="bindist gstreamer +jit kde +minimal pgo pulseaudio selinux system-cairo system-icu system-jpeg system-sqlite"
+ 
+ # More URIs appended below...
+ SRC_URI="${SRC_URI}
+@@ -74,7 +74,9 @@
+ 	amd64? ( ${ASM_DEPEND}
+ 		virtual/opengl )
+ 	x86? ( ${ASM_DEPEND}
+-		virtual/opengl )"
++		virtual/opengl )
++	kde? (
++		kde-misc/kmozillahelper )"
+ 
+ # No source releases for alpha|beta
+ if [[ ${PV} =~ alpha ]]; then
+@@ -143,6 +145,10 @@
+ }
+ 
+ src_prepare() {
++	# Remove patches that were upstreamed between 24.1.1 and 24.2.0
++	rm "${WORKDIR}/firefox/8001_ia64_support_bug_910845.patch" || die
++	rm "${WORKDIR}/firefox/8002_fix_versioning_bug_927073.patch" || die
++
+ 	# Apply our patches
+ 	EPATCH_SUFFIX="patch" \
+ 	EPATCH_FORCE="yes" \
+@@ -157,6 +163,21 @@
+ 			"${S}"/build/unix/run-mozilla.sh || die "sed failed!"
+ 	fi
+ 
++	# Enable KDE integration
++	if use kde; then
++		install -m 644 "${FILESDIR}/kde.js" browser/app/profile/kde.js
++
++		# patches taken from http://www.rosenauer.org/hg/mozilla
++		epatch "${FILESDIR}"/mozilla-kde-24.1.1.patch
++		epatch "${FILESDIR}"/firefox-kde-24.1.1.patch
++
++		# Replace wrong binary path from mozilla-kde.patch
++		sed -i 's/usr\/lib\/mozilla\/kmozillahelper/usr\/bin\/kmozillahelper/' toolkit/xre/nsKDEUtils.cpp || die
++
++		# Replace wrong desktop file name from firefox-kde.patch
++		sed -i '/BrowserApplication/ s/MozillaFirefox/firefox/' browser/components/preferences/advanced.js || die
++	fi
++
+ 	# Ensure that our plugins dir is enabled as default
+ 	sed -i -e "s:/usr/lib/mozilla/plugins:/usr/lib/nsbrowser/plugins:" \
+ 		"${S}"/xpcom/io/nsAppFileLocationProvider.cpp || die "sed failed to replace plugin path for 32bit!"

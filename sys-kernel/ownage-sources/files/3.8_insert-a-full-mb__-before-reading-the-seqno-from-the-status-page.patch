@@ -1,0 +1,57 @@
+From a3e30cef4b84f92763ed54c9934d70e2dd591246 Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Tue, 09 Oct 2012 10:31:17 +0000
+Subject: drm/i915: Insert a full mb() before reading the seqno from the status page
+
+Hopefully this will reduce a few of the missed IRQ warnings.
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+---
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index 8b81824..d45facc 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -717,14 +717,18 @@ gen6_ring_get_seqno(struct intel_ring_buffer *ring, bool lazy_coherency)
+ 	/* Workaround to force correct ordering between irq and seqno writes on
+ 	 * ivb (and maybe also on snb) by reading from a CS register (like
+ 	 * ACTHD) before reading the status page. */
+-	if (!lazy_coherency)
++	if (!lazy_coherency) {
+ 		intel_ring_get_active_head(ring);
++		mb();
++	}
+ 	return intel_read_status_page(ring, I915_GEM_HWS_INDEX);
+ }
+ 
+ static u32
+ ring_get_seqno(struct intel_ring_buffer *ring, bool lazy_coherency)
+ {
++	if (!lazy_coherency)
++		mb();
+ 	return intel_read_status_page(ring, I915_GEM_HWS_INDEX);
+ }
+ 
+@@ -732,6 +736,8 @@ static u32
+ pc_render_get_seqno(struct intel_ring_buffer *ring, bool lazy_coherency)
+ {
+ 	struct pipe_control *pc = ring->private;
++	if (!lazy_coherency)
++		mb();
+ 	return pc->cpu_page[0];
+ }
+ 
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.h b/drivers/gpu/drm/i915/intel_ringbuffer.h
+index 84ca894..0025dc7 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.h
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.h
+@@ -162,8 +162,6 @@ static inline u32
+ intel_read_status_page(struct intel_ring_buffer *ring,
+ 		       int reg)
+ {
+-	/* Ensure that the compiler doesn't optimize away the load. */
+-	barrier();
+ 	return ring->status_page.page_addr[reg];
+ }
+ 
+--
+cgit v0.9.0.2-2-gbebe

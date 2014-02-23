@@ -1,0 +1,40 @@
+From 97c809fd9cf5e914322b53773ad0d67efe503fde Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Tue, 09 Oct 2012 18:24:38 +0000
+Subject: drm/i915: Only apply the mb() when flushing the GTT domain during a finish
+
+Now that we seem to have brought order to the GTT barriers, the last one
+to review is the terminal barrier before we unbind the buffer from the
+GTT. This needs to only be performed if the buffer still resides in the
+GTT domain, and so we can skip some needless barriers otherwise.
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reviewed-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index ce70655..5bb370f 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -2407,15 +2407,15 @@ static void i915_gem_object_finish_gtt(struct drm_i915_gem_object *obj)
+ {
+ 	u32 old_write_domain, old_read_domains;
+ 
+-	/* Act a barrier for all accesses through the GTT */
+-	mb();
+-
+ 	/* Force a pagefault for domain tracking on next user access */
+ 	i915_gem_release_mmap(obj);
+ 
+ 	if ((obj->base.read_domains & I915_GEM_DOMAIN_GTT) == 0)
+ 		return;
+ 
++	/* Wait for any direct GTT access to complete */
++	mb();
++
+ 	old_read_domains = obj->base.read_domains;
+ 	old_write_domain = obj->base.write_domain;
+ 
+--
+cgit v0.9.0.2-2-gbebe
+

@@ -1,0 +1,41 @@
+--- a/scp-dbus-service.py	2013-09-17 13:21:06.000000000 +0200
++++ b/scp-dbus-service.py	2013-12-01 13:59:09.085504004 +0100
+@@ -23,7 +23,6 @@
+ import dbus.service
+ from gi.repository import GObject
+ from gi.repository import GLib
+-from gi.repository import Gdk
+ import sys
+ 
+ from debug import *
+@@ -32,7 +31,6 @@
+ import cups
+ import cupshelpers
+ import dnssdresolve
+-import jobviewer
+ import newprinter
+ import PhysicalDevice
+ import ppdcache
+@@ -430,13 +428,12 @@
+         self.remove_from_connection ()
+ 
+ class ConfigPrintingJobApplet(dbus.service.Object):
++    import jobviewer
+     def __init__ (self, bus, path):
+         bus_name = dbus.service.BusName (CONFIG_BUS, bus=bus)
+         dbus.service.Object.__init__ (self, bus_name=bus_name, object_path=path)
+-        Gdk.threads_enter ()
+         self.jobapplet = jobviewer.JobViewer(bus=dbus.SystemBus (),
+                                              applet=True, my_jobs=True)
+-        Gdk.threads_leave ()
+         handle = self.jobapplet.connect ('finished', self.on_jobapplet_finished)
+         self.finished_handle = handle
+         self.has_finished = False
+@@ -580,7 +577,6 @@
+         pass
+ 
+     ppdippstr.init ()
+-    Gdk.threads_init ()
+     from dbus.glib import DBusGMainLoop
+     DBusGMainLoop (set_as_default=True)
+ 

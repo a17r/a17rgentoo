@@ -1,0 +1,29 @@
+From 86c66e2aed42acbd3a184b370cb3fc878009ffe4 Mon Sep 17 00:00:00 2001
+From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Date: Tue, 12 Feb 2013 20:01:38 +0000
+Subject: drm/i915: Print the pipe control page GTT address
+
+We already print the HWS addresses during init, so do the same for the
+pipe control page. Reduces guesswork when looking at hex addresses
+later.
+
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index 00525ff..9b8b058 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -467,6 +467,9 @@ init_pipe_control(struct intel_ring_buffer *ring)
+ 	if (pc->cpu_page == NULL)
+ 		goto err_unpin;
+ 
++	DRM_DEBUG_DRIVER("%s pipe control offset: 0x%08x\n",
++			 ring->name, pc->gtt_offset);
++
+ 	pc->obj = obj;
+ 	ring->private = pc;
+ 	return 0;
+--
+cgit v0.9.0.2-2-gbebe
+

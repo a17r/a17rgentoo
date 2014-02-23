@@ -1,0 +1,69 @@
+--- a/CMakeLists.txt	2012-04-15 11:03:08.000000000 +0200
++++ b/CMakeLists.txt	2012-10-21 14:55:12.498678440 +0200
+@@ -7,9 +7,9 @@
+ 
+ option(QTGSTREAMER_STATIC "Build QtGStreamer as a static library" OFF)
+ option(QTGSTREAMER_TESTS "Build QtGStreamer's tests" OFF)
+-option(QTGSTREAMER_EXAMPLES "Build QtGStreamer's examples" ON)
++option(QTGSTREAMER_EXAMPLES "Build QtGStreamer's examples" OFF)
+ option(QTGSTREAMER_CODEGEN "Build and use QtGStreamer's codegen" OFF)
+-option(USE_GST_PLUGIN_DIR "Install gstreamer plugins at the system location" ON)
++option(USE_GST_PLUGIN_DIR "Install gstreamer plugins at the system location" OFF)
+ option(USE_QT_PLUGIN_DIR "Install qt plugins at the system location" ON)
+ 
+ include(MacroLogFeature)
+@@ -35,7 +35,7 @@
+ 
+ # this just sets the QTGSTREAMER_* cmake variables
+ set(BUILDING_QTGSTREAMER TRUE)
+-find_package(QtGStreamer REQUIRED)
++find_package(QtGStreamer)
+ 
+ if (${CMAKE_VERSION} VERSION_LESS "2.8.6")
+     find_package(Automoc4)
+@@ -54,24 +54,6 @@
+     endmacro()
+ endif()
+ 
+-find_package(GStreamer 0.10.33 COMPONENTS base)
+-macro_log_feature(GSTREAMER_FOUND "GStreamer" "Required to build QtGStreamer"
+-                                  "http://gstreamer.freedesktop.org/" TRUE "0.10.33")
+-macro_log_feature(GSTREAMER_BASE_LIBRARY_FOUND "GStreamer base library"
+-                                               "Used for building the qwidgetvideosink element"
+-                                               "http://gstreamer.freedesktop.org/" FALSE "0.10.33")
+-
+-find_package(GStreamerPluginsBase 0.10.33 COMPONENTS app interfaces video)
+-macro_log_feature(GSTREAMER_APP_LIBRARY_FOUND "GStreamer app library"
+-                                              "Required to build QtGStreamerUtils"
+-                                              "http://gstreamer.freedesktop.org/" TRUE "0.10.33")
+-macro_log_feature(GSTREAMER_INTERFACES_LIBRARY_FOUND "GStreamer interfaces library"
+-                                                "Required to build QtGStreamer"
+-                                                "http://gstreamer.freedesktop.org/" TRUE "0.10.33")
+-macro_log_feature(GSTREAMER_VIDEO_LIBRARY_FOUND "GStreamer video library"
+-                                                "Used for building the qwidgetvideosink element"
+-                                                "http://gstreamer.freedesktop.org/" FALSE "0.10.33")
+-
+ find_package(GLIB2)
+ macro_log_feature(GLIB2_FOUND "GLib" "Required to build QtGLib" "http://www.gtk.org/" TRUE)
+ 
+--- a/src/CMakeLists.txt	2012-04-15 11:03:08.000000000 +0200
++++ b/src/CMakeLists.txt.new	2012-10-21 15:34:02.140665181 +0200
+@@ -48,18 +48,6 @@
+ 
+ # Build the libraries
+ add_subdirectory(QGlib)
+-add_subdirectory(QGst)
+-
+-# Build the qml plugin
+-if (QT_QTDECLARATIVE_FOUND)
+-    add_subdirectory(qml)
+-endif()
+-
+-# Install the cmake scripts that are used to find the installed library from external projects
+-install(EXPORT ${EXPORT_TARGET_SET} DESTINATION ${LIB_INSTALL_DIR}/QtGStreamer)
+-install(FILES ${CMAKE_SOURCE_DIR}/cmake/modules/FindQtGStreamer.cmake
+-        DESTINATION ${LIB_INSTALL_DIR}/QtGStreamer
+-        RENAME QtGStreamerConfig.cmake)
+ 
+ # Install pkgconfig files
+ file(GLOB_RECURSE PC_IN_FILES "*.pc.in")

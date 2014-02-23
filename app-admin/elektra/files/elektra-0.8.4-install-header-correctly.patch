@@ -1,0 +1,41 @@
+From f8e80cce780ccbd2f602ba452e9a48ef710e7b2f Mon Sep 17 00:00:00 2001
+From: Markus Raab <elektra@markus-raab.org>
+Date: Fri, 17 Jan 2014 13:02:35 +0100
+Subject: [PATCH] install types.hpp correctly (thanks to Christopher Meng)
+
+---
+ doc/todo/CURRENT                |    5 +++++
+ src/plugins/type/CMakeLists.txt |    3 ++-
+ 2 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/doc/todo/CURRENT b/doc/todo/CURRENT
+index c8e85fa..2ad3b5a 100644
+--- a/doc/todo/CURRENT
++++ b/doc/todo/CURRENT
+@@ -10,3 +10,8 @@ debian:
+ 	enable (fix) tests
+ 	add examples as package
+ 	enable all plugins (struct, type, validation!!!)
++
++
++doxygen -u
++types.hpp installed to /usr/lib
++
+diff --git a/src/plugins/type/CMakeLists.txt b/src/plugins/type/CMakeLists.txt
+index 1507e92..c8500f0 100644
+--- a/src/plugins/type/CMakeLists.txt
++++ b/src/plugins/type/CMakeLists.txt
+@@ -19,7 +19,8 @@ install (TARGETS ${PLUGIN_NAME}
+ add_headers (HDR_FILES)
+ add_cppheaders (HDR_FILES)
+ 
+-install (FILES types.hpp DESTINATION lib${LIB_SUFFIX}/${TARGET_PLUGIN_FOLDER})
++install (FILES types.hpp
++	DESTINATION include/${TARGET_INCLUDE_FOLDER})
+ 
+ #this test case works for full and static builds
+ #it will not relink correctly
+-- 
+1.7.1
+
+

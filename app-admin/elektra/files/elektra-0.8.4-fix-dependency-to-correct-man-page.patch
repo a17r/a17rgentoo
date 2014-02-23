@@ -1,0 +1,26 @@
+From 50f232651e277324430d3375565b738ffa123f0d Mon Sep 17 00:00:00 2001
+From: Markus Raab <elektra@markus-raab.org>
+Date: Fri, 7 Feb 2014 09:18:42 +0100
+Subject: [PATCH] fix dependency to correct man page
+
+---
+ doc/CMakeLists.txt |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/doc/CMakeLists.txt b/doc/CMakeLists.txt
+index ae43ea6..966c7e5 100644
+--- a/doc/CMakeLists.txt
++++ b/doc/CMakeLists.txt
+@@ -56,7 +56,7 @@ if (DOXYGEN_FOUND)
+ 	)
+ 
+ 	do_doc(${OUTPUT_DIRECTORY}/html index.html)
+-	do_doc(${OUTPUT_DIRECTORY}/man man3/kdb.3)
++	do_doc(${OUTPUT_DIRECTORY}/man man3elektra/kdb.3elektra)
+ 
+ 	if (WITH_LATEX)
+ 		do_doc(${OUTPUT_DIRECTORY}/latex refman.tex)
+-- 
+1.7.1
+
+

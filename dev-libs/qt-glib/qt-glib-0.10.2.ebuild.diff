@@ -1,0 +1,57 @@
+--- media-libs/qt-gstreamer/qt-gstreamer-0.10.2.ebuild	2012-09-11 12:31:20.000000000 +0200
++++ dev-libs/qt-glib/qt-glib-0.10.2.ebuild	2012-10-21 23:39:18.924853161 +0200
+@@ -6,8 +6,12 @@
+ 
+ QT_MINIMAL="4.7.0"
+ 
++MY_PN="qt-gstreamer"
++MY_P="${MY_PN}-${PV}"
++S=${WORKDIR}/${MY_P}
++
+ if [[ ${PV} != *9999* ]]; then
+-	SRC_URI="http://gstreamer.freedesktop.org/src/${PN}/${P}.tar.bz2"
++	SRC_URI="http://gstreamer.freedesktop.org/src/${PN}/${MY_P}.tar.bz2"
+ 	KEYWORDS="amd64 x86"
+ else
+ 	GIT_ECLASS="git-2"
+@@ -17,7 +21,7 @@
+ 
+ inherit cmake-utils ${GIT_ECLASS}
+ 
+-DESCRIPTION="QtGStreamer provides C++ bindings for GStreamer with a Qt-style API."
++DESCRIPTION="Standalone QtGLib derived from QtGstreamer."
+ HOMEPAGE="http://gstreamer.freedesktop.org/wiki/QtGStreamer"
+ 
+ LICENSE="LGPL-2.1"
+@@ -28,8 +32,6 @@
+ 	dev-libs/glib
+ 	>=dev-libs/boost-1.40
+ 	>=dev-util/boost-build-1.40
+-	>=media-libs/gstreamer-0.10.33:0.10
+-	>=media-libs/gst-plugins-base-0.10.33:0.10
+ 	>=x11-libs/qt-core-${QT_MINIMAL}:4
+ 	>=x11-libs/qt-declarative-${QT_MINIMAL}:4
+ 	>=x11-libs/qt-gui-${QT_MINIMAL}:4
+@@ -37,13 +39,19 @@
+ "
+ DEPEND="
+ 	${RDEPEND}
++	!<media-libs/qt-gstreamer-0.10.2-r1
+ 	test? ( >=x11-libs/qt-test-${QT_MINIMAL}:4 )
+ "
+ 
++src_prepare(){
++	#patches to rip out QtGstreamer
++	epatch "${FILESDIR}/qt-glib-0.10.2-rip-out-gstreamer.patch"
++}
++
+ src_configure() {
+-	local mycmakeargs=(
+-		$(cmake-utils_use test QTGSTREAMER_TESTS)
+-	)
++#	local mycmakeargs=(
++#		$(cmake-utils_use test QTGSTREAMER_TESTS)
++#	)
+ 
+ 	cmake-utils_src_configure
+ }

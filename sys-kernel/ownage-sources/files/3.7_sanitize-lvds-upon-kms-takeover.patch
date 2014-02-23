@@ -1,0 +1,114 @@
+From aff90179440fd1aacb28fa5d63464c2bb48ce7d5 Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Sun, 30 Dec 2012 11:16:35 +0000
+Subject: [PATCH] drm/i915: Sanitize LVDS state upon KMS takeover
+
+We associate various auxiliary state like the panel fitter with the LVDS
+encoder. So if the LVDS encoder is switched off by the BIOS, but the
+panel fitter is left on, we never try to turn off the panel fitter and
+leave it still attached to the pipe - which can cause blurry output
+elsewhere.
+
+Reported-by: andreas.sturmlechner@gmail.com
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=58867
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+---
+ drivers/gpu/drm/i915/intel_display.c |   13 +++++++++++++
+ drivers/gpu/drm/i915/intel_drv.h     |    7 +++++++
+ drivers/gpu/drm/i915/intel_lvds.c    |   10 ++++++++++
+ 3 files changed, 30 insertions(+)
+
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 4157681..83274e3 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -8888,6 +8888,12 @@ static void intel_sanitize_crtc(struct intel_crtc *crtc)
+ 	}
+ }
+ 
++static void intel_sanitize_connector(struct intel_connector *connector)
++{
++	if (connector->sanitize)
++		connector->sanitize(connector);
++}
++
+ static void intel_sanitize_encoder(struct intel_encoder *encoder)
+ {
+ 	struct intel_connector *connector;
+@@ -8929,6 +8935,9 @@ static void intel_sanitize_encoder(struct intel_encoder *encoder)
+ 	}
+ 	/* Enabled encoders without active connectors will be fixed in
+ 	 * the crtc fixup. */
++
++	if (encoder->sanitize)
++		encoder->sanitize(encoder);
+ }
+ 
+ /* Scan out the current hw modeset state, sanitizes it and maps it into the drm
+@@ -9037,6 +9046,10 @@ void intel_modeset_setup_hw_state(struct drm_device *dev,
+ 	}
+ 
+ 	/* HW state is read out, now we need to sanitize this mess. */
++	list_for_each_entry(connector, &dev->mode_config.connector_list,
++			    base.head)
++		intel_sanitize_connector(connector);
++
+ 	list_for_each_entry(encoder, &dev->mode_config.encoder_list,
+ 			    base.head)
+ 		intel_sanitize_encoder(encoder);
+diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+index 179ea5f..ffd0149 100644
+--- a/drivers/gpu/drm/i915/intel_drv.h
++++ b/drivers/gpu/drm/i915/intel_drv.h
+@@ -161,6 +161,10 @@ struct intel_encoder {
+ 	 */
+ 	bool cloneable;
+ 	bool connectors_active;
++
++	/* Clear any spurious state leftover from the BIOS */
++	void (*sanitize)(struct intel_encoder *);
++
+ 	void (*hot_plug)(struct intel_encoder *);
+ 	void (*pre_pll_enable)(struct intel_encoder *);
+ 	void (*pre_enable)(struct intel_encoder *);
+@@ -195,6 +199,9 @@ struct intel_connector {
+ 	 */
+ 	struct intel_encoder *new_encoder;
+ 
++	/* Clear any spurious state leftover from the BIOS */
++	bool (*sanitize)(struct intel_connector *);
++
+ 	/* Reads out the current hw, returning true if the connector is enabled
+ 	 * and active (i.e. dpms ON state). */
+ 	bool (*get_hw_state)(struct intel_connector *);
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index efd9045..2408082 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -246,6 +246,15 @@ static void intel_disable_lvds(struct intel_encoder *encoder)
+ 	POSTING_READ(lvds_encoder->reg);
+ }
+ 
++static void intel_sanitize_lvds(struct intel_encoder *encoder)
++{
++	if (encoder->base.crtc)
++		return;
++
++	/* Make sure the pfitter is off, and everything is in low power state */
++	intel_disable_lvds(encoder);
++}
++
+ static int intel_lvds_mode_valid(struct drm_connector *connector,
+ 				 struct drm_display_mode *mode)
+ {
+@@ -1122,6 +1131,7 @@ bool intel_lvds_init(struct drm_device *dev)
+ 	drm_encoder_init(dev, &intel_encoder->base, &intel_lvds_enc_funcs,
+ 			 DRM_MODE_ENCODER_LVDS);
+ 
++	intel_encoder->sanitize = intel_sanitize_lvds;
+ 	intel_encoder->enable = intel_enable_lvds;
+ 	intel_encoder->pre_pll_enable = intel_pre_pll_enable_lvds;
+ 	intel_encoder->disable = intel_disable_lvds;
+-- 
+1.7.10.4
+

@@ -1,0 +1,44 @@
+From: Dave Airlie <airlied@redhat.com>
+Date: Mon, 14 Mar 2011 04:17:55 +0000 (+1000)
+Subject: drm/i915: disable opregion lid detection for now.
+X-Git-Tag: v2.6.39-rc2~3^2~28
+X-Git-Url: http://git.kernel.org/?p=linux%2Fkernel%2Fgit%2Ftorvalds%2Flinux.git;a=commitdiff_plain;h=bcd5023c961a44c7149936553b6929b2b233dd27;hp=34db18abd376b2075c760c38f0b861aed379415d
+
+drm/i915: disable opregion lid detection for now.
+
+At least on my HP 2540p this is wrong at bootup, fine
+at any other time once a lid event has occured. This is due to
+_REG vs _INI ordering in the ACPI tables.
+
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+
+2012-03-04
+	* Revert this.
+
+--- a/drivers/gpu/drm/i915/intel_panel.c	2012-01-05 00:55:44.000000000 +0100
++++ b/drivers/gpu/drm/i915/intel_panel.c	2012-03-04 14:03:20.803513980 +0100
+@@ -287,9 +287,7 @@
+ enum drm_connector_status
+ intel_panel_detect(struct drm_device *dev)
+ {
+-#if 0
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+-#endif
+ 
+ 	if (i915_panel_ignore_lid)
+ 		return i915_panel_ignore_lid > 0 ?
+@@ -298,13 +296,11 @@
+ 
+ 	/* opregion lid state on HP 2540p is wrong at boot up,
+ 	 * appears to be either the BIOS or Linux ACPI fault */
+-#if 0
+ 	/* Assume that the BIOS does not lie through the OpRegion... */
+ 	if (dev_priv->opregion.lid_state)
+ 		return ioread32(dev_priv->opregion.lid_state) & 0x1 ?
+ 			connector_status_connected :
+ 			connector_status_disconnected;
+-#endif
+ 
+ 	return connector_status_unknown;
+ }

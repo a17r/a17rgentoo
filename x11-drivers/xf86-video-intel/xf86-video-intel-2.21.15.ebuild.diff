@@ -1,0 +1,12 @@
+--- a/xf86-video-intel-2.21.15.ebuild	2013-11-08 20:31:40.000000000 +0100
++++ b/xf86-video-intel-2.21.15.ebuild	2014-01-01 17:39:36.332030071 +0100
+@@ -42,6 +42,9 @@
+ 	# see bug #490342
+ 	sed -e "s/DRI_CFLAGS/DRI1_CFLAGS/g" -i configure
+ 	xorg-2_src_prepare
++
++	# see bug #496682
++	epatch "${FILESDIR}/${PN}-2.21.15-handle-updates-to-DamageUnregister-API.patch"
+ }
+ 
+ src_configure() {
