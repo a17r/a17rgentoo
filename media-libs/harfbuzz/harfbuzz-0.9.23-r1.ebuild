@@ -26,7 +26,7 @@ RDEPEND="
 	glib? ( dev-libs/glib:2[${MULTILIB_USEDEP}] )
 	graphite? ( media-gfx/graphite2:=[${MULTILIB_USEDEP}] )
 	icu? ( dev-libs/icu:=[${MULTILIB_USEDEP}] )
-	introspection? ( >=dev-libs/gobject-introspection-1.32[${MULTILIB_USEDEP}] )
+	introspection? ( >=dev-libs/gobject-introspection-1.34[${MULTILIB_USEDEP}] )
 	truetype? ( media-libs/freetype:2=[${MULTILIB_USEDEP}] )
 "
 DEPEND="${RDEPEND}
