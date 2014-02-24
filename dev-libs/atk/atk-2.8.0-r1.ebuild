@@ -1,11 +1,11 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: /var/cvsroot/gentoo-x86/dev-libs/atk/atk-2.8.0.ebuild,v 1.2 2013/07/24 21:46:03 eva Exp $
 
 EAPI="5"
 GCONF_DEBUG="no"
 
-inherit gnome2 multilib-minimal
+inherit gnome2 multilib multilib-minimal
 
 DESCRIPTION="GTK+ & GNOME Accessibility Toolkit"
 HOMEPAGE="http://projects.gnome.org/accessibility/"
