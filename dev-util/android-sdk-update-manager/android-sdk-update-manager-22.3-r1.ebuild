@@ -1,10 +1,10 @@
 # Copyright 1999-2013 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/dev-util/android-sdk-update-manager/android-sdk-update-manager-21.1.ebuild,v 1.1 2013/03/03 21:41:23 rich0 Exp $
+# $Header: /var/cvsroot/gentoo-x86/dev-util/android-sdk-update-manager/android-sdk-update-manager-22.3.ebuild,v 1.2 2013/11/20 23:49:06 rich0 Exp $
 
-EAPI="3"
+EAPI="5"
 
-inherit eutils user
+inherit eutils user udev
 
 MY_P="android-sdk_r${PV}-linux"
 
@@ -22,9 +22,9 @@ DEPEND="app-arch/tar
 		app-arch/gzip"
 RDEPEND=">=virtual/jdk-1.5
 	>=dev-java/ant-core-1.6.5
-	>=dev-java/swt-3.5[cairo]
+	|| ( dev-java/swt:3.7[cairo] dev-java/swt:3.6[cairo] )
 	amd64? ( >=x11-libs/gtk+-2.24.20-r1:2[abi_x86_32] )
-	x86? ( x11-libs/gtk+:2 )"
+	x86? ( x11-libs/gtk+:2= )"
 
 ANDROID_SDK_DIR="/opt/${PN}"
 QA_FLAGS_IGNORED_x86="
@@ -58,15 +58,15 @@ src_install(){
 	cp -pPR tools/* "${ED}${ANDROID_SDK_DIR}/tools" || die "failed to install tools"
 
 	# Maybe this is needed for the tools directory too.
-	dodir "${ANDROID_SDK_DIR}"/{add-ons,docs,platforms,temp} || die "failed to dodir"
+	dodir "${ANDROID_SDK_DIR}"/{add-ons,build-tools,docs,extras,platforms,platform-tools,samples,sources,system-images,temp} || die "failed to dodir"
 
-	fowners root:android "${ANDROID_SDK_DIR}"/{,add-ons,docs,platforms,temp,tools} || die
-	fperms 0775 "${ANDROID_SDK_DIR}"/{,add-ons,docs,platforms,temp,tools} || die
+	fowners root:android "${ANDROID_SDK_DIR}"/{.,add-ons,build-tools,docs,extras,platforms,platform-tools,samples,sources,system-images,temp,tools} || die
+	fperms 0775 "${ANDROID_SDK_DIR}"/{.,add-ons,build-tools,docs,extras,platforms,platform-tools,samples,sources,system-images,temp,tools} || die
 
 	echo "PATH=\"${EPREFIX}${ANDROID_SDK_DIR}/tools:${EPREFIX}${ANDROID_SDK_DIR}/platform-tools\"" > "${T}/80${PN}" || die
 
 	SWT_PATH=
-	SWT_VERSIONS="4.2 3.7 3.6 3.5"
+	SWT_VERSIONS="3.7 3.6"
 	for version in $SWT_VERSIONS; do
 		# redirecting stderr to /dev/null
 		# not sure if this is best, but avoids misleading error messages
@@ -78,6 +78,7 @@ src_install(){
 	done
 
 	echo "ANDROID_SWT=\"${SWT_PATH}\"" >> "${T}/80${PN}" || die
+	echo "ANDROID_HOME=\"${EPREFIX}${ANDROID_SDK_DIR}\"" >> "${T}/80${PN}" || die
 
 	doenvd "${T}/80${PN}" || die
 
@@ -85,6 +86,8 @@ src_install(){
 
 	insinto "/etc/revdep-rebuild" && doins "${T}/80${PN}" || die
 
+	udev_dorules "${FILESDIR}"/80-android.rules || die
+	domenu "${FILESDIR}"/android-sdk-update-manager.desktop || die
 }
 
 pkg_postinst() {
