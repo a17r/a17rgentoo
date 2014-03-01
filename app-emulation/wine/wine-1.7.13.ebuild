@@ -185,7 +185,10 @@ COMMON_DEPEND="
 				)
 			) )
 			scanner? ( app-emulation/emul-linux-x86-medialibs[development] )
-			ssl? ( app-emulation/emul-linux-x86-baselibs[development] )
+			ssl? ( || (
+				app-emulation/emul-linux-x86-baselibs[development]
+				net-libs/gnutls:=[abi_x86_32]
+			) )
 			png? ( || (
 				app-emulation/emul-linux-x86-baselibs[development]
 				media-libs/libpng:0[abi_x86_32]
