@@ -21,7 +21,7 @@ IUSE="+cxx +crywrap dane doc examples guile nls pkcs11 static-libs test zlib ${I
 
 # NOTICE: sys-devel/autogen is required at runtime as we
 # use system libopts
-RDEPEND=">=dev-libs/libtasn1-2.14[${MULTILIB_USEDEP}]
+RDEPEND=">=dev-libs/libtasn1-3.2[${MULTILIB_USEDEP}]
 	>=dev-libs/nettle-2.7[gmp,${MULTILIB_USEDEP}]
 	dev-libs/gmp[${MULTILIB_USEDEP}]
 	sys-devel/autogen[${MULTILIB_USEDEP}]
@@ -101,7 +101,7 @@ multilib_src_configure() {
 		$(use_enable_binaries doc gtk-doc) \
 		$(use_enable_binaries doc gtk-doc-pdf) \
 		$(multilib_is_native_abi \
-			&& use_enable guile "${EPREFIX}/usr/$(get_libdir)" \
+			&& use_enable guile guile "${EPREFIX}/usr/$(get_libdir)" \
 			|| echo --disable-guile) \
 		$(use_enable crywrap) \
 		$(use_enable nls) \
