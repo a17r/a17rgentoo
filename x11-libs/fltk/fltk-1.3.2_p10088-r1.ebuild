@@ -1,20 +1,21 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/x11-libs/fltk/fltk-1.3.2.ebuild,v 1.12 2013/12/26 18:49:18 dilfridge Exp $
+# $Header: /var/cvsroot/gentoo-x86/x11-libs/fltk/fltk-1.3.2_p10088.ebuild,v 1.1 2014/02/02 11:15:30 jer Exp $
 
-EAPI=4
+EAPI=5
 
 inherit autotools eutils fdo-mime flag-o-matic versionator multilib multilib-minimal
 
-MY_P=${P/_}
+MY_PV_MAJOR=$( get_version_component_range 1-2 )
+MY_PV_REV=$( get_version_component_range 4 )
 
 DESCRIPTION="C++ user interface toolkit for X and OpenGL"
 HOMEPAGE="http://www.fltk.org/"
-SRC_URI="http://fltk.org/pub/${PN}/${PV/_}/${P/_}-source.tar.gz"
+SRC_URI="http://${PN}.org/pub/${PN}/snapshots/${PN}-${MY_PV_MAJOR}.x-${MY_PV_REV/p/r}.tar.bz2 -> ${P}.tar.bz2"
 
 SLOT="1"
 LICENSE="FLTK LGPL-2"
-KEYWORDS="alpha amd64 arm hppa ~ia64 ~mips ppc ppc64 sparc x86 ~x86-fbsd ~amd64-linux ~x86-linux ~x86-macos"
+KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd ~amd64-linux ~x86-linux ~x86-macos"
 IUSE="cairo debug doc examples games opengl pdf static-libs threads xft xinerama"
 
 RDEPEND="
@@ -40,13 +41,15 @@ DEPEND="${RDEPEND}
 INCDIR=${EPREFIX}/usr/include/fltk-${SLOT}
 LIBDIR=${EPREFIX}/usr/$(get_libdir)/fltk-${SLOT}
 
+S=${WORKDIR}/${PN}-${MY_PV_MAJOR}.x-${MY_PV_REV/p/r}
+
 multilib_src_prepare() {
 	rm -rf zlib jpeg png || die
 	epatch \
 		"${FILESDIR}"/${PN}-1.3.1-as-needed.patch \
 		"${FILESDIR}"/${PN}-1.3.2-desktop.patch \
 		"${FILESDIR}"/${PN}-1.3.0-share.patch \
-		"${FILESDIR}"/${PN}-1.3.0-conf-tests.patch
+		"${FILESDIR}"/${PN}-1.3.2-conf-tests.patch
 	sed \
 		-e 's:@HLINKS@::g' -i FL/Makefile.in || die
 	sed -i \
@@ -66,6 +69,10 @@ multilib_src_prepare() {
 		"${FILESDIR}"/FLTKConfig.cmake > CMake/FLTKConfig.cmake
 	sed -e 's:-Os::g' -i configure.in || die
 	use prefix && append-ldflags -Wl,-rpath -Wl,"${LIBDIR}"
+
+	# also in Makefile:config.guess config.sub:
+	cp misc/config.{guess,sub} . || die
+
 	eautoconf
 }
 
@@ -103,6 +110,10 @@ multilib_src_compile() {
 	fi
 }
 
+src_test() {
+	emake -C test
+}
+
 multilib_src_install() {
 	default
 	emake -C fluid \
@@ -117,7 +128,7 @@ multilib_src_install() {
 			DESTDIR="${D}" install-linux
 		emake -C documentation \
 			DESTDIR="${D}" install-linux
-		apps="${apps} sudoku blocks checkers"
+		apps+=" sudoku blocks checkers"
 	fi
 	for app in ${apps}; do
 		dosym /usr/share/icons/hicolor/32x32/apps/${app}.png \
@@ -137,9 +148,7 @@ multilib_src_install() {
 	echo "FLTK_DOCDIR=${EPREFIX}/usr/share/doc/${PF}/html" >> 99fltk-${SLOT}
 	doenvd 99fltk-${SLOT}
 
-	if ! use static-libs; then
-		rm "${ED}"/usr/lib*/fltk-1/*.a || die
-	fi
+	prune_libtool_files
 }
 
 pkg_postinst() {
