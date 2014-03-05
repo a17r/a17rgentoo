@@ -39,7 +39,7 @@ DOCS=(
 )
 
 src_prepare() {
-#	epatch "${FILESDIR}"/dispcalgui-1.2.7.0-wxversion-select.patch
+	epatch "${FILESDIR}"/dispcalgui-1.7.5.7-wxversion-select.patch
 
 #	Prohibit setup from running xdg-* programs, resulting to sandbox violation
 	cd "${S}/dispcalGUI" || die "Cannot cd to source directory."
