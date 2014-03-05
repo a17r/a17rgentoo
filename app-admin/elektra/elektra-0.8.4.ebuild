@@ -13,7 +13,7 @@ SRC_URI="ftp://ftp.markus-raab.org/${PN}/releases/${P}.tar.gz"
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="dbus doc examples iconv simpleini static-libs syslog tcl test +uname xml yajl"
+IUSE="dbus +doc examples iconv simpleini static-libs syslog tcl test +uname xml yajl"
 
 RDEPEND="dev-libs/libxml2[${MULTILIB_USEDEP}]
 	uname? ( sys-apps/coreutils )"
@@ -28,11 +28,12 @@ DOCS="doc/AUTHORS doc/CHANGES doc/NEWS doc/README doc/todo/TODO"
 
 src_prepare() {
 	# Various upstream patches to fix stuff and make ebuild hacks obsolete
-	epatch	"${FILESDIR}/${PN}-0.8.4-install-header-correctly.patch"
-	epatch	"${FILESDIR}/${PN}-0.8.4-fix-man-pages-name-collision.patch"
-	epatch	"${FILESDIR}/${PN}-0.8.4-fix-dependency-to-correct-man-page.patch"
-	# Fix manpage install dir once and for all
-	epatch	"${FILESDIR}/${PN}-0.8.4-finally-fix-manpage-install-dir.patch"
+	epatch	"${FILESDIR}/${PN}-0.8.4-install-header-correctly.patch" \
+		"${FILESDIR}/${PN}-0.8.4-fix-man-pages-name-collision.patch" \
+		"${FILESDIR}/${PN}-0.8.4-fix-dependency-to-correct-man-page.patch" \
+		"${FILESDIR}/${PN}-0.8.4-allow-different-html-and-man-paths.patch" \
+		"${FILESDIR}/${PN}-0.8.4-fix-missing-errno.patch" \
+		"${FILESDIR}/${PN}-0.8.4-remove-useless-manpages.patch"
 }
 
 src_configure() {
@@ -68,8 +69,8 @@ src_configure() {
 src_install() {
 	cmake-multilib_src_install
 
-	if use doc ; then
-		# Remove bogus files
-		rm -rf "${D}"/usr/share/man/man3elektra/_var_tmp_portage* || die
-	fi
+# 	if use doc ; then
+# 		# Remove bogus files
+# 		rm -rf "${D}"/usr/share/man/man3elektra/_var_tmp_portage* || die
+# 	fi
 }

@@ -8,19 +8,11 @@ inherit cmake-multilib eutils
 
 DESCRIPTION="universal and secure framework to store config parameters in a hierarchical key-value pair mechanism"
 HOMEPAGE="http://freedesktop.org/wiki/Software/Elektra"
-
-if [[ ${PV} == "9999" ]] ; then
-	EGIT_REPO_URI="git://gitorious.org/elektra-initiative/libelektra.git"
-	inherit git-2
-	SRC_URI=""
-	#KEYWORDS=""
-else
-	SRC_URI="ftp://ftp.markus-raab.org/${PN}/releases/${P}.tar.gz"
-	KEYWORDS="~amd64 ~x86"
-fi
+SRC_URI="ftp://ftp.markus-raab.org/${PN}/releases/${P}.tar.gz"
 
 LICENSE="BSD"
 SLOT="0"
+KEYWORDS="~amd64 ~x86"
 IUSE="dbus doc examples iconv simpleini static-libs syslog tcl test +uname xml yajl"
 
 RDEPEND="dev-libs/libxml2[${MULTILIB_USEDEP}]
@@ -63,3 +55,4 @@ src_configure() {
 
 	cmake-multilib_src_configure
 }
+
