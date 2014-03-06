@@ -55,4 +55,3 @@ src_configure() {
 
 	cmake-multilib_src_configure
 }
-
