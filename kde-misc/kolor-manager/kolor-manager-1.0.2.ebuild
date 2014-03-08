@@ -1,4 +1,4 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -8,9 +8,10 @@ inherit kde4-base
 
 DESCRIPTION="KControl module for Oyranos CMS cross desktop settings."
 HOMEPAGE="http://www.oyranos.org/wiki/index.php?title=Kolor-manager"
+SRC_URI="http://dev.gentoo.org/~creffett/distfiles/${P}.tar.xz"
 
 LICENSE="BSD-2"
-KEYWORDS=""
+KEYWORDS="~amd64 ~x86"
 SLOT="4"
 IUSE="debug"
 
