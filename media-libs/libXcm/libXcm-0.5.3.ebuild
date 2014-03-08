@@ -8,8 +8,6 @@ inherit autotools-multilib
 
 DESCRIPTION="reference implementation of the net-color spec"
 HOMEPAGE="http://www.oyranos.org/libxcm/"
-DESCRIPTION="reference implementation of the net-color spec"
-HOMEPAGE="http://www.oyranos.org/libxcm/"
 if [[ ${PV} == "9999" ]] ; then
 	EGIT_REPO_URI="git://www.oyranos.org/git/xcolor"
 	inherit git-2
