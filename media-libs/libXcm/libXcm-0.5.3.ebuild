@@ -8,11 +8,20 @@ inherit autotools-multilib
 
 DESCRIPTION="reference implementation of the net-color spec"
 HOMEPAGE="http://www.oyranos.org/libxcm/"
-SRC_URI="mirror://sourceforge/oyranos/${PN}/${PN}-0.4.x/${P}.tar.bz2"
+DESCRIPTION="reference implementation of the net-color spec"
+HOMEPAGE="http://www.oyranos.org/libxcm/"
+if [[ ${PV} == "9999" ]] ; then
+	EGIT_REPO_URI="git://www.oyranos.org/git/xcolor"
+	inherit git-2
+	SRC_URI=""
+	KEYWORDS=""
+else
+	SRC_URI="mirror://sourceforge/oyranos/${PN}/${PN}-0.4.x/${P}.tar.bz2"
+	KEYWORDS="~amd64 ~ppc ~x86"
+fi
 
 LICENSE="MIT"
 SLOT="0"
-KEYWORDS="amd64 ~ppc ~x86"
 IUSE="X doc static-libs"
 
 RDEPEND="X? ( x11-libs/libXmu[${MULTILIB_USEDEP}]
