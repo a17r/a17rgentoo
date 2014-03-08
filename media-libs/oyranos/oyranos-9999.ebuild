@@ -1,4 +1,4 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: /var/cvsroot/gentoo-x86/media-libs/oyranos/oyranos-0.9.4-r1.ebuild,v 1.5 2013/08/15 03:38:17 patrick Exp $
 
@@ -11,13 +11,14 @@ HOMEPAGE="http://www.oyranos.org/"
 if [[ ${PV} == "9999" ]] ; then
 	EGIT_REPO_URI="git://www.${PN}.org/git/${PN}"
 	inherit git-2
+	KEYWORDS=""
 else
-	SRC_URI="mirror://sourceforge/oyranos/Oyranos/Oyranos%200.4/${P}.tar.bz2"
+	SRC_URI="mirror://sourceforge/oyranos/Oyranos/Oyranos%200.9/${P}.tar.bz2"
+	KEYWORDS="~amd64 ~x86"
 fi
 
 LICENSE="BSD"
 SLOT="0"
-KEYWORDS=""
 IUSE="X cairo cups doc exif fltk qt4 raw test"
 
 RDEPEND=">=app-admin/elektra-0.7[${MULTILIB_USEDEP}]
@@ -63,7 +64,7 @@ src_prepare() {
 	einfo remove bundled libs
 	rm -rf elektra* yajl || die
 
-	epatch "${FILESDIR}/${PN}"-9999-buildsystem.patch
+	epatch "${FILESDIR}/${PN}"-0.9.5-buildsystem.patch
 
 	if use fltk ; then
 		#src/examples does not include fltk flags
