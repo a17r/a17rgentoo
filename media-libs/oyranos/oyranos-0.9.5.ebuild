@@ -29,7 +29,7 @@ RDEPEND=">=app-admin/elektra-0.7[${MULTILIB_USEDEP}]
 	media-libs/icc-profiles-openicc
 	media-libs/lcms[${MULTILIB_USEDEP}]
 	media-libs/libpng:0[${MULTILIB_USEDEP}]
-	>=media-libs/libXcm-0.5.2[${MULTILIB_USEDEP}]
+	>=media-libs/libXcm-0.5.3[${MULTILIB_USEDEP}]
 	X? ( x11-libs/libXfixes[${MULTILIB_USEDEP}]
 		x11-libs/libXrandr[${MULTILIB_USEDEP}]
 		x11-libs/libXxf86vm[${MULTILIB_USEDEP}]
