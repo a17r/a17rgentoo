@@ -5,13 +5,12 @@
 EAPI=5
 
 MY_PN="Caledonia-KSplash"
-MY_PV=""
+MY_PV=${PV}
 MY_P="${MY_PN}-${MY_PV}"
 
 DESCRIPTION="This is the Caledonia KSplash theme."
 HOMEPAGE="http://caledonia.sourceforge.net/get.html"
-SRC_URI="http://sourceforge.net/projects/caledonia/files/Caledonia%20KSplash/${MY_PN}.tar.gz/download
-	-> ${PF}.tar.gz"
+SRC_URI="mirror://sourceforge/caledonia/Caledonia%20KSplash/${MY_P}.tar.gz"
 
 LICENSE="CC-BY-SA-3.0"
 KEYWORDS="~amd64 ~x86"

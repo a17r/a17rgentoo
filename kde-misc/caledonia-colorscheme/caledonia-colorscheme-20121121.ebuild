@@ -1,24 +1,20 @@
-# Copyright 1999-2012 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
 EAPI=5
 
 MY_PN="Caledonia.colors"
-MY_PV="${PV}"
+MY_PV=${PV}
 MY_P="${MY_PN}-${MY_PV}"
 
 DESCRIPTION="This is the Caledonia KSplash theme."
 HOMEPAGE="http://caledonia.sourceforge.net/get.html"
-SRC_URI="http://sourceforge.net/projects/caledonia/files/Caledonia%20Color%20Scheme/${MY_PN}/download
-	-> ${MY_P}"
+SRC_URI="mirror://sourceforge/caledonia/Caledonia%20Color%20Scheme/${MY_PN} -> ${MY_P}"
 
 LICENSE="CC-BY-SA-3.0"
 KEYWORDS="~amd64 ~x86"
 SLOT="0"
-
-RDEPEND="kde-base/ksplash"
-DEPEND="${RDEPEND}"
 
 S="${WORKDIR}"
 
