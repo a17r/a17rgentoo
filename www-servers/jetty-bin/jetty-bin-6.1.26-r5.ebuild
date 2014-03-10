@@ -14,7 +14,6 @@ KEYWORDS="~amd64 ~x86"
 LICENSE="Apache-2.0"
 
 MY_PN="jetty"
-#MY_JETTY="${PN}-${SLOT}"
 MY_JETTY="${MY_PN}-${SLOT}"
 
 IUSE="anttasks client ldap ssl stats tomcat7"
@@ -36,7 +35,7 @@ RDEPEND="${DEPEND}
 	>=dev-java/sun-javamail-1.4
 	>=java-virtuals/jaf-1.1
 	|| ( virtual/jre:1.6
-	     virtual/jre:1.7
+		virtual/jre:1.7
 	)
 	java-virtuals/transaction-api:0"
 
