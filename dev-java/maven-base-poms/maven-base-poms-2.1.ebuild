@@ -1,4 +1,4 @@
-# Copyright 1999-2007 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -18,11 +18,10 @@ RDEPEND=">virtual/jre-1.4"
 S="${WORKDIR}"
 src_unpack() {
 	for i in "${FILESDIR}"/*xml; do
-		cp $i ${S} || die
+		cp $i "${S}" || die
 	done
 	java-maven-2_rewrite_poms maven-2.1.xml maven-parent-2.1.xml
 }
-
 
 src_install() {
 	for i in maven-2.1.xml maven-parent-2.1.xml; do
@@ -30,7 +29,6 @@ src_install() {
 		java-maven-2_install_one ${i}
 	done
 }
-
 
 ##
 ## Note: install base poms (maven one and maven-parent one) for maven to work properly
