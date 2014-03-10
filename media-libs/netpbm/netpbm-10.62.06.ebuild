@@ -1,6 +1,6 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/media-libs/netpbm/netpbm-10.61.00.ebuild,v 1.3 2013/05/12 21:25:01 vapier Exp $
+# $Header: $
 
 EAPI="4"
 
@@ -12,11 +12,11 @@ SRC_URI="mirror://gentoo/${P}.tar.xz"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~x86-fbsd"
+KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
 IUSE="doc jbig jpeg jpeg2k png rle svga tiff X xml zlib"
 
 RDEPEND="jbig? ( media-libs/jbigkit )
-	jpeg? ( virtual/jpeg )
+	jpeg? ( virtual/jpeg:0 )
 	jpeg2k? ( media-libs/jasper )
 	png? ( >=media-libs/libpng-1.4:0 )
 	rle? ( media-libs/urt )
@@ -65,16 +65,16 @@ src_prepare() {
 
 	# disable certain tests based on active USE flags
 	local del=(
-		$(usex rle '' utahrle-roundtrip)
 		$(usex jbig '' 'jbigtopnm pnmtojbig')
+		$(usex rle '' 'utahrle-roundtrip')
 	)
 	if [[ ${#del[@]} -gt 0 ]] ; then
 		sed -i -r $(printf -- ' -e /%s.test/d' "${del[@]}") test/Test-Order || die
 	fi
 	del=(
 		pnmtofiasco fiascotopnm # We always disable fiasco
-		$(usex rle '' 'pnmtorle rletopnm')
 		$(usex jbig '' 'jbigtopnm pnmtojbig')
+		$(usex rle '' 'pnmtorle rletopnm')
 	)
 	if [[ ${#del[@]} -gt 0 ]] ; then
 		sed -i -r $(printf -- ' -e s/\<%s\>(:.ok)?//' "${del[@]}") test/all-in-place.{ok,test} || die
@@ -161,20 +161,20 @@ src_test() {
 src_install() {
 	# Subdir make targets like to use `mkdir` all over the place
 	# without any actual dependencies, thus the -j1.
-	emake -j1 package pkgdir="${D}"/usr
+	emake -j1 package pkgdir="${ED}"/usr
 
-	[[ $(get_libdir) != "lib" ]] && mv "${D}"/usr/lib "${D}"/usr/$(get_libdir)
+	[[ $(get_libdir) != "lib" ]] && mv "${ED}"/usr/lib "${ED}"/usr/$(get_libdir)
 
 	# Remove cruft that we don't need, and move around stuff we want
-	rm "${D}"/usr/bin/{doc.url,manweb} || die
-	rm -r "${D}"/usr/man/web || die
-	rm -r "${D}"/usr/link || die
-	rm "${D}"/usr/{README,VERSION,config_template,pkginfo} || die
+	rm "${ED}"/usr/bin/{doc.url,manweb} || die
+	rm -r "${ED}"/usr/man/web || die
+	rm -r "${ED}"/usr/link || die
+	rm "${ED}"/usr/{README,VERSION,config_template,pkginfo} || die
 	dodir /usr/share
-	mv "${D}"/usr/man "${D}"/usr/share/ || die
-	mv "${D}"/usr/misc "${D}"/usr/share/netpbm || die
+	mv "${ED}"/usr/man "${ED}"/usr/share/ || die
+	mv "${ED}"/usr/misc "${ED}"/usr/share/netpbm || die
 
-	#doman userguide/*.[0-9]
+	doman userguide/*.[0-9]
 	use doc && dohtml -r userguide
 	dodoc README
 	cd doc
