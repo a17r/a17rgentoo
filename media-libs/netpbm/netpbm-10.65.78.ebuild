@@ -54,10 +54,14 @@ netpbm_config() {
 }
 
 src_prepare() {
-	epatch "${FILESDIR}"/netpbm-10.31-build.patch
+	epatch "${FILESDIR}/${PN}-10.31-build.patch"
 
 	# remove fiascotopnm test with unique -v flag
-	epatch "${FILESDIR}"/netpbm-10.61-remove-fiascotopnm-test.patch
+	epatch "${FILESDIR}/${PN}-10.63-remove-fiascotopnm-test.patch"
+	epatch "${FILESDIR}/${PN}-10.65-fix-macro-ifndef-compile-error.patch"
+
+	# test should really be executable
+	chmod a+x test/ppmrelief.test || die
 
 	# make sure we use system urt
 	sed -i '/SUPPORT_SUBDIRS/s:urt::' GNUmakefile || die
@@ -65,7 +69,7 @@ src_prepare() {
 
 	# disable certain tests based on active USE flags
 	local del=(
-		$(usex jbig '' 'jbigtopnm pnmtojbig')
+		$(usex jbig '' 'jbigtopnm pnmtojbig jbig-roundtrip')
 		$(usex rle '' 'utahrle-roundtrip')
 	)
 	if [[ ${#del[@]} -gt 0 ]] ; then
@@ -73,7 +77,7 @@ src_prepare() {
 	fi
 	del=(
 		pnmtofiasco fiascotopnm # We always disable fiasco
-		$(usex jbig '' 'jbigtopnm pnmtojbig')
+		$(usex jbig '' 'jbigtopnm pnmtojbig jbig-roundtrip')
 		$(usex rle '' 'pnmtorle rletopnm')
 	)
 	if [[ ${#del[@]} -gt 0 ]] ; then

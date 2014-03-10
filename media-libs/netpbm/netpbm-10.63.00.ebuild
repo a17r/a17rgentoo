@@ -57,7 +57,7 @@ src_prepare() {
 	epatch "${FILESDIR}"/netpbm-10.31-build.patch
 
 	# remove fiascotopnm test with unique -v flag
-	epatch "${FILESDIR}"/netpbm-10.61-remove-fiascotopnm-test.patch
+	epatch "${FILESDIR}"/netpbm-10.63-remove-fiascotopnm-test.patch
 
 	# make sure we use system urt
 	sed -i '/SUPPORT_SUBDIRS/s:urt::' GNUmakefile || die
