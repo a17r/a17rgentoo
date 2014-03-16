@@ -19,7 +19,7 @@ DESCRIPTION="Full sources including the Gentoo patchset for the ${KV_MAJOR}.${KV
 SRC_URI="${KERNEL_URI} ${GENPATCHES_URI} ${ARCH_URI}"
 
 src_prepare() {
-	epatch "${FILESDIR}/3.4.83-revert-iwlwifi-always_copy_first_16_bytes_of_commands"
+	epatch "${FILESDIR}/3.4.83-revert-iwlwifi-always_copy_first_16_bytes_of_commands.patch"
 }
 
 pkg_postinst() {
