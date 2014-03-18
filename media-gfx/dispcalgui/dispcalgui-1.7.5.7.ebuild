@@ -1,13 +1,11 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: /var/cvsroot/gentoo-x86/media-gfx/dispcalgui/dispcalgui-1.2.7.0.ebuild,v 1.2 2013/08/15 03:39:10 patrick Exp $
 
-EAPI="2"
-PYTHON_DEPEND="2"
-SUPPORT_PYTHON_ABIS="1"
-RESTRICT_PYTHON_ABIS="2.4 3.* *-jython 2.7-pypy-*"
+EAPI="5"
+PYTHON_COMPAT=( python2_7 )
 
-inherit distutils fdo-mime eutils
+inherit distutils-r1 fdo-mime eutils
 
 MY_PN="dispcalGUI"
 MY_P="${MY_PN}-${PV}"
@@ -54,11 +52,11 @@ src_prepare() {
 		die "removing deprecated Encoding key from .desktop files failed"
 	done
 
-	distutils_src_prepare
+	distutils-r1_src_prepare
 }
 
 src_install() {
-	distutils_src_install
+	distutils-r1_src_install
 	#remove udev files
 	rm -rf "${D}"/etc/udev/rules.d
 }
@@ -67,12 +65,10 @@ pkg_postinst() {
 #	Run xdg-* programs the Gentoo way since we removed this functionality from the original package
 	fdo-mime_mime_database_update
 	fdo-mime_desktop_database_update
-	distutils_pkg_postinst
 }
 
 pkg_postrm() {
 #	Run xdg-* programs the Gentoo way since we removed this functionality from the original package
 	fdo-mime_mime_database_update
 	fdo-mime_desktop_database_update
-	distutils_pkg_postrm
 }
