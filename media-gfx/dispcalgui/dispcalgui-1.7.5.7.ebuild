@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/media-gfx/dispcalgui/dispcalgui-1.2.7.0.ebuild,v 1.2 2013/08/15 03:39:10 patrick Exp $
+# $Header: /var/cvsroot/gentoo-x86/media-gfx/dispcalgui/dispcalgui-1.2.7.0.ebuild,v 1.4 2014/03/04 20:10:14 ago Exp $
 
 EAPI="5"
 PYTHON_COMPAT=( python2_7 )
@@ -37,7 +37,7 @@ DOCS=(
 )
 
 src_prepare() {
-	epatch "${FILESDIR}"/dispcalgui-1.7.5.7-wxversion-select.patch
+	epatch "${FILESDIR}/${PN}-1.7.5.7-wxversion-select.patch"
 
 #	Prohibit setup from running xdg-* programs, resulting to sandbox violation
 	cd "${S}/dispcalGUI" || die "Cannot cd to source directory."

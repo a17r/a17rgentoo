@@ -12,7 +12,7 @@ SRC_URI="http://${PN}.codehaus.org/${P}.tar.gz"
 HOMEPAGE="http://jmock.codehaus.org"
 LICENSE="BSD"
 SLOT="1.0"
-KEYWORDS="~amd64 ~ppc ~ppc64 ~x86 ~amd64-fbsd ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos"
+KEYWORDS="~amd64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos"
 IUSE=""
 
 COMMON_DEPEND="
