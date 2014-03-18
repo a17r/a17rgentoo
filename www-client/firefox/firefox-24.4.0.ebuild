@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/www-client/firefox/firefox-24.3.0.ebuild,v 1.1 2014/02/09 10:49:11 polynomial-c Exp $
+# $Header: /var/cvsroot/gentoo-x86/www-client/firefox/firefox-24.3.0.ebuild,v 1.8 2014/03/07 09:17:46 polynomial-c Exp $
 
 EAPI="3"
 VIRTUALX_REQUIRED="pgo"
@@ -50,7 +50,7 @@ ASM_DEPEND=">=dev-lang/yasm-1.1"
 
 # Mesa 7.10 needed for WebGL + bugfixes
 RDEPEND="
-	>=dev-libs/nss-3.15.3
+	>=dev-libs/nss-3.15.4
 	>=dev-libs/nspr-4.10.2
 	>=dev-libs/glib-2.26:2
 	>=media-libs/mesa-7.10
