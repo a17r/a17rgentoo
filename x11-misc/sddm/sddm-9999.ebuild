@@ -25,14 +25,14 @@ REQUIRED_USE="^^ ( qt4 qt5 )"
 RDEPEND="sys-auth/pambase
 	sys-power/upower
 	x11-libs/libxcb[xkb]
-	qt4? ( dev-qt/qtdeclarative:4 )
-	qt5? (
-		dev-qt/qtdbus:5
-		dev-qt/qtdeclarative:5
-		dev-qt/qtgui:5
-		dev-qt/qtnetwork:5 )"
-DEPEND="${RDEPEND}
-	qt5? ( dev-qt/linguist-tools:5 )"
+	qt4? ( dev-qt/qtdeclarative:4 )"
+#	qt5? (
+#		dev-qt/qtdbus:5
+#		dev-qt/qtdeclarative:5
+#		dev-qt/qtgui:5
+#		dev-qt/qtnetwork:5 )"
+DEPEND="${RDEPEND}"
+#	qt5? ( dev-qt/linguist-tools:5 )"
 
 pkg_pretend() {
 	[[ $(gcc-version) < 4.7 ]] && \
