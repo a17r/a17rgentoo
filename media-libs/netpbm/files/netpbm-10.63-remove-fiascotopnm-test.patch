@@ -1,0 +1,16 @@
+--- a/test/all-in-place.test	2013-06-29 21:02:18.067045000 +0200
++++ b/test/all-in-place.test	2014-03-10 03:23:52.545459371 +0100
+@@ -387,13 +387,6 @@
+ 
+ 
+ 
+-# Test fiascotopnm, which has a unique -v flag.
+-
+-${PBM_TESTPREFIX}fiascotopnm -v 2> /dev/null
+-    testExitStatus fiascotopnm 2 $?
+-
+-
+-
+ # Test manweb and pnmmargin, which have --help.
+ 
+ ${PBM_TESTPREFIX}manweb --help > /dev/null
