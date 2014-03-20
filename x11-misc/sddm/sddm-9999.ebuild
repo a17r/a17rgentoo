@@ -47,6 +47,8 @@ src_prepare() {
 	# use our location
 	sed -e 's|AuthDir=/var/run/xauth|AuthDir=/run/sddm|' \
 		-i data/sddm.conf.in
+	# Replace XSession file with lxdm version
+	cp -a "${FILESDIR}"/Xsession data/scripts
 }
 
 src_configure() {
