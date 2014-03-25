@@ -5,7 +5,7 @@
 EAPI="5"
 ETYPE="sources"
 K_WANT_GENPATCHES="base extras"
-K_GENPATCHES_VER="63"
+K_GENPATCHES_VER="64"
 K_DEBLOB_AVAILABLE="1"
 inherit kernel-2
 detect_version
@@ -20,7 +20,7 @@ SRC_URI="${KERNEL_URI} ${GENPATCHES_URI} ${ARCH_URI}"
 
 src_prepare() {
 	epatch "${FILESDIR}/3.4.83-backport_direct_firmware_loading.patch" \
-			"${FILESDIR}/3.4.83-revert-iwlwifi-always_copy_first_16_bytes_of_commands.patch"
+		"${FILESDIR}/3.4.84-complete-iwlwifi-backport.patch"
 }
 
 pkg_postinst() {
