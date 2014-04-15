@@ -19,8 +19,7 @@ DESCRIPTION="Full sources including the Gentoo patchset for the ${KV_MAJOR}.${KV
 SRC_URI="${KERNEL_URI} ${GENPATCHES_URI} ${ARCH_URI}"
 
 src_prepare() {
-	epatch "${FILESDIR}/3.4.83-backport_direct_firmware_loading.patch" \
-		"${FILESDIR}/3.4.84-complete-iwlwifi-backport.patch"
+	epatch "${FILESDIR}/3.4.84-complete-iwlwifi-backport.patch"
 }
 
 pkg_postinst() {
