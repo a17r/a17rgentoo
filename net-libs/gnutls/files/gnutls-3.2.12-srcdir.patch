@@ -1,0 +1,35 @@
+--- src/Makefile.am	2014-01-01 18:14:59.000000000 +0100
++++ src/Makefile.am	2014-03-07 18:05:01.587960965 +0100
+@@ -209,22 +209,22 @@
+ 		cli-args.c serv-args.c srptool-args.c certtool-args.c danetool-args.c
+ 
+ danetool-args.c: $(srcdir)/args-std.def $(srcdir)/danetool-args.def
+-	-$(AUTOGEN) danetool-args.def
++	-$(AUTOGEN) $(srcdir)/danetool-args.def
+ ocsptool-args.c: $(srcdir)/args-std.def $(srcdir)/ocsptool-args.def
+-	-$(AUTOGEN) ocsptool-args.def
++	-$(AUTOGEN) $(srcdir)/ocsptool-args.def
+ tpmtool-args.c: $(srcdir)/args-std.def $(srcdir)/tpmtool-args.def
+-	-$(AUTOGEN) tpmtool-args.def
++	-$(AUTOGEN) $(srcdir)/tpmtool-args.def
+ p11tool-args.c: $(srcdir)/args-std.def $(srcdir)/p11tool-args.def
+-	-$(AUTOGEN) p11tool-args.def
++	-$(AUTOGEN) $(srcdir)/p11tool-args.def
+ psk-args.c: $(srcdir)/args-std.def $(srcdir)/psk-args.def
+-	-$(AUTOGEN) psk-args.def
++	-$(AUTOGEN) $(srcdir)/psk-args.def
+ cli-debug-args.c: $(srcdir)/args-std.def $(srcdir)/cli-debug-args.def
+-	-$(AUTOGEN) cli-debug-args.def
++	-$(AUTOGEN) $(srcdir)/cli-debug-args.def
+ cli-args.c: $(srcdir)/args-std.def $(srcdir)/cli-args.def
+-	-$(AUTOGEN) cli-args.def
++	-$(AUTOGEN) $(srcdir)/cli-args.def
+ serv-args.c: $(srcdir)/args-std.def $(srcdir)/serv-args.def
+-	-$(AUTOGEN) serv-args.def
++	-$(AUTOGEN) $(srcdir)/serv-args.def
+ srptool-args.c: $(srcdir)/args-std.def $(srcdir)/srptool-args.def
+-	-$(AUTOGEN) srptool-args.def
++	-$(AUTOGEN) $(srcdir)/srptool-args.def
+ certtool-args.c: $(srcdir)/args-std.def $(srcdir)/certtool-args.def
+-	-$(AUTOGEN) certtool-args.def
++	-$(AUTOGEN) $(srcdir)/certtool-args.def
