@@ -15,9 +15,13 @@ SLOT="0"
 KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~x86-freebsd ~amd64-linux ~arm-linux ~x86-linux ~x64-macos ~x86-macos"
 IUSE="libopts static-libs"
 
-RDEPEND=">=dev-scheme/guile-1.8
+RDEPEND=">=dev-scheme/guile-1.8[${MULTILIB_USEDEP}]
 	dev-libs/libxml2[${MULTILIB_USEDEP}]"
 DEPEND="${RDEPEND}"
+
+src_prepare() {
+	multilib_copy_sources
+}
 
 multilib_src_configure() {
 	# suppress possibly incorrect -R flag
@@ -26,11 +30,12 @@ multilib_src_configure() {
 	ECONF_SOURCE="${S}" \
 	econf \
 		$(use_enable static-libs static) \
-		$(multilib_is_native_abi \
-			&& --with-libguile="${EPREFIX}/usr/$(get_libdir)")
+			--with-libguile="${EPREFIX}/usr/$(get_libdir)"
+#		$(multilib_is_native_abi && \
 }
 
 multilib_src_install_all() {
+	default
 	prune_libtool_files
 
 	if ! use libopts ; then
