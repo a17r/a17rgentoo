@@ -64,7 +64,8 @@ src_prepare() {
 	einfo remove bundled libs
 	rm -rf elektra* yajl || die
 
-	epatch "${FILESDIR}/${PN}"-0.9.5-buildsystem.patch
+	epatch "${FILESDIR}/${PN}"-0.9.5-buildsystem.patch \
+			"${FILESDIR}/${PN}"-0.9.5-fix-macro-compile-warning.patch
 
 	if use fltk ; then
 		#src/examples does not include fltk flags

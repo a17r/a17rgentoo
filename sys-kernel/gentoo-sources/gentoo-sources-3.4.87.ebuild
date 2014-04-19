@@ -20,6 +20,9 @@ SRC_URI="${KERNEL_URI} ${GENPATCHES_URI} ${ARCH_URI}"
 
 src_prepare() {
 	epatch "${FILESDIR}/3.4.83-backport_direct_firmware_loading.patch"
+
+	# fix long-standing brightness controll issue
+	epatch "${FILESDIR}/3.4.87-fix-duplicated-key-event-in-brightness-control.patch"
 }
 
 pkg_postinst() {

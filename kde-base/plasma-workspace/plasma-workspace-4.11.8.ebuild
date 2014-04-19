@@ -14,7 +14,7 @@ inherit python-single-r1 kde4-meta
 
 DESCRIPTION="Plasma: KDE desktop framework"
 KEYWORDS=" ~amd64 ~arm ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linux"
-IUSE="debug gps json python qalculate semantic-desktop"
+IUSE="debug gps json kdepim python qalculate semantic-desktop"
 
 REQUIRED_USE="python? ( ${PYTHON_REQUIRED_USE} )"
 
@@ -82,8 +82,6 @@ KMEXTRACTONLY="
 	ksysguard/
 "
 
-KMLOADLIBS="libkworkspace libplasmaclock libplasmagenericshell libtaskmanager"
-
 PATCHES=( "${FILESDIR}/${PN}-4.10.1-noplasmalock.patch" )
 
 pkg_setup() {
@@ -105,12 +103,12 @@ src_configure() {
 	mycmakeargs=(
 		$(cmake-utils_use_with gps libgps)
 		$(cmake-utils_use_with json QJSON)
+		$(cmake-utils_use_with kdepim KdepimLibs)
 		$(cmake-utils_use_with python PythonLibrary)
 		$(cmake-utils_use_with qalculate)
 		$(cmake-utils_use_with semantic-desktop Akonadi)
 		$(cmake-utils_use_with semantic-desktop NepomukCore)
 		$(cmake-utils_use_with semantic-desktop Soprano)
-		-DWITH_KdepimLibs=ON
 		-DWITH_Xmms=OFF
 	)
 
