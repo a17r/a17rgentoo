@@ -92,6 +92,8 @@ set_gtk2_confdir() {
 }
 
 src_prepare() {
+	gnome2_environment_reset
+
 	# Fix building due to moved definition, upstream bug #704766
 	epatch "${FILESDIR}"/${PN}-2.24.20-darwin-quartz-pasteboard.patch
 
@@ -158,7 +160,8 @@ src_prepare() {
 	# Use elibtoolize in place of eautoreconf when it will be dropped
 	#elibtoolize
 
-	gnome2_src_prepare
+#	gnome2_src_prepare
+	multilib_copy_sources
 }
 
 multilib_src_configure() {
