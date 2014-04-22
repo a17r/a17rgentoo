@@ -14,7 +14,7 @@ inherit python-single-r1 kde4-meta
 
 DESCRIPTION="Plasma: KDE desktop framework"
 KEYWORDS=" ~amd64 ~arm ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linux"
-IUSE="debug gps json kdepim python qalculate semantic-desktop"
+IUSE="debug gps json python qalculate semantic-desktop"
 
 REQUIRED_USE="python? ( ${PYTHON_REQUIRED_USE} )"
 
@@ -24,7 +24,6 @@ COMMONDEPEND="
 	!kde-misc/ktouchpadenabler
 	$(add_kdebase_dep kactivities)
 	$(add_kdebase_dep kdelibs 'semantic-desktop?')
-	$(add_kdebase_dep kdepimlibs)
 	$(add_kdebase_dep kephal)
 	$(add_kdebase_dep ksysguard)
 	$(add_kdebase_dep libkworkspace)
@@ -47,8 +46,7 @@ COMMONDEPEND="
 	)
 	qalculate? ( sci-libs/libqalculate )
 	semantic-desktop? (
-		dev-libs/soprano
-		$(add_kdebase_dep nepomuk-core)
+		$(add_kdebase_dep kdepimlibs)
 	)
 "
 DEPEND="${COMMONDEPEND}
@@ -103,12 +101,10 @@ src_configure() {
 	mycmakeargs=(
 		$(cmake-utils_use_with gps libgps)
 		$(cmake-utils_use_with json QJSON)
-		$(cmake-utils_use_with kdepim KdepimLibs)
 		$(cmake-utils_use_with python PythonLibrary)
 		$(cmake-utils_use_with qalculate)
 		$(cmake-utils_use_with semantic-desktop Akonadi)
-		$(cmake-utils_use_with semantic-desktop NepomukCore)
-		$(cmake-utils_use_with semantic-desktop Soprano)
+		$(cmake-utils_use_with semantic-desktop KdepimLibs)
 		-DWITH_Xmms=OFF
 	)
 
