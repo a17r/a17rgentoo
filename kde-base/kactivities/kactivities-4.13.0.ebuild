@@ -13,8 +13,7 @@ KEYWORDS="~amd64 ~arm ~ppc ~ppc64 ~x86 ~x86-fbsd ~amd64-linux ~x86-linux"
 IUSE="semantic-desktop"
 
 DEPEND="
-	$(add_kdebase_dep nepomuk-core)
-	dev-libs/soprano
+	$(add_kdebase_dep baloo)
 "
 RDEPEND="
 	${DEPEND}
