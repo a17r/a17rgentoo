@@ -5,7 +5,7 @@
 EAPI="5"
 ETYPE="sources"
 K_WANT_GENPATCHES="base extras"
-K_GENPATCHES_VER="67"
+K_GENPATCHES_VER="68"
 K_DEBLOB_AVAILABLE="1"
 inherit kernel-2
 detect_version
@@ -21,7 +21,7 @@ SRC_URI="${KERNEL_URI} ${GENPATCHES_URI} ${ARCH_URI}"
 src_prepare() {
 	epatch "${FILESDIR}/3.4.83-backport_direct_firmware_loading.patch"
 
-	# fix long-standing brightness controll issue
+	# fix long-standing brightness control issue
 	epatch "${FILESDIR}/3.4.87-fix-duplicated-key-event-in-brightness-control.patch"
 }
 
