@@ -271,7 +271,7 @@ diff --git a/include/net/inet_hashtables.h b/include/net/inet_hashtables.h
 -	signed short		fastreuse;
 +	signed char		fastreuse;
 +	signed char		fastreuseport;
-+	kuid_t			fastuid;
++	int			fastuid;
  	int			num_owners;
  	struct hlist_node	node;
  	struct hlist_head	owners;
@@ -399,7 +399,7 @@ diff --git a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
  	struct hlist_node *node;
  	int reuse = sk->sk_reuse;
 +	int reuseport = sk->sk_reuseport;
-+	kuid_t uid = sock_i_uid((struct sock *)sk);
++	int uid = sock_i_uid((struct sock *)sk);
  
  	/*
  	 * Unlike other sk lookup places we do not check
@@ -421,7 +421,7 @@ diff --git a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
  	int ret, attempts = 5;
  	struct net *net = sock_net(sk);
  	int smallest_size = -1, smallest_rover;
-+	kuid_t uid = sock_i_uid(sk);
++	int uid = sock_i_uid(sk);
  
  	local_bh_disable();
  	if (!snum) {
@@ -606,7 +606,7 @@ diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
  {
  	struct sock *sk2;
  	struct hlist_nulls_node *node;
-+	kuid_t uid = sock_i_uid(sk);
++	int uid = sock_i_uid(sk);
  
  	sk_nulls_for_each(sk2, node, &hslot->head)
  		if (net_eq(sock_net(sk2), net) &&
@@ -623,7 +623,7 @@ diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
  {
  	struct sock *sk2;
  	struct hlist_nulls_node *node;
-+	kuid_t uid = sock_i_uid(sk);
++	int uid = sock_i_uid(sk);
  	int res = 0;
  
  	spin_lock(&hslot2->lock);
