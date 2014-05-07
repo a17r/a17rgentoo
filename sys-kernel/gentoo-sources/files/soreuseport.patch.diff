@@ -1,5 +1,5 @@
---- soreuseport.patch	2014-05-07 19:20:50.825698102 +0200
-+++ soreuseport-edited.patch	2014-05-07 19:58:30.714445602 +0200
+--- files/soreuseport.patch	2014-05-07 23:35:01.781034921 +0200
++++ files/3.4.89-backport-02-merge-branch-soreuseport.patch	2014-05-07 23:30:39.571312995 +0200
 @@ -55,10 +55,10 @@
      
      Signed-off-by: David S. Miller <davem@davemloft.net>
@@ -220,6 +220,15 @@
  --- a/include/net/inet_hashtables.h
  +++ b/include/net/inet_hashtables.h
  @@ -81,7 +81,9 @@ struct inet_bind_bucket {
+@@ -287,7 +271,7 @@
+ -	signed short		fastreuse;
+ +	signed char		fastreuse;
+ +	signed char		fastreuseport;
+-+	kuid_t			fastuid;
+++	int			fastuid;
+  	int			num_owners;
+  	struct hlist_node	node;
+  	struct hlist_head	owners;
 @@ -323,7 +307,6 @@
   
   static inline struct sock *inet_lookup(struct net *net,
@@ -266,6 +275,24 @@
  --- a/net/ipv4/inet_connection_sock.c
  +++ b/net/ipv4/inet_connection_sock.c
  @@ -59,6 +59,8 @@ int inet_csk_bind_conflict(const struct sock *sk,
+@@ -420,7 +399,7 @@
+  	struct hlist_node *node;
+  	int reuse = sk->sk_reuse;
+ +	int reuseport = sk->sk_reuseport;
+-+	kuid_t uid = sock_i_uid((struct sock *)sk);
+++	int uid = sock_i_uid((struct sock *)sk);
+  
+  	/*
+  	 * Unlike other sk lookup places we do not check
+@@ -442,7 +421,7 @@
+  	int ret, attempts = 5;
+  	struct net *net = sock_net(sk);
+  	int smallest_size = -1, smallest_rover;
+-+	kuid_t uid = sock_i_uid(sk);
+++	int uid = sock_i_uid(sk);
+  
+  	local_bh_disable();
+  	if (!snum) {
 @@ -476,7 +455,7 @@
   			goto success;
   		} else {
@@ -291,7 +318,7 @@
  --- a/net/ipv4/tcp_ipv4.c
  +++ b/net/ipv4/tcp_ipv4.c
  @@ -657,7 +657,8 @@ static void tcp_v4_send_reset(struct sock *sk, struct sk_buff *skb)
-@@ -623,7 +600,6 @@
+@@ -623,14 +600,13 @@
   							inet_iif(skb));
   		if (sk2) {
  diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
@@ -299,6 +326,23 @@
  --- a/net/ipv4/udp.c
  +++ b/net/ipv4/udp.c
  @@ -139,6 +139,7 @@ static int udp_lib_lport_inuse(struct net *net, __u16 num,
+  {
+  	struct sock *sk2;
+  	struct hlist_nulls_node *node;
+-+	kuid_t uid = sock_i_uid(sk);
+++	int uid = sock_i_uid(sk);
+  
+  	sk_nulls_for_each(sk2, node, &hslot->head)
+  		if (net_eq(sock_net(sk2), net) &&
+@@ -647,7 +623,7 @@
+  {
+  	struct sock *sk2;
+  	struct hlist_nulls_node *node;
+-+	kuid_t uid = sock_i_uid(sk);
+++	int uid = sock_i_uid(sk);
+  	int res = 0;
+  
+  	spin_lock(&hslot2->lock);
 @@ -807,7 +783,6 @@
   	}
   	/*
