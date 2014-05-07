@@ -5,7 +5,7 @@
 EAPI="5"
 ETYPE="sources"
 K_WANT_GENPATCHES="base extras"
-K_GENPATCHES_VER="68"
+K_GENPATCHES_VER="69"
 K_DEBLOB_AVAILABLE="1"
 inherit kernel-2
 detect_version
@@ -23,6 +23,11 @@ src_prepare() {
 
 	# fix long-standing brightness control issue
 	epatch "${FILESDIR}/3.4.87-fix-duplicated-key-event-in-brightness-control.patch"
+
+	# backport introduction of SO_REUSEPORT to fix avahi compatibility
+	epatch "${FILESDIR}/3.4.89-backport-01-named-constants-for-sk_reuse.patch \
+		${FILESDIR}/3.4.89-backport-02-merge-branch-soreuseport.patch
+		${FILESDIR}/3.4.89-backport-03-remove-leftover-endif.patch"
 }
 
 pkg_postinst() {

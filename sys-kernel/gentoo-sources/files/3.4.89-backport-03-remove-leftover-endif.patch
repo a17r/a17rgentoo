@@ -1,0 +1,26 @@
+commit 5588d3742da9900323dc3d766845a53bacdfb5ab
+Author: Thomas Graf <tgraf@suug.ch>
+Date:   Fri Jan 25 00:00:58 2013 +0000
+
+    Remove leftover #endif after introducing SO_REUSEPORT
+    
+    Commit 055dc21a1d (soreuseport: infrastructure) removed the #if 0
+    around SO_REUSEPORT without removing the corresponding #endif
+    thus causing the header guard to close early.
+    
+    Cc: Tom Herbert <therbert@google.com>
+    Signed-off-by: Thomas Graf <tgraf@suug.ch>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/arch/mips/include/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
+index 7e27236..3e68bfb 100644
+--- a/arch/mips/include/asm/socket.h
++++ b/arch/mips/include/asm/socket.h
+@@ -29,7 +29,6 @@
+ 				   socket to transmit pending data.  */
+ #define SO_OOBINLINE 0x0100	/* Receive out-of-band data in-band.  */
+ #define SO_REUSEPORT 0x0200	/* Allow local address and port reuse.  */
+-#endif
+ 
+ #define SO_TYPE		0x1008	/* Compatible name for SO_STYLE.  */
+ #define SO_STYLE	SO_TYPE	/* Synonym */
