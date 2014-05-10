@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/media-libs/mesa/mesa-10.1.0.ebuild,v 1.4 2014/03/13 23:21:42 mattst88 Exp $
+# $Header: /var/cvsroot/gentoo-x86/media-libs/mesa/mesa-10.1.1.ebuild,v 1.3 2014/05/01 09:41:26 mgorny Exp $
 
 EAPI=5
 
@@ -50,8 +50,8 @@ done
 
 IUSE="${IUSE_VIDEO_CARDS}
 	bindist +classic debug +dri3 +egl +gallium gbm gles1 gles2 +llvm +nptl
-	+llvm-shared-libs opencl openvg osmesa pax_kernel pic
-	r600-llvm-compiler selinux vdpau wayland xvmc xa kernel_FreeBSD"
+	opencl openvg osmesa pax_kernel pic r600-llvm-compiler selinux
+	vdpau wayland xvmc xa kernel_FreeBSD"
 
 REQUIRED_USE="
 	llvm?   ( gallium )
@@ -117,7 +117,7 @@ RDEPEND="
 				dev-libs/libelf[${MULTILIB_USEDEP}]
 				) )
 		)
-		llvm-shared-libs? ( >=sys-devel/llvm-2.9[${MULTILIB_USEDEP}] )
+		>=sys-devel/llvm-3.3-r3[${MULTILIB_USEDEP}]
 	)
 	opencl? (
 				app-admin/eselect-opencl
@@ -142,12 +142,12 @@ done
 
 DEPEND="${RDEPEND}
 	llvm? (
-		>=sys-devel/llvm-2.9[${MULTILIB_USEDEP}]
+		>=sys-devel/llvm-3.3-r3[${MULTILIB_USEDEP}]
 		r600-llvm-compiler? ( sys-devel/llvm[video_cards_radeon] )
 		video_cards_radeonsi? ( sys-devel/llvm[video_cards_radeon] )
 	)
 	opencl? (
-				>=sys-devel/llvm-3.3-r1[video_cards_radeon,${MULTILIB_USEDEP}]
+				>=sys-devel/llvm-3.3-r3[video_cards_radeon,${MULTILIB_USEDEP}]
 				>=sys-devel/clang-3.3[${MULTILIB_USEDEP}]
 				>=sys-devel/gcc-4.6
 	)
@@ -322,7 +322,6 @@ multilib_src_configure() {
 		$(use_enable nptl glx-tls) \
 		$(use_enable osmesa) \
 		$(use_enable !pic asm) \
-		$(use_with llvm-shared-libs) \
 		--with-dri-drivers=${DRI_DRIVERS} \
 		--with-gallium-drivers=${GALLIUM_DRIVERS} \
 		PYTHON2="${PYTHON}" \
