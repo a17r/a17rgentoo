@@ -61,6 +61,10 @@ pkg_setup() {
 	use qt5 && MULTIBUILD_VARIANTS+=( qt5 )
 }
 
+src_prepare() {
+	epatch "${FILESDIR}"/testapp-not-yet-ported-to-Qt5.patch
+}
+
 src_configure() {
 	myconfigure() {
 		local mycmakeargs=(
