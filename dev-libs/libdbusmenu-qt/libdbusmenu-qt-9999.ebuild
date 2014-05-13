@@ -43,7 +43,7 @@ RDEPEND="
 DEPEND="${RDEPEND}
 	doc? ( app-doc/doxygen )
 	test? (
-		dev-libs/qjson
+		dev-libs/qjson[qt4?,qt5?]
 		qt4? ( dev-qt/qttest:4 )
 		qt5? ( dev-qt/qttest:5 )
 	)
