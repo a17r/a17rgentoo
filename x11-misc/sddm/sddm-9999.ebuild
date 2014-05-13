@@ -19,20 +19,19 @@ fi
 
 LICENSE="GPL-2+ MIT CC-BY-3.0 public-domain"
 SLOT="0"
-IUSE="+qt4 qt5"
+IUSE="+qt4 qt5 +upower"
 REQUIRED_USE="^^ ( qt4 qt5 )"
 
-RDEPEND="sys-auth/pambase
-	sys-power/upower
+RDEPEND="
+	upower? ( || ( sys-power/upower  sys-apps/systemd ) )
 	x11-libs/libxcb[xkb]
-	qt4? ( dev-qt/qtdeclarative:4 )"
-#	qt5? (
-#		dev-qt/qtdbus:5
-#		dev-qt/qtdeclarative:5
-#		dev-qt/qtgui:5
-#		dev-qt/qtnetwork:5 )"
-DEPEND="${RDEPEND}"
-#	qt5? ( dev-qt/linguist-tools:5 )"
+	sys-auth/pambase
+	qt4? ( dev-qt/qtdeclarative:4 )
+	qt5? ( dev-qt/linguist-tools:5
+	       dev-qt/qtdeclarative:5
+	       dev-qt/qtdbus:5 )"
+DEPEND="${RDEPEND}
+	>=sys-devel/gcc-4.7.0"
 
 pkg_pretend() {
 	[[ $(gcc-version) < 4.7 ]] && \
@@ -40,6 +39,10 @@ pkg_pretend() {
 }
 
 src_prepare() {
+
+	epatch "${FILESDIR}/sddm-pm-utils-support.patch"
+	epatch "${FILESDIR}/pid-support.patch"
+
 	# respect our cflags
 	sed -e 's|-Wall -march=native||' \
 		-e 's|-O2||' \
@@ -55,3 +58,5 @@ src_configure() {
 	local mycmakeargs=( $(cmake-utils_use_use qt5 QT5) )
 	cmake-utils_src_configure
 }
+
+
