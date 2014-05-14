@@ -141,7 +141,10 @@ COMMON_DEPEND="
 				app-emulation/emul-linux-x86-soundlibs[alsa,development]
 				media-libs/alsa-lib[abi_x86_32]
 			) )
-			cups? ( app-emulation/emul-linux-x86-baselibs )
+			cups? ( || (
+				app-emulation/emul-linux-x86-baselibs
+				media-libs/alsa-lib[abi_x86_32]
+			) )
 			opencl? ( virtual/opencl[abi_x86_32] )
 			opengl? ( || (
 				app-emulation/emul-linux-x86-opengl[development]
