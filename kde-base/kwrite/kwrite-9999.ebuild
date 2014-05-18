@@ -5,8 +5,7 @@
 EAPI=5
 
 KDE_HANDBOOK="true"
-EGIT_BRANCH="applications/kate/kwrite"
-#KMEXTRACTONLY="doc/kate"
+EGIT_BRANCH="frameworks"
 inherit kde5
 
 DESCRIPTION="KDE MDI editor/IDE"
@@ -16,7 +15,7 @@ KEYWORDS=""
 IUSE="X"
 
 DEPEND="
-	$(add_frameworks_dep katepart)
+	$(add_frameworks_dep ktexteditor)
 	dev-qt/qtdbus:5
 	dev-qt/qtgui:5
 	dev-qt/qtnetwork:5
