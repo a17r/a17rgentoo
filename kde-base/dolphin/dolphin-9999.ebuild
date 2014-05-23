@@ -15,8 +15,8 @@ HOMEPAGE="http://www.kde.org/applications/system/konsole http://konsole.kde.org"
 KEYWORDS=""
 
 DEPEND="
-	$(add_frameworks_dep baloo)
-	$(add_frameworks_dep baloo-widgets)
+	$(add_kdebase_dep baloo)
+	$(add_kdebase_dep baloo-widgets)
 	$(add_frameworks_dep kactivities)
 	$(add_frameworks_dep karchive)
 	$(add_frameworks_dep kbookmarks)
