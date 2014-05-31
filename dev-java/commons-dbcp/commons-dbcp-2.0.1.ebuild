@@ -51,7 +51,7 @@ src_test() {
 }
 
 src_install() {
-	java-pkg_newjar dist/${MY_PN}-${MY_PV}-SNAPSHOT.jar ${PN}.jar
+	java-pkg_newjar dist/${MY_PN}-${MY_PV}.jar ${PN}.jar
 	dodoc README.txt RELEASE-NOTES.txt
 
 	use doc && java-pkg_dojavadoc dist/docs/api
