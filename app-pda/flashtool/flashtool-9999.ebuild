@@ -52,6 +52,9 @@ DEPEND=">=virtual/jdk-1.6
 
 INSTALL_BASE="opt/${PN}"
 
+JAVA_ANT_REWRITE_CLASSPATH="yes"
+EANT_GENTOO_CLASSPATH="commons-io-1,jdom-1.0,jna,jopt-simple-4.5,log4j,swt-4.2"
+
 java_prepare() {
 	cp "${FILESDIR}/build.xml" "${S}/" || die
 
@@ -75,13 +78,13 @@ java_prepare() {
 	# Remove bundled swt
 	rm -vrf swtlin/swt{32,64}.jar || die
 
-	java-pkg_jar-from commons-io-1 commons-io.jar
-	java-pkg_jar-from jdom-1.0 jdom.jar
-	java-pkg_jar-from jna jna.jar
-	java-pkg_jar-from jna platform.jar jna-platform.jar
-	java-pkg_jar-from jopt-simple-4.5 jopt-simple.jar
-	java-pkg_jar-from log4j log4j.jar
-	java-pkg_jar-from swt-4.2 swt.jar
+# 	java-pkg_jar-from commons-io-1 commons-io.jar
+# 	java-pkg_jar-from jdom-1.0 jdom.jar
+# 	java-pkg_jar-from jna jna.jar
+# 	java-pkg_jar-from jna platform.jar jna-platform.jar
+# 	java-pkg_jar-from jopt-simple-4.5 jopt-simple.jar
+# 	java-pkg_jar-from log4j log4j.jar
+# 	java-pkg_jar-from swt-4.2 swt.jar
 }
 
 src_compile(){
@@ -99,8 +102,9 @@ src_compile(){
 }
 
 src_install() {
-	java-pkg_newjar Deploy/${P}-dev.jar ${PN}.jar
-
+# 	java-pkg_newjar Deploy/${P}-dev.jar ${PN}.jar
+	insinto /opt
+	doins -r "${WORKDIR}"/Deploy/FlashTool
 #        use doc && java-pkg_dojavadoc dist/api
 #        use source && java-pkg_dosrc src/java/org
 #        use examples && java-pkg_doexamples src/java/examples
