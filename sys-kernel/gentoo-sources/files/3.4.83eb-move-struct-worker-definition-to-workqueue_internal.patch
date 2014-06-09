@@ -1,0 +1,95 @@
+From 2eaebdb33e1911c0cf3d44fd3596c42c6f502fab Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Fri, 18 Jan 2013 14:05:55 -0800
+Subject: workqueue: move struct worker definition to workqueue_internal.h
+
+This will be used to implement an inline function to query whether
+%current is a workqueue worker and, if so, allow determining which
+work item it's executing.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+
+diff --git a/kernel/workqueue.c b/kernel/workqueue.c
+index b4e9206..2ffa240 100644
+--- a/kernel/workqueue.c
++++ b/kernel/workqueue.c
+@@ -122,31 +122,7 @@ enum {
+  * W: workqueue_lock protected.
+  */
+ 
+-struct global_cwq;
+-
+-/*
+- * The poor guys doing the actual heavy lifting.  All on-duty workers
+- * are either serving the manager role, on idle list or on busy hash.
+- */
+-struct worker {
+-	/* on idle list while idle, on busy hash table while busy */
+-	union {
+-		struct list_head	entry;	/* L: while idle */
+-		struct hlist_node	hentry;	/* L: while busy */
+-	};
+-
+-	struct work_struct	*current_work;	/* L: work being processed */
+-	work_func_t		current_func;	/* L: current_work's fn */
+-	struct cpu_workqueue_struct *current_cwq; /* L: current_work's cwq */
+-	struct list_head	scheduled;	/* L: scheduled works */
+-	struct task_struct	*task;		/* I: worker task */
+-	struct global_cwq	*gcwq;		/* I: the associated gcwq */
+-	/* 64 bytes boundary on 64bit, 32 on 32bit */
+-	unsigned long		last_active;	/* L: last active timestamp */
+-	unsigned int		flags;		/* X: flags */
+-	int			id;		/* I: worker id */
+-	struct work_struct	rebind_work;	/* L: rebind worker to cpu */
+-};
++/* struct worker is defined in workqueue_internal.h */
+ 
+ /*
+  * Global per-cpu workqueue.  There's one and only one for each cpu
+diff --git a/kernel/workqueue_internal.h b/kernel/workqueue_internal.h
+index b3ea6ad..02549fa 100644
+--- a/kernel/workqueue_internal.h
++++ b/kernel/workqueue_internal.h
+@@ -7,6 +13,38 @@
+ #ifndef _KERNEL_WORKQUEUE_INTERNAL_H
+ #define _KERNEL_WORKQUEUE_INTERNAL_H
+ 
++#include <linux/workqueue.h>
++
++struct global_cwq;
++struct worker_pool;
++
++/*
++ * The poor guys doing the actual heavy lifting.  All on-duty workers are
++ * either serving the manager role, on idle list or on busy hash.  For
++ * details on the locking annotation (L, I, X...), refer to workqueue.c.
++ *
++ * Only to be used in workqueue and async.
++ */
++struct worker {
++	/* on idle list while idle, on busy hash table while busy */
++	union {
++		struct list_head	entry;	/* L: while idle */
++		struct hlist_node	hentry;	/* L: while busy */
++	};
++
++	struct work_struct	*current_work;	/* L: work being processed */
++	work_func_t		current_func;	/* L: current_work's fn */
++	struct cpu_workqueue_struct *current_cwq; /* L: current_work's cwq */
++	struct list_head	scheduled;	/* L: scheduled works */
++	struct task_struct	*task;		/* I: worker task */
++	struct global_gcwq	*gcwq;		/* I: the associated gcwq */
++	/* 64 bytes boundary on 64bit, 32 on 32bit */
++	unsigned long		last_active;	/* L: last active timestamp */
++	unsigned int		flags;		/* X: flags */
++	int			id;		/* I: worker id */
++	struct work_struct	rebind_work;	/* L: for busy worker */
++};
++
+ /*
+  * Scheduler hooks for concurrency managed workqueue.  Only to be used from
+  * sched.c and workqueue.c.
+-- 
+cgit v0.10.1
+

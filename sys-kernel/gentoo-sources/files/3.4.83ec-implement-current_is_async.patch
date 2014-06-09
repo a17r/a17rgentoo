@@ -1,0 +1,81 @@
+From 84b233adcca3cacd5cfa8013a5feda7a3db4a9af Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Fri, 18 Jan 2013 14:05:56 -0800
+Subject: workqueue: implement current_is_async()
+
+This function queries whether %current is an async worker executing an
+async item.  This will be used to implement warning on synchronous
+request_module() from async workers.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+
+diff --git a/include/linux/async.h b/include/linux/async.h
+index 7a24fe9..345169c 100644
+--- a/include/linux/async.h
++++ b/include/linux/async.h
+@@ -52,4 +52,5 @@ extern void async_synchronize_full_domain(struct async_domain *domain);
+ extern void async_synchronize_cookie(async_cookie_t cookie);
+ extern void async_synchronize_cookie_domain(async_cookie_t cookie,
+ 					    struct async_domain *domain);
++extern bool current_is_async(void);
+ #endif
+diff --git a/kernel/async.c b/kernel/async.c
+index 9d31183..d9bf2a9 100644
+--- a/kernel/async.c
++++ b/kernel/async.c
+@@ -57,6 +57,8 @@ asynchronous and synchronous parts of the kernel.
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+ 
++#include "workqueue_internal.h"
++
+ static async_cookie_t next_cookie = 1;
+ 
+ #define MAX_WORK	32768
+@@ -337,3 +339,15 @@ void async_synchronize_cookie(async_cookie_t cookie)
+ 	async_synchronize_cookie_domain(cookie, &async_running);
+ }
+ EXPORT_SYMBOL_GPL(async_synchronize_cookie);
++
++/**
++ * current_is_async - is %current an async worker task?
++ *
++ * Returns %true if %current is an async worker task.
++ */
++bool current_is_async(void)
++{
++	struct worker *worker = current_wq_worker();
++
++	return worker && worker->current_func == async_run_entry_fn;
++}
+diff --git a/kernel/workqueue_internal.h b/kernel/workqueue_internal.h
+index 02549fa..cc35e7e 100644
+--- a/kernel/workqueue_internal.h
++++ b/kernel/workqueue_internal.h
+@@ -8,6 +8,7 @@
+ #define _KERNEL_WORKQUEUE_INTERNAL_H
+ 
+ #include <linux/workqueue.h>
++#include <linux/kthread.h>
+ 
+ struct global_cwq;
+ struct worker_pool;
+@@ -44,6 +45,16 @@ struct worker {
+ 	struct workqueue_struct	*rescue_wq;	/* I: the workqueue to rescue */
+ };
+ 
++/**
++ * current_wq_worker - return struct worker if %current is a workqueue worker
++ */
++static inline struct worker *current_wq_worker(void)
++{
++	if (current->flags & PF_WQ_WORKER)
++		return kthread_data(current);
++	return NULL;
++}
++
+ /*
+  * Scheduler hooks for concurrency managed workqueue.  Only to be used from
+  * sched.c and workqueue.c.
+-- 
+cgit v0.10.1

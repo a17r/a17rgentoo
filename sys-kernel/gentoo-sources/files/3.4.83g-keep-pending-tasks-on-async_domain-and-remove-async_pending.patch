@@ -1,0 +1,177 @@
+From 52722794d6a48162fd8906d54618ae60a4abdb21 Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Wed, 23 Jan 2013 09:32:30 -0800
+Subject: async: keep pending tasks on async_domain and remove async_pending
+
+Async kept single global pending list and per-domain running lists.
+When an async item is queued, it's put on the global pending list.
+The item is moved to the per-domain running list when its execution
+starts.
+
+At this point, this design complicates execution and synchronization
+without bringing any benefit.  The list only matters for
+synchronization which doesn't care whether a given async item is
+pending or executing.  Also, global synchronization is done by
+iterating through all active registered async_domains, so the global
+async_pending list doesn't help anything either.
+
+Rename async_domain->running to async_domain->pending and put async
+items directly there and remove when execution completes.  This
+simplifies lowest_in_progress() a lot - the first item on the pending
+list is the one with the lowest cookie, and async_run_entry_fn()
+doesn't have to mess with moving the item from pending to running.
+
+After the change, whether a domain is empty or not can be trivially
+determined by looking at async_domain->pending.  Remove
+async_domain->count and use list_empty() on pending instead.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Dan Williams <djbw@fb.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+
+diff --git a/include/linux/async.h b/include/linux/async.h
+index 34ff5c6..a2e3f18 100644
+--- a/include/linux/async.h
++++ b/include/linux/async.h
+@@ -19,8 +19,7 @@ typedef u64 async_cookie_t;
+ typedef void (async_func_ptr) (void *data, async_cookie_t cookie);
+ struct async_domain {
+ 	struct list_head node;
+-	struct list_head running;
+-	int count;
++	struct list_head pending;
+ 	unsigned registered:1;
+ };
+ 
+@@ -29,8 +28,7 @@ struct async_domain {
+  */
+ #define ASYNC_DOMAIN(_name) \
+ 	struct async_domain _name = { .node = LIST_HEAD_INIT(_name.node), \
+-				      .running = LIST_HEAD_INIT(_name.running), \
+-				      .count = 0, \
++				      .pending = LIST_HEAD_INIT(_name.pending), \
+ 				      .registered = 1 }
+ 
+ /*
+@@ -39,8 +37,7 @@ struct async_domain {
+  */
+ #define ASYNC_DOMAIN_EXCLUSIVE(_name) \
+ 	struct async_domain _name = { .node = LIST_HEAD_INIT(_name.node), \
+-				      .running = LIST_HEAD_INIT(_name.running), \
+-				      .count = 0, \
++				      .pending = LIST_HEAD_INIT(_name.pending), \
+ 				      .registered = 0 }
+ 
+ extern async_cookie_t async_schedule(async_func_ptr *ptr, void *data);
+--- a/kernel/async.c
++++ b/kernel/async.c
+@@ -64,7 +64,6 @@ static async_cookie_t next_cookie = 1;
+ #define MAX_WORK		32768
+ #define ASYNC_COOKIE_MAX	ULLONG_MAX	/* infinity cookie */
+ 
+-static LIST_HEAD(async_pending);
+ static ASYNC_DOMAIN(async_dfl_domain);
+ static LIST_HEAD(async_domains);
+ static DEFINE_SPINLOCK(async_lock);
+@@ -83,33 +82,17 @@ static DECLARE_WAIT_QUEUE_HEAD(async_done);
+ 
+ static atomic_t entry_count;
+ 
+-
+-/*
+- * MUST be called with the lock held!
+- */
+-static async_cookie_t __lowest_in_progress(struct async_domain *domain)
+-{
+-	struct async_entry *entry;
+-
+-	if (!list_empty(&domain->running)) {
+-		entry = list_first_entry(&domain->running, typeof(*entry), list);
+-		return entry->cookie;
+-	}
+-
+-	list_for_each_entry(entry, &async_pending, list)
+-		if (entry->domain == domain)
+-			return entry->cookie;
+-
+-	return next_cookie;	/* "infinity" value */
+-}
+-
+ static async_cookie_t lowest_in_progress(struct async_domain *domain)
+ {
++	async_cookie_t ret = ASYNC_COOKIE_MAX;
+ 	unsigned long flags;
+-	async_cookie_t ret;
+ 
+ 	spin_lock_irqsave(&async_lock, flags);
+-	ret = __lowest_in_progress(domain);
++	if (!list_empty(&domain->pending)) {
++		struct async_entry *first = list_first_entry(&domain->pending,
++						struct async_entry, list);
++		ret = first->cookie;
++	}
+ 	spin_unlock_irqrestore(&async_lock, flags);
+ 	return ret;
+ }
+@@ -135,12 +118,7 @@ static void async_run_entry_fn(struct work_struct *work)
+ 	ktime_t uninitialized_var(calltime), delta, rettime;
+ 	struct async_domain *domain = entry->domain;
+ 
+-	/* 1) move self to the running queue */
+-	spin_lock_irqsave(&async_lock, flags);
+-	list_move_tail(&entry->list, &domain->running);
+-	spin_unlock_irqrestore(&async_lock, flags);
+-
+-	/* 2) run (and print duration) */
++	/* 1) run (and print duration) */
+ 	if (initcall_debug && system_state == SYSTEM_BOOTING) {
+ 		printk(KERN_DEBUG "calling  %lli_%pF @ %i\n",
+ 			(long long)entry->cookie,
+@@ -160,19 +138,19 @@ static void async_run_entry_fn(struct work_struct *work)
+ 			(long long)ktime_to_ns(delta) >> 10);
+ 	}
+ 
+-	/* 3) remove self from the running queue */
++	/* 2) remove self from the pending queues */
+ 	spin_lock_irqsave(&async_lock, flags);
+ 	list_del(&entry->list);
+-	if (domain->registered && --domain->count == 0)
++	if (domain->registered && list_empty(&domain->pending))
+ 		list_del_init(&domain->node);
+ 
+-	/* 4) free the entry */
++	/* 3) free the entry */
+ 	kfree(entry);
+ 	atomic_dec(&entry_count);
+ 
+ 	spin_unlock_irqrestore(&async_lock, flags);
+ 
+-	/* 5) wake up any waiters */
++	/* 4) wake up any waiters */
+ 	wake_up(&async_done);
+ }
+ 
+@@ -206,9 +184,9 @@ static async_cookie_t __async_schedule(async_func_ptr *ptr, void *data, struct a
+ 
+ 	spin_lock_irqsave(&async_lock, flags);
+ 	newcookie = entry->cookie = next_cookie++;
+-	list_add_tail(&entry->list, &async_pending);
+-	if (domain->registered && domain->count++ == 0)
++	if (domain->registered && list_empty(&domain->pending))
+ 		list_add_tail(&domain->node, &async_domains);
++	list_add_tail(&entry->list, &domain->pending);
+ 	atomic_inc(&entry_count);
+ 	spin_unlock_irqrestore(&async_lock, flags);
+ 
+@@ -290,7 +268,7 @@ void async_unregister_domain(struct async_domain *domain)
+ 	mutex_lock(&async_register_mutex);
+ 	spin_lock_irq(&async_lock);
+ 	WARN_ON(!domain->registered || !list_empty(&domain->node) ||
+-		!list_empty(&domain->running));
++		!list_empty(&domain->pending));
+ 	domain->registered = 0;
+ 	spin_unlock_irq(&async_lock);
+ 	mutex_unlock(&async_register_mutex);
+-- 
+cgit v0.10.1

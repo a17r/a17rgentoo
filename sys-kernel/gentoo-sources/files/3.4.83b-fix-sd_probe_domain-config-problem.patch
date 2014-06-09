@@ -1,0 +1,44 @@
+From ea80dadec7a06889562b478cf0b87afbe62b7ac8 Mon Sep 17 00:00:00 2001
+From: James Bottomley <JBottomley@Parallels.com>
+Date: Wed, 6 Jun 2012 14:54:13 +0900
+Subject: [SCSI] Fix sd_probe_domain config problem
+
+With CONFIG_BLK_DEV_SD = n and CONFIG_PM = n, you get this compile failure:
+
+(.text+0x4f6c77): undefined reference to `scsi_sd_probe_domain'
+
+This was introduced by
+
+commit a7a20d103994fd760766e6c9d494daa569cbfe06
+Author: Dan Williams <dan.j.williams@intel.com>
+Date:   Thu Mar 22 17:05:11 2012 -0700
+
+    [SCSI] sd: limit the scope of the async probe domain
+
+And happens because scsi_sd_probe_domain is conditionally defined but
+unconditionally used.  Fix this by making the symbol unconditionally defined.
+
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Tested-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: James Bottomley <JBottomley@Parallels.com>
+
+diff --git a/drivers/scsi/scsi.c b/drivers/scsi/scsi.c
+index 61c82a3..bbbc9c9 100644
+--- a/drivers/scsi/scsi.c
++++ b/drivers/scsi/scsi.c
+@@ -90,11 +90,9 @@ unsigned int scsi_logging_level;
+ EXPORT_SYMBOL(scsi_logging_level);
+ #endif
+ 
+-#if IS_ENABLED(CONFIG_PM) || IS_ENABLED(CONFIG_BLK_DEV_SD)
+-/* sd and scsi_pm need to coordinate flushing async actions */
++/* sd, scsi core and power management need to coordinate flushing async actions */
+ LIST_HEAD(scsi_sd_probe_domain);
+ EXPORT_SYMBOL(scsi_sd_probe_domain);
+-#endif
+ 
+ /* NB: These are exposed through /proc/scsi/scsi and form part of the ABI.
+  * You may not alter any existing entry (although adding new ones is
+-- 
+cgit v0.10.1
