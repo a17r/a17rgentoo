@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/media-libs/mesa/mesa-10.1.1.ebuild,v 1.3 2014/05/01 09:41:26 mgorny Exp $
+# $Header: /var/cvsroot/gentoo-x86/media-libs/mesa/mesa-10.1.4.ebuild,v 1.1 2014/05/21 14:15:43 chithanh Exp $
 
 EAPI=5
 
@@ -14,7 +14,7 @@ fi
 PYTHON_COMPAT=( python{2_6,2_7} )
 
 inherit base autotools multilib multilib-minimal flag-o-matic \
-	python-any-r1 toolchain-funcs ${GIT_ECLASS}
+	python-any-r1 toolchain-funcs pax-utils ${GIT_ECLASS}
 
 OPENGL_DIR="xorg-x11"
 
@@ -142,7 +142,6 @@ done
 
 DEPEND="${RDEPEND}
 	llvm? (
-		>=sys-devel/llvm-3.3-r3[${MULTILIB_USEDEP}]
 		r600-llvm-compiler? ( sys-devel/llvm[video_cards_radeon] )
 		video_cards_radeonsi? ( sys-devel/llvm[video_cards_radeon] )
 	)
@@ -153,6 +152,7 @@ DEPEND="${RDEPEND}
 	)
 	sys-devel/bison
 	sys-devel/flex
+	sys-devel/gettext
 	virtual/pkgconfig
 	>=x11-proto/dri2proto-2.6[${MULTILIB_USEDEP}]
 	dri3? (
@@ -304,10 +304,6 @@ multilib_src_configure() {
 	# build fails with BSD indent, bug #428112
 	use userland_GNU || export INDENT=cat
 
-	if ! multilib_is_native_abi; then
-		myconf+="LLVM_CONFIG=${EPREFIX}/usr/bin/llvm-config.${ABI}"
-	fi
-
 	econf \
 		--enable-dri \
 		--enable-glx \
@@ -418,6 +414,13 @@ multilib_src_install_all() {
 }
 
 multilib_src_test() {
+	if use llvm; then
+		local llvm_tests='lp_test_arit lp_test_arit lp_test_blend lp_test_blend lp_test_conv lp_test_conv lp_test_format lp_test_format lp_test_printf lp_test_printf'
+		pushd src/gallium/drivers/llvmpipe >/dev/null || die
+		emake ${llvm_tests}
+		pax-mark m ${llvm_tests}
+		popd >/dev/null || die
+	fi
 	emake check
 }
 
