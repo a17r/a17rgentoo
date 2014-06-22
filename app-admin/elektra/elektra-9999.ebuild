@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/app-admin/elektra/elektra-0.8.3-r2.ebuild,v 1.1 2013/04/22 14:17:35 xmw Exp $
+# $Header: /var/cvsroot/gentoo-x86/app-admin/elektra/elektra-0.8.3-r3.ebuild,v 1.1 2014/06/22 10:01:43 mgorny Exp $
 
 EAPI=5
 
@@ -23,23 +23,33 @@ LICENSE="BSD"
 SLOT="0"
 IUSE="dbus doc examples iconv simpleini static-libs syslog tcl test +uname xml yajl"
 
-RDEPEND="dev-libs/libxml2[${MULTILIB_USEDEP}]
-	uname? ( sys-apps/coreutils )"
+RDEPEND=">=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
+	dbus? ( >=sys-apps/dbus-1.6.18-r1[${MULTILIB_USEDEP}] )
+	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
+	uname? ( sys-apps/coreutils )
+	yajl? (
+		<dev-libs/yajl-2[${MULTILIB_USEDEP}]
+		>=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}]
+	)"
 DEPEND="${RDEPEND}
-	!amd64? ( sys-devel/libtool )
-	doc? ( app-doc/doxygen )
-	iconv? ( virtual/libiconv )
-	test? ( dev-libs/libxml2[static-libs,${MULTILIB_USEDEP}] )
-	yajl? ( dev-libs/yajl[${MULTILIB_USEDEP}] )"
+	sys-devel/libtool
+	doc? ( app-doc/doxygen )"
 
 DOCS="doc/AUTHORS doc/CHANGES doc/NEWS doc/README doc/todo/TODO"
+# tries to write to user's home directory (and doesn't respect HOME)
+RESTRICT="test"
 
-src_configure() {
-	local my_plugins="ccode;dump;error;fstab;glob;hexcode;hidden;hosts;network;ni;null;path;resolver;struct;success;template;timeofday;tracer;type;validation"
+src_prepare() {
 
 	#move doc files to correct location
 	sed -e "s/elektra-api/${PF}/" \
 		-i cmake/ElektraCache.cmake || die
+
+	cmake-utils_src_prepare
+}
+
+multilib_src_configure() {
+	local my_plugins="ccode;dump;error;fstab;glob;hexcode;hidden;hosts;network;ni;null;path;resolver;struct;success;template;timeofday;tracer;type;validation"
 
 	use dbus      && my_plugins+=";dbus"
 	use doc       && my_plugins+=";doc"
@@ -55,11 +65,13 @@ src_configure() {
 		"-DPLUGINS=${my_plugins}"
 		"-DLATEX_COMPILER=OFF"
 		"-DTARGET_CMAKE_FOLDER=share/cmake/Modules"
-		$(cmake-utils_use doc BUILD_DOCUMENTATION)
-		$(cmake-utils_use examples BUILD_EXAMPLES)
+		$(multilib_is_native_abi && cmake-utils_use doc BUILD_DOCUMENTATION \
+			|| echo -DBUILD_DOCUMENTATION=OFF)
+		$(multilib_is_native_abi && cmake-utils_use examples BUILD_EXAMPLES \
+			|| echo -DBUILD_EXAMPLES=OFF)
 		$(cmake-utils_use static-libs BUILD_STATIC)
 		$(cmake-utils_use test BUILD_TESTING)
 	)
 
-	cmake-multilib_src_configure
+	cmake-utils_src_configure
 }
