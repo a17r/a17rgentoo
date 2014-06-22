@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/media-libs/oyranos/oyranos-0.9.4-r2.ebuild,v 1.1 2014/06/22 12:38:50 mgorny Exp $
+# $Header: /var/cvsroot/gentoo-x86/media-libs/oyranos/oyranos-0.9.4-r2.ebuild,v 1.2 2014/06/22 20:51:53 mgorny Exp $
 
 EAPI=5
 
@@ -47,9 +47,12 @@ RDEPEND="
 		>=x11-libs/libXxf86vm-1.1.3[${MULTILIB_USEDEP}]
 		>=x11-libs/libXinerama-1.1.3[${MULTILIB_USEDEP}] )"
 DEPEND="${RDEPEND}
-	app-doc/doxygen
-	media-gfx/graphviz"
+	doc? (
+		app-doc/doxygen
+		media-gfx/graphviz
+	)"
 
+DOCS="AUTHORS ChangeLog README"
 RESTRICT="test"
 
 MULTILIB_CHOST_TOOLS=(
@@ -65,8 +68,7 @@ src_prepare() {
 	einfo remove bundled libs
 	rm -rf elektra* yajl || die
 
-	epatch "${FILESDIR}/${PN}"-0.9.5-buildsystem.patch \
-		"${FILESDIR}/${PN}"-0.9.5-fix-macro-compile-warning.patch
+	epatch "${FILESDIR}/${PN}"-0.9.5-buildsystem-r1.patch
 
 	if use fltk ; then
 		#src/examples does not include fltk flags
@@ -82,11 +84,12 @@ multilib_src_configure() {
 	local mycmakeargs=(
 		-DLIB_SUFFIX=${libdir#lib}
 
-		$(usex X -DWANT_X11=1 "")
 		$(usex cairo -DWANT_CAIRO=1 "")
 		$(usex cups -DWANT_CUPS=1 "")
+		$(usex doc -DWANT_HTML=1 "")
 		$(usex exif -DWANT_EXIV2=1 "")
 		$(usex raw -DWANT_LIBRAW=1 "")
+		$(usex X -DWANT_X11=1 "")
 
 		# only used in programs
 		$(multilib_native_usex fltk -DWANT_FLTK=1 "")
@@ -94,12 +97,4 @@ multilib_src_configure() {
 	)
 
 	cmake-utils_src_configure
-}
-
-multilib_src_install_all() {
-	dodoc AUTHORS ChangeLog README
-	if use doc ; then
-		mv "${ED}/usr/share/doc/${PN}/*" "${ED}/usr/share/doc/${P}" || die
-	fi
-	rm -rf "${ED}/usr/share/doc/${PN}" || die
 }
