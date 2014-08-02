@@ -17,6 +17,7 @@ IUSE="doc static-libs"
 
 RDEPEND="app-text/libwpd:0.9[tools]"
 DEPEND="${RDEPEND}
+	dev-libs/librevenge
 	virtual/pkgconfig
 	doc? ( app-doc/doxygen )"
 RDEPEND="${RDEPEND}
