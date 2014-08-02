@@ -21,6 +21,7 @@ IUSE="doc static-libs test"
 RDEPEND="
 	app-text/libwpd:0.9
 	dev-libs/boost:=
+	dev-libs/librevenge
 	dev-libs/libxml2
 	sys-libs/zlib
 "
