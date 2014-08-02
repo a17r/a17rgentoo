@@ -5,7 +5,7 @@
 EAPI="5"
 ETYPE="sources"
 K_WANT_GENPATCHES="base extras"
-K_GENPATCHES_VER="77"
+K_GENPATCHES_VER="82"
 K_DEBLOB_AVAILABLE="1"
 inherit kernel-2
 detect_version
@@ -19,10 +19,10 @@ DESCRIPTION="Full sources including the Gentoo patchset for the ${KV_MAJOR}.${KV
 SRC_URI="${KERNEL_URI} ${GENPATCHES_URI} ${ARCH_URI}"
 
 src_prepare() {
-	epatch "${FILESDIR}"/3.4.83-backport_direct_firmware_loading.patch
-
+# 	epatch "${FILESDIR}"/3.4.83-backport_direct_firmware_loading.patch
+# 
 # 	EPATCH_SOURCE="${FILESDIR}/async" EPATCH_SUFFIX="patch" \
-#         EPATCH_FORCE="yes" epatch
+#          EPATCH_FORCE="yes" epatch
 
 	# backport introduction of SO_REUSEPORT to fix avahi compatibility
 	epatch "${FILESDIR}"/3.4.89-backport-01-named-constants-for-sk_reuse.patch \
