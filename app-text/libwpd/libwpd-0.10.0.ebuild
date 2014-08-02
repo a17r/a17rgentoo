@@ -17,6 +17,7 @@ IUSE="doc test +tools"
 
 RDEPEND=""
 DEPEND="${RDEPEND}
+	dev-libs/librevenge
 	virtual/pkgconfig
 	doc? ( app-doc/doxygen )
 	test? ( dev-util/cppunit )
