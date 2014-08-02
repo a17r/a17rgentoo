@@ -15,9 +15,8 @@ SLOT="0.9"
 KEYWORDS="alpha amd64 ~arm hppa ia64 ~mips ppc ppc64 sparc x86 ~x86-fbsd ~x86-freebsd ~amd64-linux ~x86-linux ~ppc-macos ~sparc-solaris ~x64-solaris ~x86-solaris"
 IUSE="doc test +tools"
 
-RDEPEND=""
+RDEPEND="dev-libs/librevenge"
 DEPEND="${RDEPEND}
-	dev-libs/librevenge
 	virtual/pkgconfig
 	doc? ( app-doc/doxygen )
 	test? ( dev-util/cppunit )
