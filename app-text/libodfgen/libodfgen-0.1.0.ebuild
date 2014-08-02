@@ -19,6 +19,7 @@ RDEPEND="
 	app-text/libetonyek
 	app-text/libwpd
 	app-text/libwpg
+	dev-libs/librevenge
 "
 DEPEND="${RDEPEND}
 	>=dev-libs/boost-1.46
