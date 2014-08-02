@@ -17,6 +17,7 @@ IUSE="doc static-libs"
 
 RDEPEND="
 	app-text/libwpd:0.9
+	dev-libs/librevenge
 	dev-libs/libxml2
 	sys-libs/zlib
 "
