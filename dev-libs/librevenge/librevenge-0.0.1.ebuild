@@ -21,7 +21,7 @@ LICENSE="MPL-2.0"
 SLOT="0"
 IUSE="doc"
 
-RDEPEND=""
+RDEPEND="dev-util/cppunit"
 DEPEND="
 	${RDEPEND}
 	sys-libs/zlib
