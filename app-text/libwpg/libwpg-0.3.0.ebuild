@@ -15,9 +15,9 @@ SLOT="0.2"
 KEYWORDS="alpha amd64 ~arm hppa ia64 ~mips ppc ppc64 sparc x86 ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris"
 IUSE="doc static-libs"
 
-RDEPEND="app-text/libwpd:0.9[tools]"
+RDEPEND="app-text/libwpd:0.9[tools]
+	dev-libs/librevenge"
 DEPEND="${RDEPEND}
-	dev-libs/librevenge
 	virtual/pkgconfig
 	doc? ( app-doc/doxygen )"
 RDEPEND="${RDEPEND}
