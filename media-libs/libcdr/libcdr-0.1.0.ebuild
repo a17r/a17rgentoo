@@ -21,6 +21,7 @@ RDEPEND="
 	app-text/libwpd:0.9
 	app-text/libwpg:0.2
 	dev-libs/icu:=
+	dev-libs/librevenge
 	media-libs/lcms:2
 	sys-libs/zlib
 "
