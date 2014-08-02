@@ -8,7 +8,7 @@ inherit alternatives eutils
 
 DESCRIPTION="C++ library to read and parse graphics in WPG"
 HOMEPAGE="http://libwpg.sourceforge.net/libwpg.htm"
-SRC_URI="mirror://sourceforge/projects/${PN}/files/${P}/${P}.tar.xz"
+SRC_URI="mirror://sourceforge/projects/${PN}/files/${PN}/${P}/${P}.tar.xz"
 
 LICENSE="|| ( LGPL-2.1 MPL-2.0 )"
 SLOT="0.2"
