@@ -25,6 +25,7 @@ RDEPEND="
 	app-text/libwpd:0.9
 	app-text/libwpg:0.2
 	dev-libs/icu:=
+	dev-libs/librevenge
 	sys-libs/zlib
 "
 DEPEND="${RDEPEND}
