@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/app-office/libreoffice/libreoffice-4.2.5.2.ebuild,v 1.3 2014/06/29 16:43:06 ago Exp $
+# $Header: /var/cvsroot/gentoo-x86/app-office/libreoffice/libreoffice-9999-r2.ebuild,v 1.217 2014/08/01 05:23:23 ssuominen Exp $
 
 EAPI=5
 
@@ -58,6 +58,10 @@ unset DEV_URI
 # Really required addons
 # These are bundles that can't be removed for now due to huge patchsets.
 # If you want them gone, patches are welcome.
+ADDONS_SRC+=" ${ADDONS_URI}/4b87018f7fff1d054939d19920b751a0-collada2gltf-master-cb1d97788a.tar.bz2"
+ADDONS_SRC+=" ${ADDONS_URI}/OpenCOLLADA-master-6509aa13af.tar.bz2"
+ADDONS_SRC+=" ${ADDONS_URI}/libgltf/3d9ea1f2828c46f8ba94b88a87b3326d-libgltf-0.0.0.tar.bz2"
+ADDONS_SRC+=" ${ADDONS_URI}/CoinMP-1.7.6.tgz"
 ADDONS_SRC+=" ${ADDONS_URI}/d62650a6f908e85643e557a236ea989c-vigra1.6.0.tar.gz"
 ADDONS_SRC+=" ${ADDONS_URI}/1f24ab1d39f4a51faf22244c94a6203f-xmlsec1-1.2.14.tar.gz" # modifies source code
 ADDONS_SRC+=" java? ( ${ADDONS_URI}/17410483b5b5f267aa18b7e00b65e6e0-hsqldb_1_8_0.zip )"
