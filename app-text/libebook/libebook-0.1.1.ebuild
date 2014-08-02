@@ -21,6 +21,7 @@ IUSE="doc test"
 RDEPEND="
 	>=app-text/libwpd-0.9.5:0.9
 	dev-libs/icu:=
+	dev-libs/librevenge
 	dev-libs/libxml2
 	sys-libs/zlib
 "
