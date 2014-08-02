@@ -18,6 +18,7 @@ IUSE="doc debug static-libs"
 RDEPEND="
 	app-text/libwpd:0.9
 	dev-libs/boost
+	dev-libs/librevenge
 "
 DEPEND="${RDEPEND}
 	virtual/pkgconfig
