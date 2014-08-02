@@ -22,6 +22,7 @@ RDEPEND="
 	app-text/libwpd:0.9
 	app-text/libwpg:0.2
 	dev-libs/icu:=
+	dev-libs/librevenge
 	dev-libs/libxml2
 	sys-libs/zlib
 "
