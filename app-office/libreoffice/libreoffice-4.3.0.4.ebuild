@@ -451,7 +451,7 @@ src_configure() {
 		--enable-cairo-canvas \
 		--enable-graphite \
 		--enable-largefile \
-		--enable-mergelibs \
+		--disable-mergelibs \
 		--enable-python=system \
 		--enable-randr \
 		--enable-randr-link \
