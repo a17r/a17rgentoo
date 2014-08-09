@@ -25,7 +25,7 @@ fi
 GV="2.24"
 MV="4.5.2"
 PULSE_PATCHES="winepulse-patches-1.7.21"
-COMPHOLIOV="1.7.21"
+COMPHOLIOV="1.7.23"
 COMPHOLIO_PATCHES="wine-compholio-daily-${COMPHOLIOV}"
 WINE_GENTOO="wine-gentoo-2013.06.24"
 DESCRIPTION="Free implementation of Windows(tm) on Unix"
