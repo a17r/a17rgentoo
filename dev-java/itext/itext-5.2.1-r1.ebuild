@@ -1,6 +1,6 @@
-# Copyright 1999-2012 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/dev-java/itext/itext-5.2.0.ebuild,v 1.1 2012/03/26 07:21:27 sera Exp $
+# $Header: /var/cvsroot/gentoo-x86/dev-java/itext/itext-5.2.0.ebuild,v 1.3 2014/08/10 20:15:26 slyfox Exp $
 
 EAPI="4"
 
@@ -8,8 +8,8 @@ JAVA_PKG_IUSE="doc source"
 
 inherit java-pkg-2 java-pkg-simple
 
-DESCRIPTION="A Java library that generate documents in the Portable Document Format (PDF) and/or HTML."
-HOMEPAGE="http://www.lowagie.com/iText/"
+DESCRIPTION="Java library that generate documents in the Portable Document Format (PDF) and/or HTML"
+HOMEPAGE="http://itextpdf.com"
 SRC_URI="mirror://sourceforge/${PN}/${P}.zip"
 
 LICENSE="AGPL-3"
@@ -17,15 +17,13 @@ SLOT="5"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-BCV="1.45"
-
-COMMON_DEPEND="
-	dev-java/bcmail:${BCV}
-	dev-java/bcprov:${BCV}
-	dev-java/bctsp"
-RDEPEND="${COMMON_DEPEND}
+COMMON_DEP="
+	dev-java/bcmail:0
+	dev-java/bcprov:0
+	dev-java/bctsp:0"
+RDEPEND="${COMMON_DEP}
 	>=virtual/jre-1.5"
-DEPEND="${COMMON_DEPEND}
+DEPEND="${COMMON_DEP}
 	>=virtual/jdk-1.5
 	app-arch/unzip"
 
@@ -51,21 +49,6 @@ java_prepare() {
 
 JAVA_GENTOO_CLASSPATH="bcmail,bcprov,bctsp"
 
-#src_install() {
-#	java-pkg-simple_src_install
-#}
-
 src_install() {
 	java-pkg-simple_src_install
-	#cd "${WORKDIR}"
-	#java-pkg_dojar lib/iText.jar
-	#use rtf && java-pkg_dojar lib/iText-rtf.jar
-	#use rups && java-pkg_dojar lib/iText-rups.jar
-	#if use cjk; then
-	#	java-pkg_dojar "${DISTDIR}/${ASIANJAR}"
-	#	java-pkg_dojar "${DISTDIR}/${ASIANCMAPSJAR}"
-	#fi
-
-	#use source && java-pkg_dosrc src/core/com src/rups/com
-	#use doc && java-pkg_dojavadoc build/docs
 }
