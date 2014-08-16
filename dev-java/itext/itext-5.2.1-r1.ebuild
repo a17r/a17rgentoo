@@ -49,7 +49,7 @@ java_prepare() {
 	find "${WORKDIR}" -name '*.jar' -exec rm -v {} + || die
 }
 
-JAVA_GENTOO_CLASSPATH="bcmail,bcprov,bctsp"
+JAVA_GENTOO_CLASSPATH="bcmail-${BCV},bcprov-${BCV},bctsp"
 
 src_install() {
 	java-pkg-simple_src_install
