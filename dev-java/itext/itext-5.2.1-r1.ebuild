@@ -17,10 +17,12 @@ SLOT="5"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
+BCV="1.45"
+
 COMMON_DEP="
-	dev-java/bcmail:0
-	dev-java/bcprov:0
-	dev-java/bctsp:0"
+	dev-java/bcmail:${BCV}
+	dev-java/bcprov:${BCV}
+	dev-java/bctsp"
 RDEPEND="${COMMON_DEP}
 	>=virtual/jre-1.5"
 DEPEND="${COMMON_DEP}
