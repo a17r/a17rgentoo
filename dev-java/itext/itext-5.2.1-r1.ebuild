@@ -22,7 +22,7 @@ BCV="1.45"
 COMMON_DEP="
 	dev-java/bcmail:${BCV}
 	dev-java/bcprov:${BCV}
-	dev-java/bctsp"
+	dev-java/bctsp:0"
 RDEPEND="${COMMON_DEP}
 	>=virtual/jre-1.5"
 DEPEND="${COMMON_DEP}
