@@ -2,10 +2,10 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-EAPI=4
+EAPI=5
 
 MODULE_AUTHOR=TURNSTEP
-MODULE_VERSION=3.2.1
+MODULE_VERSION=3.4.0
 inherit perl-module
 
 DESCRIPTION="The Perl DBD::Pg Module"
