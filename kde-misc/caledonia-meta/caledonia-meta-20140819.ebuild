@@ -10,8 +10,10 @@ LICENSE="metapackage"
 KEYWORDS="~amd64 ~x86"
 SLOT=0
 
+IUSE="+kdmtheme"
+
 RDEPEND="=kde-misc/caledonia-colorscheme-20121121
-	=kde-misc/caledonia-kdmtheme-1.3
 	=kde-misc/caledonia-ksplash-1.3
 	=kde-misc/caledonia-plasmatheme-1.9
-	=kde-misc/caledonia-wallpapers-1.5"
+	=kde-misc/caledonia-wallpapers-1.5
+	kdmtheme? ( =kde-misc/caledonia-kdmtheme-1.3 )"

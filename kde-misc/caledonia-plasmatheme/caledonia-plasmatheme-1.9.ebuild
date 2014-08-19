@@ -18,10 +18,10 @@ SLOT="0"
 
 S="${WORKDIR}/${MY_PN}"
 
-DOCS="AUTHORS CHANGELOG INSTALL LICENSE"
+DOCS="AUTHORS.txt CHANGELOG.txt INSTALL.txt LICENSE.txt"
 
 src_install() {
-	rm GET\ MORE\ CALEDONIA\ STUFF || die
+	rm "GET MORE CALEDONIA STUFF.txt" || die
 
 	dodoc ${DOCS}
 	rm ${DOCS} || die
