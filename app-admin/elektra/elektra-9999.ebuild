@@ -35,11 +35,18 @@ DEPEND="${RDEPEND}
 	sys-devel/libtool
 	doc? ( app-doc/doxygen )"
 
-DOCS="doc/AUTHORS doc/CHANGES doc/NEWS doc/README doc/todo/TODO"
+DOCS="README.md doc/AUTHORS doc/CHANGES doc/NEWS doc/todo/TODO"
 # tries to write to user's home directory (and doesn't respect HOME)
 RESTRICT="test"
 
 src_prepare() {
+
+	epatch "${FILESDIR}/${PN}-0.8.7-disable-tests.patch"
+
+	einfo remove bundled libs
+	# TODO: Remove bundled inih from src/plugins/ini (add to portage):
+	# https://code.google.com/p/inih/
+	rm -rf src/external || die
 
 	#move doc files to correct location
 	sed -e "s/elektra-api/${PF}/" \
@@ -73,6 +80,7 @@ multilib_src_configure() {
 			|| echo -DBUILD_EXAMPLES=OFF)
 		$(cmake-utils_use static-libs BUILD_STATIC)
 		$(cmake-utils_use test BUILD_TESTING)
+		$(cmake-utils_use test ENABLE_TESTING)
 	)
 
 	cmake-utils_src_configure
