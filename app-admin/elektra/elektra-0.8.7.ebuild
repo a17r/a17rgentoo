@@ -33,7 +33,8 @@ RDEPEND=">=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
 	)"
 DEPEND="${RDEPEND}
 	sys-devel/libtool
-	doc? ( app-doc/doxygen )"
+	doc? ( app-doc/doxygen )
+	test? ( >=dev-cpp/gtest-1.7.0 )"
 
 DOCS="README.md doc/AUTHORS doc/CHANGES doc/NEWS doc/todo/TODO"
 # tries to write to user's home directory (and doesn't respect HOME)
