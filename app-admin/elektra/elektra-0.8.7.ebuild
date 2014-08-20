@@ -41,12 +41,21 @@ RESTRICT="test"
 
 src_prepare() {
 
-	epatch "${FILESDIR}/${PN}-0.8.7-disable-tests.patch"
+	epatch "${FILESDIR}/${PN}-0.8.7-conditional-glob-tests.patch"
 
 	einfo remove bundled libs
 	# TODO: Remove bundled inih from src/plugins/ini (add to portage):
 	# https://code.google.com/p/inih/
 	rm -rf src/external || die
+
+	local tests="augeas fstab hosts ini yajl"
+	if ! use test ; then
+		einfo remove test data
+		for test in ${tests}; do
+			sed -e '/TARGET_TEST_DATA_FOLDER/ s/^#*/#/' \
+				-i src/plugins/${test}/CMakeLists.txt || die
+		done
+	fi
 
 	#move doc files to correct location
 	sed -e "s/elektra-api/${PF}/" \
@@ -59,9 +68,9 @@ multilib_src_configure() {
 	local my_plugins="ccode;dump;error;fstab;glob;hexcode;hidden;hosts;network;ni;null;path;resolver;struct;success;template;timeofday;tracer;type;validation"
 
 	use dbus      && my_plugins+=";dbus"
-	use doc       && my_plugins+=";doc"
+#	use doc       && my_plugins+=";doc"		#bug 514402; examples?
 	use iconv     && my_plugins+=";iconv"
-	use ini       && my_plugins+=";ini"		#bundles inih - baaaaad
+	use ini       && my_plugins+=";ini"		#bundles inih - baaad
 	use keytometa && my_plugins+=";keytometa"
 	use simpleini && my_plugins+=";simpleini"
 	use syslog    && my_plugins+=";syslog"
