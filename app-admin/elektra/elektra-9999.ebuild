@@ -10,7 +10,7 @@ DESCRIPTION="universal and secure framework to store config parameters in a hier
 HOMEPAGE="http://freedesktop.org/wiki/Software/Elektra"
 
 if [[ ${PV} == "9999" ]] ; then
-	EGIT_REPO_URI="git://gitorious.org/elektra-initiative/libelektra.git"
+	EGIT_REPO_URI="git://github.com/ElektraInitiative/libelektra.git"
 	inherit git-2
 	SRC_URI=""
 	#KEYWORDS=""
@@ -21,7 +21,7 @@ fi
 
 LICENSE="BSD"
 SLOT="0"
-IUSE="dbus doc examples iconv ini keytometa simpleini static-libs syslog tcl test +uname xml yajl"
+IUSE="dbus doc examples iconv ini keytometa line simpleini static-libs syslog tcl test +uname xml yajl"
 
 RDEPEND=">=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
 	dbus? ( >=sys-apps/dbus-1.6.18-r1[${MULTILIB_USEDEP}] )
@@ -33,7 +33,8 @@ RDEPEND=">=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
 	)"
 DEPEND="${RDEPEND}
 	sys-devel/libtool
-	doc? ( app-doc/doxygen )"
+	doc? ( app-doc/doxygen )
+	test? ( >=dev-cpp/gtest-1.7.0 )"
 
 DOCS="README.md doc/AUTHORS doc/CHANGES doc/NEWS doc/todo/TODO"
 # tries to write to user's home directory (and doesn't respect HOME)
@@ -72,6 +73,7 @@ multilib_src_configure() {
 	use iconv     && my_plugins+=";iconv"
 	use ini       && my_plugins+=";ini"		#bundles inih - baaad
 	use keytometa && my_plugins+=";keytometa"
+	use line      && my_plugins+=";line"
 	use simpleini && my_plugins+=";simpleini"
 	use syslog    && my_plugins+=";syslog"
 	use tcl       && my_plugins+=";tcl"
