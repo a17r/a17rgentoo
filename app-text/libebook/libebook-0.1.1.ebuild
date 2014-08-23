@@ -19,7 +19,7 @@ KEYWORDS="~amd64 ~arm ~ppc ~ppc64 ~x86"
 IUSE="doc test"
 
 RDEPEND="
-	>=app-text/libwpd-0.9.5:0.9
+	app-text/libwpd:0.10
 	dev-libs/icu:=
 	dev-libs/librevenge
 	dev-libs/libxml2

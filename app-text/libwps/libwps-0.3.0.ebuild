@@ -16,7 +16,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~ia64 ~ppc ~ppc64 ~sparc ~x86 ~amd64-linux ~x86-lin
 IUSE="doc debug static-libs"
 
 RDEPEND="
-	app-text/libwpd:0.9
+	app-text/libwpd:0.10
 	dev-libs/boost
 	dev-libs/librevenge
 "

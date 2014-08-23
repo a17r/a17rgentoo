@@ -22,8 +22,8 @@ KEYWORDS="~amd64 ~arm ~ppc ~x86"
 IUSE="doc static-libs"
 
 RDEPEND="
-	app-text/libwpd:0.9
-	app-text/libwpg:0.2
+	app-text/libwpd:0.10
+	app-text/libwpg:0.3
 	dev-libs/icu:=
 	dev-libs/librevenge
 	sys-libs/zlib

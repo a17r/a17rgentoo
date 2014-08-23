@@ -19,7 +19,7 @@ KEYWORDS="~amd64 ~arm ~ppc ~x86"
 IUSE="doc static-libs test"
 
 RDEPEND="
-	app-text/libwpd:0.9
+	app-text/libwpd:0.10
 	dev-libs/boost:=
 	dev-libs/librevenge
 	dev-libs/libxml2
