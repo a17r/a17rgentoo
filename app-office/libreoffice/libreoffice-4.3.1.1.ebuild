@@ -109,8 +109,8 @@ COMMON_DEPEND="
 	>=app-text/libmspub-0.1.0
 	>=app-text/libmwaw-0.3.1
 	>=app-text/libodfgen-0.1.0
-	>=app-text/libwpd-0.10:0.9[tools]
-	>=app-text/libwpg-0.3.0:0.2
+	app-text/libwpd:0.10[tools]
+	app-text/libwpg:0.3
 	>=app-text/libwps-0.3.0
 	>=app-text/poppler-0.16:=[xpdf-headers(+),cxx]
 	>=dev-cpp/clucene-2.3.3.4-r2
