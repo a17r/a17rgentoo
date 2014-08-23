@@ -13,7 +13,7 @@ MY_P="${MY_PN}-${PV}"
 
 if [[ ${PV} = 9999* ]]; then
 	EGIT_REPO_URI="https://github.com/Androxyde/${MY_PN}.git"
-	EVCS_OFFLINE=1
+#	EVCS_OFFLINE=1
 	inherit git-2
 else
 	SRC_URI="mirror://gentoo/${P}-src.tar.gz"
