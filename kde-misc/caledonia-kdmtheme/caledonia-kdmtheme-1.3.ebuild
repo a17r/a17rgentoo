@@ -8,7 +8,7 @@ MY_PN="Caledonia-KDM"
 MY_PV=${PV}
 MY_P="${MY_PN}-${MY_PV}"
 
-DESCRIPTION="This is the Caledonia KDM theme."
+DESCRIPTION="This is the Caledonia KDM theme"
 HOMEPAGE="http://caledonia.sourceforge.net/get.html"
 SRC_URI="mirror://sourceforge/caledonia/Caledonia%20KDM/${MY_P}.tar.gz"
 

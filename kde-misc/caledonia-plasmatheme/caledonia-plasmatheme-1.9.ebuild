@@ -8,7 +8,7 @@ MY_PN="Caledonia"
 MY_PV=${PV}
 MY_P="${MY_PN}-${MY_PV}"
 
-DESCRIPTION="Caledonia is an elegant and minimalistic dark theme for Plasma-KDE."
+DESCRIPTION="Caledonia is an elegant and minimalistic dark theme for Plasma-KDE"
 HOMEPAGE="http://caledonia.sourceforge.net/get.html"
 SRC_URI="mirror://sourceforge/caledonia/Caledonia%20%28Plasma-KDE%20Theme%29/${MY_P}.tar.gz"
 

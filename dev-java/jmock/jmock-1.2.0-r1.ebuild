@@ -7,7 +7,7 @@ EAPI="5"
 JAVA_PKG_IUSE="doc examples source test"
 inherit eutils java-pkg-2 java-ant-2
 
-DESCRIPTION="Library for testing Java code using mock objects."
+DESCRIPTION="Library for testing Java code using mock objects"
 SRC_URI="http://${PN}.codehaus.org/${P}.tar.gz"
 HOMEPAGE="http://jmock.codehaus.org"
 LICENSE="BSD"
