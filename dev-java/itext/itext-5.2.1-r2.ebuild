@@ -10,7 +10,7 @@ inherit java-pkg-2 java-ant-2
 
 DISTFILE="${PN}pdf-${PV}-sources.jar"
 
-DESCRIPTION="A Java library that generate documents in the Portable Document Format (PDF) and/or HTML."
+DESCRIPTION="A Java library that generate documents in the Portable Document Format (PDF) and/or HTML"
 HOMEPAGE="http://www.lowagie.com/iText/"
 SRC_URI="mirror://sourceforge/${PN}/${P}.zip"
 

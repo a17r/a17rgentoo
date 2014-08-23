@@ -20,7 +20,7 @@ else
 	KEYWORDS="~amd64 ~x86"
 fi
 
-DESCRIPTION="Flashtool is a S1 flashing software that works for all Sony phones from X10 to Xperia Z Ultra."
+DESCRIPTION="Flashtool is a S1 flashing software that works for all Sony phones from X10 to Xperia Z Ultra"
 HOMEPAGE="http://www.flashtool.net/"
 
 LICENSE="Apache-2.0"

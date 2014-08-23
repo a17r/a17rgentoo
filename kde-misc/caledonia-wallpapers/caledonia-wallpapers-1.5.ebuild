@@ -8,7 +8,7 @@ MY_PN="Caledonia_Official_Wallpaper_Collection"
 MY_PV=${PV}
 MY_P="${MY_PN}-${MY_PV}"
 
-DESCRIPTION="This is the Caledonia KSplash theme."
+DESCRIPTION="This is the Caledonia KSplash theme"
 HOMEPAGE="http://caledonia.sourceforge.net/get.html"
 SRC_URI="mirror://sourceforge/caledonia/Caledonia%20Official%20Wallpapers/${MY_P}.tar.gz"
 

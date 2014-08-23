@@ -8,7 +8,7 @@ MY_PN="Caledonia.colors"
 MY_PV=${PV}
 MY_P="${MY_PN}-${MY_PV}"
 
-DESCRIPTION="This is the Caledonia KSplash theme."
+DESCRIPTION="This is the Caledonia KSplash theme"
 HOMEPAGE="http://caledonia.sourceforge.net/get.html"
 SRC_URI="mirror://sourceforge/caledonia/Caledonia%20Color%20Scheme/${MY_PN} -> ${MY_P}"
 
