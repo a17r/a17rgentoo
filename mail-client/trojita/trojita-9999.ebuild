@@ -63,6 +63,7 @@ DOCS="README LICENSE"
 
 src_configure() {
 	local mycmakeargs=(
+		$(cmake-utils_use_with qt5 QT5)
 		$(cmake-utils_use_with password QTKEYCHAIN_PLUGIN)
 		$(cmake-utils_use_with test TESTS)
 		$(cmake-utils_use_with zlib ZLIB)
