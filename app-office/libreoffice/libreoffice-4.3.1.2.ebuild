@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/app-office/libreoffice/libreoffice-9999-r2.ebuild,v 1.217 2014/08/01 05:23:23 ssuominen Exp $
+# $Header: $
 
 EAPI=5
 
@@ -60,11 +60,11 @@ unset DEV_URI
 # If you want them gone, patches are welcome.
 ADDONS_SRC+=" ${ADDONS_URI}/d62650a6f908e85643e557a236ea989c-vigra1.6.0.tar.gz"
 ADDONS_SRC+=" ${ADDONS_URI}/1f24ab1d39f4a51faf22244c94a6203f-xmlsec1-1.2.14.tar.gz" # modifies source code
+ADDONS_SRC+=" coinmp? ( ${ADDONS_URI}/CoinMP-1.7.6.tgz )"
+ADDONS_SRC+=" gltf? ( ${ADDONS_URI}/libgltf/libgltf-0.0.0.tar.bz2 )"
+ADDONS_SRC+=" gltf? ( ${ADDONS_URI}/4b87018f7fff1d054939d19920b751a0-collada2gltf-master-cb1d97788a.tar.bz2 )"
+ADDONS_SRC+=" gltf? ( ${ADDONS_URI}/OpenCOLLADA-master-6509aa13af.tar.bz2 )"
 ADDONS_SRC+=" java? ( ${ADDONS_URI}/17410483b5b5f267aa18b7e00b65e6e0-hsqldb_1_8_0.zip )"
-ADDONS_SRC+=" libreoffice_extensions_coinmp? ( ${ADDONS_URI}/CoinMP-1.7.6.tgz )"
-ADDONS_SRC+=" libreoffice_extensions_gltf? ( ${ADDONS_URI}/libgltf/libgltf-0.0.0.tar.bz2 )"
-ADDONS_SRC+=" libreoffice_extensions_gltf? ( ${ADDONS_URI}/4b87018f7fff1d054939d19920b751a0-collada2gltf-master-cb1d97788a.tar.bz2 )"
-ADDONS_SRC+=" libreoffice_extensions_gltf? ( ${ADDONS_URI}/OpenCOLLADA-master-6509aa13af.tar.bz2 )"
 ADDONS_SRC+=" libreoffice_extensions_wiki-publisher? ( ${ADDONS_URI}/a7983f859eafb2677d7ff386a023bc40-xsltml_2.1.2.zip )" # no release for 8 years, should we package it?
 ADDONS_SRC+=" libreoffice_extensions_scripting-javascript? ( ${ADDONS_URI}/798b2ffdc8bcfe7bca2cf92b62caf685-rhino1_5R5.zip )" # Does not build with 1.6 rhino at all
 ADDONS_SRC+=" libreoffice_extensions_scripting-javascript? ( ${ADDONS_URI}/35c94d2df8893241173de1d16b6034c0-swingExSrc.zip )" # requirement of rhino
@@ -75,10 +75,10 @@ unset ADDONS_URI
 unset EXT_URI
 unset ADDONS_SRC
 
-IUSE="bluetooth +branding +cups dbus debug eds firebird gnome gstreamer +gtk
-gtk3 jemalloc kde mysql odk opengl postgres telepathy test +vba vlc +webdav"
+IUSE="bluetooth +branding coinmp +cups dbus debug eds firebird gltf gnome gstreamer
++gtk gtk3 jemalloc kde mysql odk opengl postgres telepathy test +vba vlc +webdav"
 
-LO_EXTS="coinmp gltf nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
+LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 # Unpackaged separate extensions:
 # diagram: lo has 0.9.5 upstream is weirdly patched 0.9.4 -> wtf?
 # hunart: only on ooo extensions -> fubared download path somewhere on sf
@@ -198,8 +198,7 @@ RDEPEND="${COMMON_DEPEND}
 "
 
 if [[ ${PV} != *9999* ]]; then
-	# PDEPEND="~app-office/libreoffice-l10n-${PV}"
-	PDEPEND="app-office/libreoffice-l10n"
+	PDEPEND="~app-office/libreoffice-l10n-${PV}"
 else
 	# Translations are not reliable on live ebuilds
 	# rather force people to use english only.
@@ -490,11 +489,13 @@ src_configure() {
 		--with-helppack-integration \
 		--without-sun-templates \
 		$(use_enable bluetooth sdremote-bluetooth) \
+		$(use_enable coinmp) \
 		$(use_enable cups) \
 		$(use_enable debug) \
 		$(use_enable dbus) \
 		$(use_enable eds evolution2) \
 		$(use_enable firebird firebird-sdbc) \
+		$(use_enable gltf) \
 		$(use_enable gnome gconf) \
 		$(use_enable gnome gio) \
 		$(use_enable gnome lockdown) \
