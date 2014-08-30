@@ -451,7 +451,6 @@ src_configure() {
 		--enable-cairo-canvas \
 		--enable-graphite \
 		--enable-largefile \
-		--disable-mergelibs \
 		--enable-python=system \
 		--enable-randr \
 		--enable-randr-link \
@@ -469,6 +468,7 @@ src_configure() {
 		--disable-report-builder \
 		--disable-kdeab \
 		--disable-kde \
+		--disable-mergelibs \
 		--disable-online-update \
 		--disable-systray \
 		--with-alloc=$(use jemalloc && echo "jemalloc" || echo "system") \
