@@ -371,6 +371,11 @@ src_prepare() {
 		-e 's#Makefile.gbuild all slowcheck#Makefile.gbuild all#g' \
 		Makefile.in || die
 
+	# system libgltf include path
+	sed -i \
+		-e 's/libgltf\/libgltf.h/libgltf.h/' \
+		avmedia/source/opengl/ogl{window,player,framegrabber}.hxx || die
+
 	if use branding; then
 		# hack...
 		mv -v "${WORKDIR}/branding-intro.png" "${S}/icon-themes/galaxy/brand/intro.png" || die
