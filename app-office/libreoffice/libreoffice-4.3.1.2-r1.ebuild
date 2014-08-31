@@ -60,7 +60,6 @@ unset DEV_URI
 # If you want them gone, patches are welcome.
 ADDONS_SRC+=" ${ADDONS_URI}/d62650a6f908e85643e557a236ea989c-vigra1.6.0.tar.gz"
 ADDONS_SRC+=" ${ADDONS_URI}/1f24ab1d39f4a51faf22244c94a6203f-xmlsec1-1.2.14.tar.gz" # modifies source code
-ADDONS_SRC+=" coinmp? ( ${ADDONS_URI}/CoinMP-1.7.6.tgz )"
 ADDONS_SRC+=" collada? ( ${ADDONS_URI}/4b87018f7fff1d054939d19920b751a0-collada2gltf-master-cb1d97788a.tar.bz2 )"
 ADDONS_SRC+=" collada? ( ${ADDONS_URI}/OpenCOLLADA-master-6509aa13af.tar.bz2 )"
 ADDONS_SRC+=" java? ( ${ADDONS_URI}/17410483b5b5f267aa18b7e00b65e6e0-hsqldb_1_8_0.zip )"
@@ -146,6 +145,7 @@ COMMON_DEPEND="
 	x11-libs/libXrandr
 	x11-libs/libXrender
 	bluetooth? ( net-wireless/bluez )
+	coinmp? ( sci-libs/coinor-mp )
 	cups? ( net-print/cups )
 	dbus? ( >=dev-libs/dbus-glib-0.92 )
 	eds? ( gnome-extra/evolution-data-server )
@@ -248,6 +248,7 @@ PATCHES=(
 	# staged for git master
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-gltf.patch"
 	"${FILESDIR}/${PN}-4.3.1.2-handle-collada-libs-seperately.patch"
+	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
 )
 
 REQUIRED_USE="
@@ -402,6 +403,7 @@ src_configure() {
 		--without-system-vigra
 	"
 
+	use coinmp && internal_libs+="--with-system-coinmp"
 	use gltf && internal_libs+="--with-system-libgltf"
 
 	# libreoffice extensions handling
