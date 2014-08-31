@@ -9,7 +9,7 @@ inherit base eutils
 [[ ${PV} == 9999 ]] && inherit autotools git-2
 
 DESCRIPTION="C++ Library for rendering OpenGL models stored in glTF format"
-HOMEPAGE=""
+HOMEPAGE="http://www.libreoffice.org"
 [[ ${PV} == 9999 ]] || SRC_URI="http://dev-www.libreoffice.org/src/${PN}/${P}.tar.bz2"
 
 LICENSE="MPL-2.0"
@@ -28,6 +28,10 @@ DEPEND="${RDEPEND}
 	virtual/pkgconfig
 "
 
+# testsuite not in tarball
+# only in git; unsure
+RESTRICT="test"
+
 src_prepare() {
 	[[ -d m4 ]] || mkdir "m4"
 	base_src_prepare
@@ -37,7 +41,8 @@ src_prepare() {
 src_configure() {
 	econf \
 		--docdir="${EPREFIX}/usr/share/doc/${PF}" \
-		--disable-werror
+		--disable-werror \
+		$(use_enable test tests)
 }
 
 src_install() {
