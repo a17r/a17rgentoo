@@ -249,6 +249,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-gltf.patch"
 	"${FILESDIR}/${PN}-4.3.1.2-handle-collada-libs-seperately.patch"
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
+	"${FILESDIR}/${PN}-4.3.1.2-fix-mergelibs-build.patch"
 )
 
 REQUIRED_USE="
@@ -465,6 +466,7 @@ src_configure() {
 		--enable-cairo-canvas \
 		--enable-graphite \
 		--enable-largefile \
+		--enable-mergelibs \
 		--enable-python=system \
 		--enable-randr \
 		--enable-randr-link \
@@ -480,7 +482,6 @@ src_configure() {
 		--disable-report-builder \
 		--disable-kdeab \
 		--disable-kde \
-		--disable-mergelibs \
 		--disable-online-update \
 		--disable-systray \
 		--with-alloc=$(use jemalloc && echo "jemalloc" || echo "system") \
