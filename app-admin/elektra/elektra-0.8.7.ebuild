@@ -66,8 +66,7 @@ src_prepare() {
 }
 
 multilib_src_configure() {
-	local 
-my_plugins="ccode;dump;error;fstab;glob;hexcode;hidden;hosts;network;ni;null;path;resolver;struct;success;template;timeofday;tracer;type;validation"
+	local my_plugins="ccode;dump;error;fstab;glob;hexcode;hidden;hosts;network;ni;null;path;resolver;struct;success;template;timeofday;tracer;type;validation"
 
 	use dbus      && my_plugins+=";dbus"
 #	use doc       && my_plugins+=";doc"		#bug 514402; examples?
