@@ -42,7 +42,7 @@ RESTRICT="test"
 
 src_prepare() {
 
-	epatch "${FILESDIR}/${PN}-9999-conditional-glob-tests.patch"
+	epatch "${FILESDIR}/${PN}-0.8.8-conditional-glob-tests.patch"
 
 	einfo remove bundled libs
 	# TODO: Remove bundled inih from src/plugins/ini (add to portage):
