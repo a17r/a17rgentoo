@@ -400,9 +400,6 @@ src_configure() {
 		--without-system-vigra
 	"
 
-	use coinmp && internal_libs+="--with-system-coinmp"
-	use gltf && internal_libs+="--with-system-libgltf"
-
 	# libreoffice extensions handling
 	for lo_xt in ${LO_EXTS}; do
 		if [[ "${lo_xt}" == "scripting-beanshell" || "${lo_xt}" == "scripting-javascript" ]]; then
@@ -521,6 +518,8 @@ src_configure() {
 		$(use_enable vba) \
 		$(use_enable vlc) \
 		$(use_enable webdav neon) \
+		$(use_with coinmp system-coinmp) \
+		$(use_with gltf system-libgltf) \
 		$(use_with java) \
 		$(use_with mysql system-mysql-cppconn) \
 		$(use_with odk doxygen) \
