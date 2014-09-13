@@ -459,6 +459,7 @@ src_configure() {
 		--enable-cairo-canvas \
 		--enable-graphite \
 		--enable-largefile \
+		--enable-mergelibs \
 		--enable-python=system \
 		--enable-randr \
 		--enable-randr-link \
@@ -474,7 +475,6 @@ src_configure() {
 		--disable-report-builder \
 		--disable-kdeab \
 		--disable-kde \
-		--disable-mergelibs \
 		--disable-online-update \
 		--disable-systray \
 		--with-alloc=$(use jemalloc && echo "jemalloc" || echo "system") \
@@ -583,6 +583,10 @@ src_install() {
 
 	# Remove desktop files for support to old installs that can't parse mime
 	rm -rf "${ED}"/usr/share/mimelnk/
+
+	# FIXME: Hack add missing file
+	insinto "${ED}"/usr/$(get_libdir)/${PN}/program
+	doins "${WORKDIR}"/instdir/program/libsaxlo.so
 
 	pax-mark -m "${ED}"/usr/$(get_libdir)/libreoffice/program/soffice.bin
 	pax-mark -m "${ED}"/usr/$(get_libdir)/libreoffice/program/unopkg.bin
