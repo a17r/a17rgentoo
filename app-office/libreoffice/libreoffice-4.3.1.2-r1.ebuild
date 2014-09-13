@@ -585,8 +585,8 @@ src_install() {
 	rm -rf "${ED}"/usr/share/mimelnk/
 
 	# FIXME: Hack add missing file
-	insinto "${ED}"/usr/$(get_libdir)/${PN}/program
-	doins "${WORKDIR}"/instdir/program/libsaxlo.so
+	insinto /usr/$(get_libdir)/${PN}/program
+	doins "${S}"/instdir/program/libsaxlo.so
 
 	pax-mark -m "${ED}"/usr/$(get_libdir)/libreoffice/program/soffice.bin
 	pax-mark -m "${ED}"/usr/$(get_libdir)/libreoffice/program/unopkg.bin
