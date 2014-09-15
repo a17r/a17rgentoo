@@ -26,7 +26,7 @@ GV="2.24"
 MV="4.5.2"
 PULSE_PATCHES="winepulse-patches-1.7.21"
 COMPHOLIOV="1.7.25"
-COMPHOLIO_PATCHES="wine-compholio-daily-${COMPHOLIOV}"
+COMPHOLIO_PATCHES="wine-compholio-${COMPHOLIOV}"
 WINE_GENTOO="wine-gentoo-2013.06.24"
 DESCRIPTION="Free implementation of Windows(tm) on Unix"
 HOMEPAGE="http://www.winehq.org/"
@@ -298,10 +298,17 @@ src_unpack() {
 	use pulseaudio && unpack "${PULSE_PATCHES}.tar.bz2"
 	if use pipelight; then
 		unpack "${COMPHOLIO_PATCHES}.tar.gz"
+		# some patches not needed by wine 1.7.25
+		rm "${PULSE_PATCHES}/0005-mmdevapi-be-stricter-about-tests.patch" || die
+		rm "${COMPHOLIO_PATCHES}/patches/dsound-Fast_Mixer/0001-dsound-Add-a-linear-resampler-for-use-with-a-large-n.patch" || die
+		rm -r "${COMPHOLIO_PATCHES}/patches/server-ACL_Compat/" || die
+		rm -r "${COMPHOLIO_PATCHES}/patches/server-Inherited_ACLs/" || die
+
 		# we use a separate pulseaudio patchset
-		rm -r "${COMPHOLIO_PATCHES}/patches/06-winepulse" || die
+		rm -r "${COMPHOLIO_PATCHES}/patches/winepulse-PulseAudio_Support" || die
+
 		# ... and need special tools for binary patches
-		mv "${COMPHOLIO_PATCHES}/patches/10-Missing_Fonts" "${T}" || die
+		mv "${COMPHOLIO_PATCHES}/patches/fonts-Missing_Fonts" "${T}" || die
 	fi
 	unpack "${WINE_GENTOO}.tar.bz2"
 
@@ -332,13 +339,16 @@ src_prepare() {
 		ewarn "which is unsupported by Wine developers. Please don't report bugs"
 		ewarn "to Wine bugzilla unless you can reproduce them with USE=-pipelight"
 
+		# Ugly hack to create "empty" patch-list.patch file
+		echo "+{ NULL, NULL, NULL }," | "../${COMPHOLIO_PATCHES}/debian/tools/patchlist.sh" \
+			> "../${COMPHOLIO_PATCHES}/patches/patch-list.patch"
 		PATCHES+=(
 			"../${COMPHOLIO_PATCHES}/patches"/*/*.patch #507950
 			"../${COMPHOLIO_PATCHES}/patches/patch-list.patch"
 		)
 		# epatch doesn't support binary patches
 		ebegin "Applying Compholio font patches"
-		for f in "${T}/10-Missing_Fonts"/*.patch; do
+		for f in "${T}/fonts-Missing_Fonts"/*.patch; do
 			"../${COMPHOLIO_PATCHES}/debian/tools/gitapply.sh" < "${f}" || die "Failed to apply Compholio font patches"
 		done
 		eend
