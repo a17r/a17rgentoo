@@ -324,23 +324,26 @@ src_prepare() {
 
 		PATCHES+=( "../${PULSE_PATCHES}"/gstreamer/*.patch )
 	fi
-	# See bug #518792: use pulseaudio patches as provided by compholio upstream
-	# Use Makefile instead of manually applying patches
 	if use pipelight || use pulseaudio; then
-		# First of all, don't run autoreconf and tools/make_requests twice
-		sed -i 's/.*cat.*sort.*patchlist.*APPLY.*/&\n\n.PHONY: postinstall\npostinstall:/' \
-			"../wine-compholio-${COMPHOLIOV}"/patches/Makefile || die
 		if use pipelight; then
 			ewarn "Applying the unofficial Compholio patchset for Pipelight support,"
 			ewarn "which is unsupported by Wine developers. Please don't report bugs"
 			ewarn "to Wine bugzilla unless you can reproduce them with USE=-pipelight"
+			# First of all, don't run autoreconf and tools/make_requests twice
+			sed -i 's/.*cat.*sort.*patchlist.*APPLY.*/&\n\n.PHONY: postinstall\npostinstall:/' \
+				"../wine-compholio-${COMPHOLIOV}"/patches/Makefile || die
+			# See bug #518792: fix possible awk trouble
+			sed -i 's/# Decode base85 git data.*/export LANG=C\nexport LC_ALL=C\n\n&/' \
+				"../wine-compholio-${COMPHOLIOV}"/debian/tools/gitapply.sh || die
 			# excluding patch dirs does not seem to work in this version
 			sed -i '/winepulse-PulseAudio_Support.ok \\/d' \
 				"../wine-compholio-${COMPHOLIOV}"/patches/Makefile || die
-			# we apply pulseaudio patchset conditionally
+			# Use Makefile instead of manually applying patches
+			# ...exclude pulseaudio patchset, we apply it conditionally
 			make -C "../wine-compholio-${COMPHOLIOV}"/patches DESTDIR=$(pwd) \
 				install -W winepulse-PulseAudio_Support.ok
 		fi
+		# See bug #518792: use pulseaudio patches as provided by compholio upstream
 		use pulseaudio && PATCHES+=(
 			"../wine-compholio-${COMPHOLIOV}"/patches/winepulse-PulseAudio_Support/*.patch
 		)
