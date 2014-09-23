@@ -47,7 +47,7 @@ SRC_URI="${SRC_URI}
 
 LICENSE="LGPL-2.1"
 SLOT="0"
-IUSE="+abi_x86_32 +abi_x86_64 +alsa capi cups custom-cflags dos elibc_glibc +fontconfig +gecko gphoto2 gsm gstreamer +jpeg lcms ldap +mono mp3 ncurses netapi nls odbc openal opencl +opengl osmesa oss +perl +pipelight +png +prelink pulseaudio +realtime +run-exes samba scanner selinux +ssl test +threads +truetype +udisks v4l +X xcomposite xinerama +xml"
+IUSE="+abi_x86_32 +abi_x86_64 +alsa capi cups custom-cflags dos elibc_glibc +fontconfig +gecko gphoto2 gsm gstreamer +jpeg lcms ldap +mono mp3 ncurses netapi nls odbc openal opencl +opengl osmesa oss +perl pipelight +png +prelink pulseaudio +realtime +run-exes samba scanner selinux +ssl test +threads +truetype +udisks v4l +X xcomposite xinerama +xml"
 REQUIRED_USE="|| ( abi_x86_32 abi_x86_64 )
 	test? ( abi_x86_32 )
 	elibc_glibc? ( threads )
@@ -334,7 +334,7 @@ src_prepare() {
 			ewarn "Applying the unofficial Compholio patchset for Pipelight support,"
 			ewarn "which is unsupported by Wine developers. Please don't report bugs"
 			ewarn "to Wine bugzilla unless you can reproduce them with USE=-pipelight"
-			# excluding patch dirs does not seem  to work in this version
+			# excluding patch dirs does not seem to work in this version
 			sed -i '/winepulse-PulseAudio_Support.ok \\/d' \
 				"../wine-compholio-${COMPHOLIOV}"/patches/Makefile || die
 			# we apply pulseaudio patchset conditionally
