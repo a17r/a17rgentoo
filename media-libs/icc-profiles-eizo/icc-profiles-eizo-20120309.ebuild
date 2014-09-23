@@ -6,7 +6,7 @@ EAPI="5"
 
 inherit eutils
 
-DESCRIPTION="ICC color profiles by Eizo"
+DESCRIPTION="ICC profiles for EIZO monitors"
 HOMEPAGE="http://www.eizo.com/"
 BASE_SRC_URI="http://www.eizo.com/global/support/db/files/software/icc/lcd"
 
