@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-EAPI=4
+EAPI="5"
 
 DESCRIPTION="ICC color profiles by Eizo"
 HOMEPAGE="http://www.eizo.com/"
@@ -29,4 +29,12 @@ src_unpack() {
 		unzip "${DISTDIR}"/${zip} -x *html *cat *inf > /dev/null \
 			|| die "failed to unpack ${zip}"
 	done
+}
+
+S="${WORKDIR}"
+
+src_install() {
+	dodir /usr/share/color/icc/Eizo
+	insinto /usr/share/color/icc/Eizo
+	doins *.icm
 }
