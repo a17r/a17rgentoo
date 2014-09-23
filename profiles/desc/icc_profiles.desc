@@ -1,0 +1,15 @@
+# Copyright 1999-2014 Gentoo Foundation.
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+# This file contains descriptions of ICC_PROFILES USE_EXPAND flags.
+
+# Keep it sorted.
+
+S2201W - ICC_PROFILES setting to install ICC profile for Eizo Flexscan S2201W
+S2202W - ICC_PROFILES setting to install ICC profile for Eizo Flexscan S2202W
+S2231W - ICC_PROFILES setting to install ICC profile for Eizo Flexscan S2231W
+S2232W - ICC_PROFILES setting to install ICC profile for Eizo Flexscan S2232W
+S2233W - ICC_PROFILES setting to install ICC profile for Eizo Flexscan S2233W
+S2242W - ICC_PROFILES setting to install ICC profile for Eizo Flexscan S2242W
+S2243W - ICC_PROFILES setting to install ICC profile for Eizo Flexscan S2243W
