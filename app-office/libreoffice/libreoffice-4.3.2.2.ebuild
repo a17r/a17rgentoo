@@ -245,11 +245,6 @@ PATCHES=(
 	# not upstreamable stuff
 	"${FILESDIR}/${PN}-3.7-system-pyuno.patch"
 
-	# from libreoffice-4-3 branch
-	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-gltf.patch"
-	"${FILESDIR}/${PN}-4.3.1.2-handle-collada-libs-seperately.patch"
-	"${FILESDIR}/${PN}-4.3.1.2-upgrade-to-libgltf-0.0.1.patch"
-
 	# from master branch
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
 )
