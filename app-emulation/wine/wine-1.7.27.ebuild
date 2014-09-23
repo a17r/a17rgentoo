@@ -324,24 +324,22 @@ src_prepare() {
 
 		PATCHES+=( "../${PULSE_PATCHES}"/gstreamer/*.patch )
 	fi
-	if use pipelight || use pulseaudio; then
-		if use pipelight; then
-			ewarn "Applying the unofficial Compholio patchset for Pipelight support,"
-			ewarn "which is unsupported by Wine developers. Please don't report bugs"
-			ewarn "to Wine bugzilla unless you can reproduce them with USE=-pipelight"
-			# First of all, don't run autoreconf and tools/make_requests twice
-			sed -i 's/.*cat.*sort.*patchlist.*APPLY.*/&\n\n.PHONY: postinstall\npostinstall:/' \
-				"../wine-compholio-${COMPHOLIOV}"/patches/Makefile || die
-			# Use Makefile instead of manually applying patches
-			# ...exclude pulseaudio patchset, we apply it conditionally
-			make -C "../wine-compholio-${COMPHOLIOV}"/patches DESTDIR=$(pwd) \
-				install -W winepulse-PulseAudio_Support.ok
-		fi
-		# See bug #518792: use pulseaudio patches as provided by compholio upstream
-		use pulseaudio && PATCHES+=(
-			"../wine-compholio-${COMPHOLIOV}"/patches/winepulse-PulseAudio_Support/*.patch
-		)
+	if use pipelight; then
+		ewarn "Applying the unofficial Compholio patchset for Pipelight support,"
+		ewarn "which is unsupported by Wine developers. Please don't report bugs"
+		ewarn "to Wine bugzilla unless you can reproduce them with USE=-pipelight"
+		# First of all, don't run autoreconf and tools/make_requests twice
+		sed -i 's/.*cat.*sort.*patchlist.*APPLY.*/&\n\n.PHONY: postinstall\npostinstall:/' \
+			"../wine-compholio-${COMPHOLIOV}"/patches/Makefile || die
+		# Use Makefile instead of manually applying patches
+		# ...exclude pulseaudio patchset, we apply it conditionally
+		make -C "../wine-compholio-${COMPHOLIOV}"/patches DESTDIR=$(pwd) \
+			install -W winepulse-PulseAudio_Support.ok
 	fi
+	# See bug #518792: use pulseaudio patches as provided by compholio upstream
+	use pulseaudio && PATCHES+=(
+		"../wine-compholio-${COMPHOLIOV}"/patches/winepulse-PulseAudio_Support/*.patch
+	)
 	autotools-utils_src_prepare
 
 	if [[ "$(md5sum server/protocol.def)" != "${md5}" ]]; then
