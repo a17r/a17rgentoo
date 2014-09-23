@@ -24,7 +24,7 @@ fi
 
 GV="2.24"
 MV="4.5.2"
-PULSE_PATCHES="winepulse-patches-1.7.21"
+PULSE_PATCHES="winepulse-patches-1.7.22"
 COMPHOLIOV="${PV}"
 COMPHOLIO_PATCHES="wine-compholio-daily-${COMPHOLIOV}"
 WINE_GENTOO="wine-gentoo-2013.06.24"
@@ -36,13 +36,11 @@ SRC_URI="${SRC_URI}
 		abi_x86_64? ( mirror://sourceforge/${PN}/Wine%20Gecko/${GV}/wine_gecko-${GV}-x86_64.msi )
 	)
 	mono? ( mirror://sourceforge/${PN}/Wine%20Mono/${MV}/wine-mono-${MV}.msi )
-	pipelight? (
-		https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz
-	)
+	pipelight? ( https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz )
 	pulseaudio? (
+		http://dev.gentoo.org/~tetromino/distfiles/${PN}/${PULSE_PATCHES}.tar.bz2
 		https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz
 	)
-	gstreamer? ( http://dev.gentoo.org/~tetromino/distfiles/${PN}/${PULSE_PATCHES}.tar.bz2 )
 	http://dev.gentoo.org/~tetromino/distfiles/${PN}/${WINE_GENTOO}.tar.bz2"
 
 LICENSE="LGPL-2.1"
@@ -300,7 +298,7 @@ src_unpack() {
 		unpack ${MY_P}.tar.bz2
 	fi
 
-	use gstreamer && unpack "${PULSE_PATCHES}.tar.bz2"
+	use pulseaudio && unpack "${PULSE_PATCHES}.tar.bz2"
 	use pipelight || use pulseaudio && unpack "${COMPHOLIO_PATCHES}.tar.gz"
 
 	unpack "${WINE_GENTOO}.tar.bz2"
@@ -345,6 +343,7 @@ src_prepare() {
 	# See bug #518792: use pulseaudio patches as provided by compholio upstream
 	use pulseaudio && PATCHES+=(
 		"../wine-compholio-${COMPHOLIOV}"/patches/winepulse-PulseAudio_Support/*.patch
+		"../${PULSE_PATCHES}"/*.patch #421365
 	)
 	autotools-utils_src_prepare
 
