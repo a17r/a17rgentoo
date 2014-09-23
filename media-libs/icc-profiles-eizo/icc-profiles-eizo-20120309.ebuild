@@ -9,7 +9,7 @@ HOMEPAGE="http://www.eizo.com/"
 SRC_URI="http://www.eizo.com/global/support/db/files/software/icc/lcd/S2243WINF_W.zip
 	http://www.eizo.com/global/support/db/files/software/icc/lcd/S2242WINF_W.zip"
 
-LICENSE=""
+LICENSE="Eizo"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
