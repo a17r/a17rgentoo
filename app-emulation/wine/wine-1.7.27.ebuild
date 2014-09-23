@@ -329,7 +329,7 @@ src_prepare() {
 	if use pipelight || use pulseaudio; then
 		# First of all, don't run autoreconf and tools/make_requests twice
 		sed -i 's/.*cat.*sort.*patchlist.*APPLY.*/&\n\n.PHONY: postinstall\npostinstall:/' \
-			"../wine-compholio-${COMPHOLIOV}"/patches/Makefile
+			"../wine-compholio-${COMPHOLIOV}"/patches/Makefile || die
 		if use pipelight; then
 			ewarn "Applying the unofficial Compholio patchset for Pipelight support,"
 			ewarn "which is unsupported by Wine developers. Please don't report bugs"
