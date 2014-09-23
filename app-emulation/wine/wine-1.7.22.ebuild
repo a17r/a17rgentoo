@@ -24,7 +24,7 @@ fi
 
 GV="2.24"
 MV="4.5.2"
-PULSE_PATCHES="winepulse-patches-1.7.22"
+PULSE_PATCHES="winepulse-patches-1.7.21"
 COMPHOLIOV="${PV}"
 COMPHOLIO_PATCHES="wine-compholio-daily-${COMPHOLIOV}"
 WINE_GENTOO="wine-gentoo-2013.06.24"
@@ -37,7 +37,8 @@ SRC_URI="${SRC_URI}
 	)
 	mono? ( mirror://sourceforge/${PN}/Wine%20Mono/${MV}/wine-mono-${MV}.msi )
 	pipelight? ( https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz )
-	pulseaudio? ( http://dev.gentoo.org/~tetromino/distfiles/${PN}/${PULSE_PATCHES}.tar.bz2 )
+	pulseaudio? ( https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz )
+	gstreamer? ( http://dev.gentoo.org/~tetromino/distfiles/${PN}/${PULSE_PATCHES}.tar.bz2 )
 	http://dev.gentoo.org/~tetromino/distfiles/${PN}/${WINE_GENTOO}.tar.bz2"
 
 LICENSE="LGPL-2.1"
@@ -295,11 +296,13 @@ src_unpack() {
 		unpack ${MY_P}.tar.bz2
 	fi
 
-	use pulseaudio && unpack "${PULSE_PATCHES}.tar.bz2"
-	if use pipelight; then
+	use gstreamer && unpack "${PULSE_PATCHES}.tar.bz2"
+	if use pipelight || use pulseaudio; then
 		unpack "${COMPHOLIO_PATCHES}.tar.gz"
-		# we use a separate pulseaudio patchset
-		rm -r "wine-compholio-${COMPHOLIOV}/patches/06-winepulse" || die
+		# we apply pulseaudio patchset conditionally
+		mv "wine-compholio-${COMPHOLIOV}/patches/06-winepulse" "${T}" || die
+	fi
+	if use pipelight; then
 		# ... and need special tools for binary patches
 		mv "wine-compholio-${COMPHOLIOV}/patches/10-Missing_Fonts" "${T}" || die
 	fi
@@ -318,7 +321,7 @@ src_prepare() {
 		"${FILESDIR}"/${PN}-1.6-memset-O3.patch #480508
 	)
 	use pulseaudio && PATCHES+=(
-		"../${PULSE_PATCHES}"/*.patch #421365
+		"${T}/06-winepulse"/*.patch #421365
 	)
 	if use gstreamer; then
 		# See http://bugs.winehq.org/show_bug.cgi?id=30557
