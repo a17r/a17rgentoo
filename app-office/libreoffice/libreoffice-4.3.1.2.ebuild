@@ -74,7 +74,7 @@ unset EXT_URI
 unset ADDONS_SRC
 
 IUSE="bluetooth +branding coinmp collada +cups dbus debug eds firebird gltf gnome gstreamer
-+gtk gtk3 jemalloc kde mysql odk opengl postgres telepathy test +vba vlc +webdav"
++gtk gtk3 jemalloc kde mysql odk opengl postgres telepathy test +vba vlc"
 
 LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 # Unpackaged separate extensions:
@@ -91,7 +91,7 @@ unset lo_xt
 LICENSE="|| ( LGPL-3 MPL-1.1 )"
 SLOT="0"
 [[ ${PV} == *9999* ]] || \
-KEYWORDS="~amd64 ~arm ~ppc ~x86 ~amd64-linux ~x86-linux"
+KEYWORDS="~amd64 ~x86"
 
 COMMON_DEPEND="
 	${PYTHON_DEPS}
@@ -119,7 +119,7 @@ COMMON_DEPEND="
 	>=dev-libs/hyphen-2.7.1
 	>=dev-libs/icu-4.8.1.1:=
 	>=dev-libs/libatomic_ops-7.2d
-	>=dev-libs/liborcus-0.7.0:=
+	>=dev-libs/liborcus-0.7.0
 	>=dev-libs/librevenge-0.0.1
 	>=dev-libs/nspr-4.8.8
 	>=dev-libs/nss-3.12.9
@@ -137,6 +137,7 @@ COMMON_DEPEND="
 	>=media-libs/libfreehand-0.1.0
 	>=media-libs/libvisio-0.1.0
 	>=net-misc/curl-7.21.4
+	net-libs/neon
 	net-nds/openldap
 	sci-mathematics/lpsolve
 	virtual/jpeg:0
@@ -182,7 +183,6 @@ COMMON_DEPEND="
 		>=net-libs/telepathy-glib-0.18.0
 		>=x11-libs/gtk+-2.24:2
 	)
-	webdav? ( net-libs/neon )
 "
 
 RDEPEND="${COMMON_DEPEND}
@@ -245,12 +245,13 @@ PATCHES=(
 	# not upstreamable stuff
 	"${FILESDIR}/${PN}-3.7-system-pyuno.patch"
 
-	# staged for git master
+	# from libreoffice-4-3 branch
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-gltf.patch"
 	"${FILESDIR}/${PN}-4.3.1.2-handle-collada-libs-seperately.patch"
-	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
 	"${FILESDIR}/${PN}-4.3.1.2-upgrade-to-libgltf-0.0.1.patch"
-# 	"${FILESDIR}/${PN}-4.3.1.2-fix-mergelibs-build.patch"	#no, still not fixed
+
+	# from master branch
+	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
 )
 
 REQUIRED_USE="
@@ -460,6 +461,7 @@ src_configure() {
 		--enable-graphite \
 		--enable-largefile \
 		--enable-mergelibs \
+		--enable-neon \
 		--enable-python=system \
 		--enable-randr \
 		--enable-randr-link \
@@ -517,7 +519,6 @@ src_configure() {
 		$(use_enable telepathy) \
 		$(use_enable vba) \
 		$(use_enable vlc) \
-		$(use_enable webdav neon) \
 		$(use_with coinmp system-coinmp) \
 		$(use_with gltf system-libgltf) \
 		$(use_with java) \
