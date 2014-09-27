@@ -9,7 +9,7 @@ DESCRIPTION="KDE4 integration for Firefox"
 HOMEPAGE="https://build.opensuse.org/package/show/mozilla:Factory/mozilla-kde4-integration"
 SRC_URI="https://build.opensuse.org/source/mozilla:Factory/mozilla-kde4-integration/${P}.tar.bz2?rev=b88c72dfdc858f6209feb123227bd7df -> ${P}.tar.bz2"
 
-LICENSE="as-is"
+LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64 ~arm ~x86 ~ppc"
 
