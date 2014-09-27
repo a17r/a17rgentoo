@@ -97,7 +97,7 @@ COMMON_DEPEND="
 	${PYTHON_DEPS}
 	app-arch/zip
 	app-arch/unzip
-	>=app-text/hunspell-1.3.2-r3
+	>=app-text/hunspell-1.3.3
 	app-text/mythes
 	>=app-text/libabw-0.1.0
 	>=app-text/libexttextcat-3.2
