@@ -45,7 +45,7 @@ CDEPEND="android? ( ~dev-java/swt-${SWT}:${SLOT}[cairo] )
 	>=dev-java/commons-el-1.0
 	>=dev-java/commons-httpclient-3.1:3
 	>=dev-java/commons-logging-1.0.4
-	>=dev-java/hamcrest-core-1.1
+	>=dev-java/hamcrest-core-1.3
 	>=dev-java/icu4j-4.4.2:4.4
 	>=dev-java/jsch-0.1.41
 	>=dev-java/junit-3.8.2:0
@@ -87,7 +87,7 @@ DEPEND="${CDEPEND}
 	|| ( virtual/jdk:1.6
 		virtual/jdk:1.7
 	)
-	android? ( >=dev-util/android-sdk-update-manager-21 )"
+	android? ( >=dev-util/android-sdk-update-manager-23 )"
 
 OSGI_DEPENDENCIES=(
 	'com.ibm.icu - icu4j-4.4'
@@ -106,7 +106,7 @@ OSGI_DEPENDENCIES=(
 #	'org.apache.lucene.core lucene lucene-2.9'
 	'org.apache.lucene.analysis - lucene-analyzers-2.9'
 #	'org.apache.lucene.analysis lucene-analyzers lucene-analyzers-2.9'
-	'org.hamcrest.core - hamcrest-core'
+	'org.hamcrest.core - hamcrest-core-1.3 hamcrest-core'
 	'org.mortbay.jetty.server - jetty-6 jetty'
 #	'org.mortbay.jetty.server jetty-6.1.26 jetty-6 jetty'
 	'org.mortbay.jetty.util - jetty-6 jetty-util'
@@ -246,6 +246,11 @@ src_prepare() {
 		eend
 	fi
 
+	cd "${buildDir}" || die
+	epatch "${FILESDIR}/${SLOT}/hamcrest-1.3-junit-lib.patch"
+	epatch "${FILESDIR}/${SLOT}/gtk_makefile.patch"
+	epatch "${FILESDIR}/${SLOT}/iterators.patch"
+
 	ebegin 'Linking dependencies'
 	local dep ; for dep in "${OSGI_DEPENDENCIES[@]}" ; do
 		eclipse_create-osgi-dep ${dep}
@@ -254,11 +259,6 @@ src_prepare() {
 		eclipse_create-nonosgi-dep ${dep}
 	done
 	eend
-
-	cd "${buildDir}" || die
-	epatch "${FILESDIR}/${SLOT}/hamcrest-junit-lib.patch"
-	epatch "${FILESDIR}/${SLOT}/gtk_makefile.patch"
-	epatch "${FILESDIR}/${SLOT}/iterators.patch"
 }
 
 src_compile() {
