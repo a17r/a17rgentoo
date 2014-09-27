@@ -247,6 +247,7 @@ PATCHES=(
 
 	# from master branch
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
+	"${FILESDIR}/${PN}-4.3.2.2-boost-1.56.0.patch"
 )
 
 REQUIRED_USE="
