@@ -27,6 +27,9 @@ MV="4.5.2"
 PULSE_PATCHES="winepulse-patches-1.7.22"
 COMPHOLIOV="${PV}"
 COMPHOLIO_PATCHES="wine-compholio-daily-${COMPHOLIOV}"
+COMPHOLIO_SRC_URI="https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz"
+GSTREAMERV="1.7.12"
+GSTREAMER_PATCHES="wine-gstreamer-patches-${GSTREAMERV}"
 WINE_GENTOO="wine-gentoo-2013.06.24"
 DESCRIPTION="Free implementation of Windows(tm) on Unix"
 HOMEPAGE="http://www.winehq.org/"
@@ -36,10 +39,11 @@ SRC_URI="${SRC_URI}
 		abi_x86_64? ( mirror://sourceforge/${PN}/Wine%20Gecko/${GV}/wine_gecko-${GV}-x86_64.msi )
 	)
 	mono? ( mirror://sourceforge/${PN}/Wine%20Mono/${MV}/wine-mono-${MV}.msi )
-	pipelight? ( https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz )
+	gstreamer? ( https://googledrive.com/host/0BwvWj1tAgHFpcmMwY1hsbUo3Nk0 -> ${GSTREAMER_PATCHES}.tar.xz )
+	pipelight? ( ${COMPHOLIO_SRC_URI} )
 	pulseaudio? (
-		http://dev.gentoo.org/~tetromino/distfiles/${PN}/${PULSE_PATCHES}.tar.bz2
-		https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz
+		https://googledrive.com/host/0BwvWj1tAgHFpMFRleE11a0dNNTQ -> ${PULSE_PATCHES}.tar.bz2
+		${COMPHOLIO_SRC_URI}
 	)
 	http://dev.gentoo.org/~tetromino/distfiles/${PN}/${WINE_GENTOO}.tar.bz2"
 
@@ -49,10 +53,8 @@ IUSE="+abi_x86_32 +abi_x86_64 +alsa capi cups custom-cflags dos elibc_glibc +fon
 REQUIRED_USE="|| ( abi_x86_32 abi_x86_64 )
 	test? ( abi_x86_32 )
 	elibc_glibc? ( threads )
-	gstreamer? ( pulseaudio )
 	mono? ( abi_x86_32 )
 	osmesa? ( opengl )" #286560
-# winepulse patches needed for gstreamer due to http://bugs.winehq.org/show_bug.cgi?id=30557
 
 # FIXME: the test suite is unsuitable for us; many tests require net access
 # or fail due to Xvfb's opengl limitations.
@@ -298,6 +300,7 @@ src_unpack() {
 		unpack ${MY_P}.tar.bz2
 	fi
 
+	use gstreamer && unpack "${GSTREAMER_PATCHES}.tar.xz"
 	use pulseaudio && unpack "${PULSE_PATCHES}.tar.bz2"
 	use pipelight || use pulseaudio && unpack "${COMPHOLIO_PATCHES}.tar.gz"
 
@@ -308,7 +311,6 @@ src_unpack() {
 
 src_prepare() {
 	local md5="$(md5sum server/protocol.def)"
-	local f
 	local PATCHES=(
 		"${FILESDIR}"/${PN}-1.5.26-winegcc.patch #260726
 		"${FILESDIR}"/${PN}-1.4_rc2-multilib-portage.patch #395615
@@ -320,7 +322,7 @@ src_prepare() {
 		ewarn "Applying experimental patch to fix GStreamer support. Note that"
 		ewarn "this patch has been reported to cause crashes in certain games."
 
-		PATCHES+=( "../${PULSE_PATCHES}"/gstreamer/*.patch )
+		PATCHES+=( "../${GSTREAMER_PATCHES}"/*.patch )
 	fi
 	if use pipelight; then
 		ewarn "Applying the unofficial Compholio patchset for Pipelight support,"

@@ -24,10 +24,9 @@ fi
 
 GV="2.24"
 MV="4.5.2"
-PULSE_PATCHES="winepulse-patches-1.7.24"
+PULSE_PATCHES="winepulse-patches-1.7.20-r1"
 COMPHOLIOV="${PV}"
 COMPHOLIO_PATCHES="wine-compholio-daily-${COMPHOLIOV}"
-COMPHOLIO_SRC_URI="https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz"
 GSTREAMERV="1.7.12"
 GSTREAMER_PATCHES="wine-gstreamer-patches-${GSTREAMERV}"
 WINE_GENTOO="wine-gentoo-2013.06.24"
@@ -40,11 +39,8 @@ SRC_URI="${SRC_URI}
 	)
 	mono? ( mirror://sourceforge/${PN}/Wine%20Mono/${MV}/wine-mono-${MV}.msi )
 	gstreamer? ( https://googledrive.com/host/0BwvWj1tAgHFpcmMwY1hsbUo3Nk0 -> ${GSTREAMER_PATCHES}.tar.xz )
-	pipelight? ( ${COMPHOLIO_SRC_URI} )
-	pulseaudio? (
-		https://googledrive.com/host/0BwvWj1tAgHFpODltdTVpeGZ3ZXc -> ${PULSE_PATCHES}.tar.bz2
-		${COMPHOLIO_SRC_URI}
-	)
+	pipelight? ( https://github.com/compholio/wine-compholio-daily/archive/v${COMPHOLIOV}.tar.gz -> ${COMPHOLIO_PATCHES}.tar.gz )
+	pulseaudio? ( https://googledrive.com/host/0BwvWj1tAgHFpd2w5bUNud3BlWVk -> ${PULSE_PATCHES}.tar.bz2 )
 	http://dev.gentoo.org/~tetromino/distfiles/${PN}/${WINE_GENTOO}.tar.bz2"
 
 LICENSE="LGPL-2.1"
@@ -302,8 +298,13 @@ src_unpack() {
 
 	use gstreamer && unpack "${GSTREAMER_PATCHES}.tar.xz"
 	use pulseaudio && unpack "${PULSE_PATCHES}.tar.bz2"
-	use pipelight || use pulseaudio && unpack "${COMPHOLIO_PATCHES}.tar.gz"
-
+	if use pipelight; then
+		unpack "${COMPHOLIO_PATCHES}.tar.gz"
+		# we use a separate pulseaudio patchset
+		rm -r "${COMPHOLIO_PATCHES}/patches/06-winepulse" || die
+		# ... and need special tools for binary patches
+		mv "${COMPHOLIO_PATCHES}/patches/10-Missing_Fonts" "${T}" || die
+	fi
 	unpack "${WINE_GENTOO}.tar.bz2"
 
 	l10n_find_plocales_changes "${S}/po" "" ".po"
@@ -311,6 +312,7 @@ src_unpack() {
 
 src_prepare() {
 	local md5="$(md5sum server/protocol.def)"
+	local f
 	local PATCHES=(
 		"${FILESDIR}"/${PN}-1.5.26-winegcc.patch #260726
 		"${FILESDIR}"/${PN}-1.4_rc2-multilib-portage.patch #395615
@@ -324,28 +326,25 @@ src_prepare() {
 
 		PATCHES+=( "../${GSTREAMER_PATCHES}"/*.patch )
 	fi
+	use pulseaudio && PATCHES+=(
+		"../${PULSE_PATCHES}"/*.patch #421365
+	)
 	if use pipelight; then
 		ewarn "Applying the unofficial Compholio patchset for Pipelight support,"
 		ewarn "which is unsupported by Wine developers. Please don't report bugs"
 		ewarn "to Wine bugzilla unless you can reproduce them with USE=-pipelight"
-		# First of all, don't run autoreconf and tools/make_requests twice
-		sed -i 's/.*cat.*sort.*patchlist.*APPLY.*/&\n\n.PHONY: postinstall\npostinstall:/' \
-			"../wine-compholio-${COMPHOLIOV}"/patches/Makefile || die
-		# See bug #518792: fix possible awk trouble
-		sed -i 's/# Decode base85 git data.*/export LANG=C\nexport LC_ALL=C\n\n&/' \
-			"../wine-compholio-${COMPHOLIOV}"/debian/tools/gitapply.sh || die
-		# Use Makefile instead of manually applying patches
-		# ...exclude pulseaudio patchset, we apply it conditionally
-		# ...also exclude dsound-Fast_Mixer (conflicts with PULSE_PATCHES)
-		make -C "../wine-compholio-${COMPHOLIOV}"/patches DESTDIR=$(pwd) \
-			install -W winepulse-PulseAudio_Support.ok -W dsound-Fast_Mixer.ok
+
+		PATCHES+=(
+			"../${COMPHOLIO_PATCHES}/patches"/*/*.patch #507950
+			"../${COMPHOLIO_PATCHES}/patches/patch-list.patch"
+		)
+		# epatch doesn't support binary patches
+		ebegin "Applying Compholio font patches"
+		for f in "${T}/10-Missing_Fonts"/*.patch; do
+			"../${COMPHOLIO_PATCHES}/debian/tools/gitapply.sh" < "${f}" || die "Failed to apply Compholio font patches"
+		done
+		eend
 	fi
-	# See bug #518792: use pulseaudio patches as provided by compholio upstream
-	use pulseaudio && PATCHES+=(
-		"../wine-compholio-${COMPHOLIOV}"/patches/winepulse-PulseAudio_Support/*.patch
-		"../wine-compholio-${COMPHOLIOV}"/patches/dsound-Fast_Mixer/*.patch
-		"../${PULSE_PATCHES}"/*.patch #421365 / modified to work with dsound-Fast_Mixer
-	)
 	autotools-utils_src_prepare
 
 	if [[ "$(md5sum server/protocol.def)" != "${md5}" ]]; then
@@ -395,7 +394,6 @@ multilib_src_configure() {
 		$(use_with opengl)
 		$(use_with osmesa)
 		$(use_with oss)
-		--without-pcap
 		$(use_with png)
 		$(use_with threads pthread)
 		$(use_with scanner sane)
