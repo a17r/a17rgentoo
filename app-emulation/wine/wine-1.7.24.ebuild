@@ -334,13 +334,15 @@ src_prepare() {
 			"../wine-compholio-${COMPHOLIOV}"/debian/tools/gitapply.sh || die
 		# Use Makefile instead of manually applying patches
 		# ...exclude pulseaudio patchset, we apply it conditionally
+		# ...also exclude dsound-Fast_Mixer (conflicts with PULSE_PATCHES)
 		make -C "../wine-compholio-${COMPHOLIOV}"/patches DESTDIR=$(pwd) \
-			install -W winepulse-PulseAudio_Support.ok
+			install -W winepulse-PulseAudio_Support.ok -W dsound-Fast_Mixer.ok
 	fi
 	# See bug #518792: use pulseaudio patches as provided by compholio upstream
 	use pulseaudio && PATCHES+=(
 		"../wine-compholio-${COMPHOLIOV}"/patches/winepulse-PulseAudio_Support/*.patch
-		"../${PULSE_PATCHES}"/*.patch #421365
+		"../wine-compholio-${COMPHOLIOV}"/patches/dsound-Fast_Mixer/*.patch
+		"../${PULSE_PATCHES}"/*.patch #421365 / modified to work with dsound-Fast_Mixer
 	)
 	autotools-utils_src_prepare
 
