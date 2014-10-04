@@ -1,1 +1,1 @@
-wine-1.7.27.ebuild
+wine-1.7.28.ebuild
