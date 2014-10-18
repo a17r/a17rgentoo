@@ -1,52 +1,63 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/app-admin/system-config-printer-gnome/system-config-printer-gnome-1.4.3-r1.ebuild,v 1.9 2014/08/21 10:38:19 ago Exp $
+# $Header: $
 
 EAPI="5"
 GCONF_DEBUG="no"
 PYTHON_COMPAT=( python{3_2,3_3,3_4} )
 PYTHON_REQ_USE="xml"
 
-inherit autotools gnome2 eutils python-r1 versionator
+inherit autotools eutils python-r1 gnome2 systemd
 
-MY_P="${PN%-gnome}-${PV}"
-MY_V="$(get_version_component_range 1-2)"
-
-DESCRIPTION="GNOME frontend for a Red Hat's printer administration tool"
-HOMEPAGE="http://cyberelk.net/tim/software/system-config-printer/"
-SRC_URI="http://cyberelk.net/tim/data/system-config-printer/${MY_V}/${MY_P}.tar.xz"
+DESCRIPTION="Red Hat's printer administration tool"
+HOMEPAGE="http://cyberelk.net/tim/software/${PN}/"
+SRC_URI="http://cyberelk.net/tim/data/${PN}/${PV%.*}/${P}.tar.xz"
 
 LICENSE="GPL-2"
-KEYWORDS="~alpha amd64 arm ~ia64 ppc ppc64 ~sh ~sparc x86"
+KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~sh ~sparc ~x86"
 SLOT="0"
-IUSE="gnome-keyring"
+IUSE="doc gnome-keyring policykit"
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 # Needs cups running, bug 284005
 RESTRICT="test"
 
-# Additional unhandled dependencies
+# Additional unhandled dependencies:
+# net-firewall/firewalld[${PYTHON_USEDEP}]
 # gnome-extra/gnome-packagekit[${PYTHON_USEDEP}] with pygobject:2 ?
 # python samba client: smbc
 # selinux: needed for troubleshooting
-RDEPEND="
+COMMON_DEPEND="
 	${PYTHON_DEPS}
-	~app-admin/system-config-printer-common-${PV}
+	>=dev-libs/glib-2
+	dev-libs/libxml2[python,${PYTHON_USEDEP}]
+	dev-python/dbus-python[${PYTHON_USEDEP}]
 	dev-python/pycairo[${PYTHON_USEDEP}]
 	>=dev-python/pycups-1.9.60[${PYTHON_USEDEP}]
+	dev-python/pycurl[${PYTHON_USEDEP}]
 	dev-python/pygobject:3[${PYTHON_USEDEP}]
+	net-print/cups[dbus]
 	x11-libs/gtk+:3[introspection]
 	x11-libs/libnotify[introspection]
 	x11-libs/pango[introspection]
+	virtual/libusb:1
+	>=virtual/udev-172
 	gnome-keyring? ( gnome-base/libgnome-keyring[introspection] )
 "
-DEPEND="${RDEPEND}
+DEPEND="${COMMON_DEPEND}
+	!<app-admin/system-config-printer-common-${PV}
+	!<app-admin/system-config-printer-gnome-${PV}
+	app-arch/xz-utils
 	app-text/docbook-xml-dtd:4.1.2
 	>=app-text/xmlto-0.0.22
 	dev-util/desktop-file-utils
 	dev-util/intltool
 	sys-devel/gettext
 	virtual/pkgconfig
+	doc? ( dev-python/epydoc[${PYTHON_USEDEP}] )
+"
+RDEPEND="${COMMON_DEPEND}
+	policykit? ( >=sys-auth/polkit-0.104-r1 )
 "
 
 APP_LINGUAS="ar as bg bn_IN bn br bs ca cs cy da de el en_GB es et fa fi fr gu
@@ -56,8 +67,6 @@ for X in ${APP_LINGUAS}; do
 	IUSE="${IUSE} linguas_${X}"
 done
 
-S="${WORKDIR}/${MY_P}"
-
 # Bug 471472
 MAKEOPTS+=" -j1"
 
@@ -66,8 +75,6 @@ pkg_setup() {
 }
 
 src_prepare() {
-	epatch "${FILESDIR}"/${PN}-1.5.1-split.patch
-
 	eautoreconf
 	gnome2_src_prepare
 }
@@ -84,11 +91,21 @@ src_configure() {
 
 	gnome2_src_configure \
 		--with-desktop-vendor=Gentoo \
-		--without-udev-rules \
+		--with-udev-rules \
+		$(systemd_with_unitdir) \
 		${myconf}
 }
 
+src_compile() {
+	emake
+	use doc && emake html
+}
+
 src_install() {
+	default
+
+	use doc && dohtml -r html/
+
 	gnome2_src_install
 	python_fix_shebang "${ED}"
 }
