@@ -17,7 +17,7 @@ RDEPEND="${DEPEND}
 	!kde-base/printer-applet:4
 	!kde-base/system-config-printer-kde:4
 	!kde-misc/print-manager
-	app-admin/system-config-printer-gnome
+	gtk? ( app-admin/system-config-printer )
 "
 
 PATCHES=( "${FILESDIR}/${PN}-4.14.1-cups20.patch" )
