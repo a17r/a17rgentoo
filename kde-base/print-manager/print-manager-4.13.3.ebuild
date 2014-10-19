@@ -20,8 +20,6 @@ RDEPEND="${DEPEND}
 	gtk? ( app-admin/system-config-printer )
 "
 
-PATCHES=( "${FILESDIR}/${PN}-4.14.1-cups20.patch" )
-
 pkg_postinst(){
 	if ! use gtk ; then
 		ewarn
