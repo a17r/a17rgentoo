@@ -17,11 +17,12 @@ KEYWORDS="~amd64 ~x86"
 IUSE="expat"
 
 RDEPEND="dev-libs/libpcre
-	expat? ( dev-libs/expat )
-	!expat? ( dev-libs/libxml2 )
+	dev-libs/zziplib
 	media-libs/lib3ds
 	sys-libs/zlib
-	dev-libs/zziplib"
+	>=sys-devel/gcc-4.7
+	expat? ( dev-libs/expat )
+	!expat? ( dev-libs/libxml2 )"
 DEPEND="${RDEPEND}
 	sys-apps/findutils
 	sys-apps/sed"
