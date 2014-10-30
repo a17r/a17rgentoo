@@ -8,7 +8,7 @@ inherit eutils multilib cmake-utils vcs-snapshot
 
 DESCRIPTION="Stream based read/write library for COLLADA files"
 HOMEPAGE="http://www.opencollada.org/"
-COMMIT="463ba8a2ef5a021ce21df614dde29e0ee800e10b"
+COMMIT="a8c3a90268d781f54f5a91c6b2f43216bc9438bb"
 SRC_URI="https://github.com/KhronosGroup/OpenCOLLADA/tarball/${COMMIT} -> ${P}.tar.gz"
 
 LICENSE="MIT"
