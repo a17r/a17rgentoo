@@ -247,8 +247,8 @@ PATCHES=(
 	# not upstreamable stuff
 	"${FILESDIR}/${PN}-3.7-system-pyuno.patch"
 
-	# upstream bug filed (???)
-        "${FILESDIR}/${PN}-4.3.3.2-make-valgrind-support-optional.patch"
+	# upstream bug filed (f.d.o bug #85743)
+	"${FILESDIR}/${PN}-4.3.3.2-make-valgrind-support-optional.patch"
 
 	# from master branch
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
