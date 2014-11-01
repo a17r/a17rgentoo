@@ -72,7 +72,7 @@ unset EXT_URI
 unset ADDONS_SRC
 
 IUSE="bluetooth +branding coinmp collada +cups dbus debug eds firebird gltf gnome gstreamer
-+gtk gtk3 jemalloc kde mysql odk opengl postgres telepathy test +vba vlc"
++gtk gtk3 jemalloc kde mysql odk opengl postgres telepathy test valgrind +vba vlc"
 
 LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 # Unpackaged separate extensions:
@@ -181,6 +181,9 @@ COMMON_DEPEND="
 		>=net-libs/telepathy-glib-0.18.0
 		>=x11-libs/gtk+-2.24:2
 	)
+	valgrind? (
+		dev-util/valgrind
+	)
 "
 
 RDEPEND="${COMMON_DEPEND}
@@ -243,6 +246,9 @@ DEPEND="${COMMON_DEPEND}
 PATCHES=(
 	# not upstreamable stuff
 	"${FILESDIR}/${PN}-3.7-system-pyuno.patch"
+
+	# upstream bug filed (???)
+        "${FILESDIR}/${PN}-4.3.3.2-make-valgrind-support-optional.patch"
 
 	# from master branch
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
@@ -514,6 +520,7 @@ src_configure() {
 		$(use_enable opengl) \
 		$(use_enable postgres postgresql-sdbc) \
 		$(use_enable telepathy) \
+		$(use_enable valgrind) \
 		$(use_enable vba) \
 		$(use_enable vlc) \
 		$(use_with coinmp system-coinmp) \
