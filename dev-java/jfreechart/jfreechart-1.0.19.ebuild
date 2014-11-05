@@ -26,7 +26,10 @@ COMMON_DEPEND="
 DEPEND="
 	${COMMON_DEPEND}
 	app-arch/unzip
-	test? ( dev-java/ant-junit:0 )"
+	test? (
+		dev-java/ant-junit:0
+		dev-java/junit:4
+	)"
 
 RDEPEND="${COMMON_DEPEND}"
 
@@ -75,14 +78,14 @@ src_install() {
 
 get_jars() {
 	local antflags="
-		-Djcommon.jar=$(java-pkg_getjar jcommon-1.0 jcommon.jar)
+		-Djcommon.jar=$(java-pkg_getjar jcommon-1.0 jcommon.jar) \
 		-Djfreesvg.jar=$(java-pkg_getjar jfreesvg-2.0 jfreesvg.jar)"
 
 	use servlet && antflags="${antflags} \
 		-Dservlet.jar=$(java-pkg_getjars servlet-api-2.3)"
 
 	use test && antflags="${antflags} \
-		-Djunit.jar=$(java-pkg_getjars --build-only junit)"
+		-Djunit.jar=$(java-pkg_getjars --build-only junit-4)"
 
 	echo "${antflags}"
 }
