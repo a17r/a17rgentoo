@@ -4,7 +4,7 @@
 
 EAPI="5"
 
-JAVA_PKG_IUSE="doc source test"
+JAVA_PKG_IUSE="doc source"
 
 inherit java-pkg-2 java-ant-2
 
@@ -15,7 +15,7 @@ SRC_URI="mirror://sourceforge/${PN}/${P}.zip"
 LICENSE="LGPL-2.1"
 SLOT="1.0"
 KEYWORDS="~amd64 ~ppc ~x86 ~amd64-linux ~x86-linux"
-IUSE="+servlet"
+IUSE="+servlet test"
 
 COMMON_DEPEND="
 	>=virtual/jdk-1.6
@@ -72,7 +72,6 @@ src_install() {
 	dodoc README.txt ChangeLog NEWS
 
 	use doc && java-pkg_dojavadoc javadoc
-
 	use source && java-pkg_dosrc source/org
 }
 
