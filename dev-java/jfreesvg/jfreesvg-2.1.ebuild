@@ -4,7 +4,7 @@
 
 EAPI=5
 
-JAVA_PKG_IUSE="doc source test"
+JAVA_PKG_IUSE="doc source"
 
 inherit java-pkg-2 java-ant-2
 
@@ -21,8 +21,7 @@ RDEPEND="
 	>=virtual/jdk-1.5"
 DEPEND="
 	>=virtual/jdk-1.5
-	app-arch/unzip
-	test? ( dev-java/junit:4 )"
+	app-arch/unzip"
 
 java_prepare() {
 	find "${WORKDIR}" -name '*.jar' -print -delete || die
@@ -33,13 +32,6 @@ src_compile() {
 		antflags="-Dbuild.debug=false -Dbuild.optimize=true"
 	fi
 	eant -f ant/build.xml compile $(use_doc) $antflags
-}
-
-src_test() {
-	java-pkg_jar-from --into lib junit-4
-	eant -f ant/build.xml compile-junit-tests
-	ejunit4 -cp "./lib/${P}-junit.jar:$(java-pkg_getjars junit-4)" \
-		org.jfree.junit.JCommonTestSuite
 }
 
 src_install() {
