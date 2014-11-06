@@ -36,7 +36,7 @@ inherit check-reqs flag-o-matic toolchain-funcs eutils gnome2-utils mozconfig-3 
 DESCRIPTION="Firefox Web Browser"
 HOMEPAGE="http://www.mozilla.com/firefox"
 
-KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linux"
+KEYWORDS="~alpha amd64 ~arm hppa ~ia64 ppc ppc64 x86 ~amd64-linux ~x86-linux"
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
 IUSE="bindist gstreamer +jit kde +minimal pgo pulseaudio selinux system-cairo system-icu system-jpeg system-sqlite test"
@@ -49,7 +49,7 @@ SRC_URI="${SRC_URI}
 ASM_DEPEND=">=dev-lang/yasm-1.1"
 
 # Mesa 7.10 needed for WebGL + bugfixes
-RDEPEND="
+CDEPEND="
 	>=dev-libs/nss-3.16.2
 	>=dev-libs/nspr-4.10.4
 	>=dev-libs/glib-2.26:2
@@ -63,10 +63,11 @@ RDEPEND="
 	system-jpeg? ( >=media-libs/libjpeg-turbo-1.2.1 )
 	system-sqlite? ( >=dev-db/sqlite-3.7.17:3[secure-delete,debug=] )
 	>=media-libs/libvpx-1.0.0
-	kernel_linux? ( media-libs/alsa-lib )
-	selinux? ( sec-policy/selinux-mozilla )"
+	kde? (
+		kde-misc/kmozillahelper )
+	kernel_linux? ( media-libs/alsa-lib )"
 
-DEPEND="${RDEPEND}
+DEPEND="${CDEPEND}
 	>=sys-devel/binutils-2.16.1
 	virtual/pkgconfig
 	pgo? (
@@ -74,9 +75,10 @@ DEPEND="${RDEPEND}
 	amd64? ( ${ASM_DEPEND}
 		virtual/opengl )
 	x86? ( ${ASM_DEPEND}
-		virtual/opengl )
-	kde? (
-		kde-misc/kmozillahelper )"
+		virtual/opengl )"
+
+RDEPEND="${CDEPEND}
+	selinux? ( sec-policy/selinux-mozilla )"
 
 # No source releases for alpha|beta
 if [[ ${PV} =~ alpha ]]; then
