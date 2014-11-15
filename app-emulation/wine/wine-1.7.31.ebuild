@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/app-emulation/wine/wine-1.7.29.ebuild,v 1.1 2014/10/25 20:37:44 ryao Exp $
+# $Header: $
 
 EAPI="5"
 
@@ -22,7 +22,7 @@ else
 	S=${WORKDIR}/${MY_P}
 fi
 
-GV="2.24"
+GV="2.34"
 MV="4.5.2"
 COMPHOLIO_P="wine-staging-${PV}"
 WINE_GENTOO="wine-gentoo-2013.06.24"
