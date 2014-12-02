@@ -136,14 +136,14 @@ index 755702e..c519552 100644
  #define SO_RCVLOWAT	18
 --- a/arch/mips/include/asm/socket.h
 +++ b/arch/mips/include/asm/socket.h
-@@ -28,8 +28,7 @@
+@@ -28,8 +28,6 @@
  #define SO_LINGER	0x0080	/* Block on close of a reliable
  				   socket to transmit pending data.  */
  #define SO_OOBINLINE 0x0100	/* Receive out-of-band data in-band.  */
 -#if 0
 -To add: #define SO_REUSEPORT 0x0200	/* Allow local address and port reuse.  */
 +#define SO_REUSEPORT 0x0200	/* Allow local address and port reuse.  */
- #endif
+-#endif
  
  #define SO_TYPE		0x1008	/* Compatible name for SO_STYLE.  */
 --- a/arch/mn10300/include/asm/socket.h
@@ -792,7 +792,6 @@ index 755702e..c519552 100644
  	}
  
  	return node != NULL;
-diff --git a/net/ipv6/inet6_hashtables.c b/net/ipv6/inet6_hashtables.c
 --- a/net/ipv6/inet6_hashtables.c
 +++ b/net/ipv6/inet6_hashtables.c
 @@ -158,25 +158,38 @@ static inline int compute_score(struct sock *sk, struct net *net,

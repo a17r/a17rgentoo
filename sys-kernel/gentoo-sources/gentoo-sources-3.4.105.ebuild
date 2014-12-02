@@ -26,8 +26,8 @@ src_prepare() {
 
 	# backport introduction of SO_REUSEPORT to fix avahi compatibility
 	epatch "${FILESDIR}"/3.4.89-backport-01-named-constants-for-sk_reuse.patch \
-		"${FILESDIR}"/3.4.89-backport-02-merge-branch-soreuseport.patch \
-		"${FILESDIR}"/3.4.89-backport-03-remove-leftover-endif.patch
+		"${FILESDIR}"/3.4.89-backport-02-merge-branch-soreuseport.patch
+#		"${FILESDIR}"/3.4.89-backport-03-remove-leftover-endif.patch
 }
 
 pkg_postinst() {
