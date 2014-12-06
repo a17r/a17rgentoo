@@ -91,7 +91,7 @@ unset lo_xt
 LICENSE="|| ( LGPL-3 MPL-1.1 )"
 SLOT="0"
 [[ ${PV} == *9999* ]] || \
-KEYWORDS="~amd64 ~arm ~x86"
+KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
 
 COMMON_DEPEND="
 	${PYTHON_DEPS}
@@ -572,7 +572,10 @@ src_install() {
 
 	# Fix bash completion placement
 	newbashcomp "${ED}"/etc/bash_completion.d/libreoffice.sh ${PN}
-	rm -rf "${ED}"/etc/
+	bashcomp_alias \
+		libreoffice \
+		unopkg loimpress lobase localc lodraw lomath lowriter lofromtemplate loweb loffice
+	rm -rf "${ED}"/etc/ || die
 
 	if use branding; then
 		insinto /usr/$(get_libdir)/${PN}/program
