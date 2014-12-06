@@ -1,11 +1,11 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/sys-kernel/gentoo-sources/gentoo-sources-3.4.86.ebuild,v 1.1 2014/04/04 00:33:39 mpagano Exp $
+# $Header: $
 
 EAPI="5"
 ETYPE="sources"
 K_WANT_GENPATCHES="base extras"
-K_GENPATCHES_VER="87"
+K_GENPATCHES_VER="88"
 K_DEBLOB_AVAILABLE="1"
 inherit kernel-2
 detect_version
@@ -20,14 +20,11 @@ SRC_URI="${KERNEL_URI} ${GENPATCHES_URI} ${ARCH_URI}"
 
 src_prepare() {
 # 	epatch "${FILESDIR}"/3.4.83-backport_direct_firmware_loading.patch
-# 
-# 	EPATCH_SOURCE="${FILESDIR}/async" EPATCH_SUFFIX="patch" \
-#          EPATCH_FORCE="yes" epatch
 
 	# backport introduction of SO_REUSEPORT to fix avahi compatibility
-	epatch "${FILESDIR}"/3.4.89-backport-01-named-constants-for-sk_reuse.patch \
-		"${FILESDIR}"/3.4.89-backport-02-merge-branch-soreuseport.patch
-#		"${FILESDIR}"/3.4.89-backport-03-remove-leftover-endif.patch
+	epatch "${FILESDIR}"/3.4.89-backport-soreuseport-01-named-constants-for-sk_reuse.patch \
+		"${FILESDIR}"/3.4.89-backport-soreuseport-02-infrastructure.patch \
+		"${FILESDIR}"/3.4.89-backport-soreuseport-03-udp-tcp-ipv4-ipv6-implementation.patch
 }
 
 pkg_postinst() {
