@@ -252,14 +252,15 @@ PATCHES=(
 	# upstream bug filed (f.d.o bug #85743)
 	"${FILESDIR}/${PN}-4.3.3.2-make-valgrind-support-optional.patch"
 
-	# from master branch
+	# from 4.4 branch
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
 	"${FILESDIR}/${PN}-4.3.2.2-boost-1.56.0.patch"
 	"${FILESDIR}/${PN}-4.3.2.2-add-dbtools-to-libmerged.patch"
 	"${FILESDIR}/${PN}-4.3.2.2-implement-with-system-opencollada.patch"
-	"${FILESDIR}/${PN}-4.3.4.1-detect-kde5-fallback-to-kde4ui.patch"
 	"${FILESDIR}/${PN}-4.3.4.1-system-gltf-should-follow-system-libs.patch"
+	"${FILESDIR}/${PN}-4.3.4.1-detect-kde5-fallback-to-kde4ui.patch"
 	"${FILESDIR}/${PN}-4.3.4.1-bin-unused-disable-vba-option.patch"
+	"${FILESDIR}/${PN}-4.3.4.1-backport-pdf-signing-from-4.4.patch"
 )
 
 REQUIRED_USE="
@@ -526,7 +527,6 @@ src_configure() {
 		$(use_enable postgres postgresql-sdbc) \
 		$(use_enable telepathy) \
 		$(use_enable valgrind) \
-		$(use_enable vba) \
 		$(use_enable vlc) \
 		$(use_with coinmp system-coinmp) \
 		$(use_with gltf system-libgltf) \
