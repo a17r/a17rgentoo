@@ -257,6 +257,8 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.3.2.2-boost-1.56.0.patch"
 	"${FILESDIR}/${PN}-4.3.2.2-add-dbtools-to-libmerged.patch"
 	"${FILESDIR}/${PN}-4.3.2.2-implement-with-system-opencollada.patch"
+	"${FILESDIR}/${PN}-4.3.4.1-detect-kde5-fallback-to-kde4ui.patch"
+	"${FILESDIR}/${PN}-4.3.4.1-system-gltf-should-follow-system-libs.patch"
 )
 
 REQUIRED_USE="
