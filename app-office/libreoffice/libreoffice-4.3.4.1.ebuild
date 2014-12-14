@@ -74,7 +74,7 @@ unset EXT_URI
 unset ADDONS_SRC
 
 IUSE="bluetooth +branding coinmp collada +cups dbus debug eds firebird gltf gnome gstreamer
-+gtk gtk3 jemalloc kde mysql odk opengl postgres telepathy test valgrind +vba vlc"
++gtk gtk3 jemalloc kde mysql odk opengl postgres telepathy test valgrind vlc"
 
 LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 # Unpackaged separate extensions:
@@ -259,6 +259,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.3.2.2-implement-with-system-opencollada.patch"
 	"${FILESDIR}/${PN}-4.3.4.1-detect-kde5-fallback-to-kde4ui.patch"
 	"${FILESDIR}/${PN}-4.3.4.1-system-gltf-should-follow-system-libs.patch"
+	"${FILESDIR}/${PN}-4.3.4.1-bin-unused-disable-vba-option.patch"
 )
 
 REQUIRED_USE="
