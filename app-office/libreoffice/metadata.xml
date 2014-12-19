@@ -16,7 +16,6 @@ version</longdescription>
     <flag name="odk">Build the Office Development Kit</flag>
     <flag name="telepathy">Enable document colaboration features using telepathy communication framework</flag>
     <flag name="valgrind">Built-in support to mark memory regions</flag>
-    <flag name="vba">Enable support for VBA compatibility and ActiveX embedding</flag>
     <flag name="vlc">Use <pkg>media-video/vlc</pkg> for video embedding</flag>
   </use>
 </pkgmetadata>
