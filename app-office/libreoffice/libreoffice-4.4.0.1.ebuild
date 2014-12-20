@@ -91,8 +91,10 @@ unset lo_xt
 LICENSE="|| ( LGPL-3 MPL-1.1 )"
 SLOT="0"
 [[ ${PV} == *9999* ]] || \
-KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
+KEYWORDS="~amd64 ~arm ~ppc ~x86 ~amd64-linux ~x86-linux"
 
+# FIXME: collada? ( media-libs/opencollada )
+#        how to configure system-collada?
 COMMON_DEPEND="
 	${PYTHON_DEPS}
 	app-arch/zip
@@ -112,7 +114,7 @@ COMMON_DEPEND="
 	>=app-text/libwps-0.3.0
 	>=app-text/poppler-0.16:=[xpdf-headers(+),cxx]
 	>=dev-cpp/clucene-2.3.3.4-r2
-	dev-cpp/libcmis:0.4
+	dev-cpp/libcmis:0.5
 	dev-db/unixODBC
 	>=dev-libs/boost-1.47:=
 	dev-libs/expat
@@ -185,7 +187,6 @@ COMMON_DEPEND="
 		dev-util/valgrind
 	)
 "
-# 	collada? ( media-libs/opencollada )
 
 RDEPEND="${COMMON_DEPEND}
 	!app-office/libreoffice-bin
@@ -449,6 +450,7 @@ src_configure() {
 	# --enable-extension-integration: enable any extension integration support
 	# --without-{fonts,myspell-dicts,ppsd}: prevent install of sys pkgs
 	# --disable-report-builder: too much java packages pulled in without pkgs
+	# FIXME: $(use_with collada system-opencollada)
 	econf \
 		--docdir="${EPREFIX}/usr/share/doc/${PF}/" \
 		--with-system-headers \
@@ -525,7 +527,6 @@ src_configure() {
 		${java_opts} \
 		${ext_opts}
 }
-#		$(use_with collada system-opencollada) \
 
 src_compile() {
 	# hack for offlinehelp, this needs fixing upstream at some point
