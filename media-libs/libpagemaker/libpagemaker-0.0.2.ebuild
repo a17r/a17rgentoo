@@ -5,8 +5,8 @@
 EAPI=5
 
 EGIT_REPO_URI="git://gerrit.libreoffice.org/${PN}.git"
-inherit autotools base eutils
-[[ ${PV} == 9999 ]] && inherit autotools git-2
+inherit autotools eutils
+[[ ${PV} == 9999 ]] && inherit git-2
 
 DESCRIPTION="C++ Library that parses the file format of Aldus/Adobe PageMaker documents."
 HOMEPAGE="https://wiki.documentfoundation.org/DLP/Libraries/${PN}"
@@ -33,7 +33,6 @@ src_prepare() {
 		-e "s:no-undefines:no-undefined:g" \
 		-i src/lib/Makefile.am || die
 
-	# Rerun autotools
     einfo "Regenerating autotools files..."
     eautoreconf
 }
