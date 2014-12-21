@@ -253,6 +253,9 @@ PATCHES=(
 	# upstream bug filed (f.d.o bug #85743)
 	"${FILESDIR}/${PN}-4.3.3.2-make-valgrind-support-optional.patch"
 
+	# from 4.3 branch
+	"${FILESDIR}/${PN}-4.3.5.2-return-IsUserDefined-without-negation.patch"
+
 	# from 4.4 branch
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
 	"${FILESDIR}/${PN}-4.3.2.2-boost-1.56.0.patch"
