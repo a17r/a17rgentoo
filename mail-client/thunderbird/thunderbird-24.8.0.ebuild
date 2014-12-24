@@ -148,8 +148,6 @@ src_prepare() {
 	epatch "${WORKDIR}/firefox"
 	popd &>/dev/null || die
 
-	epatch "${FILESDIR}"/${PN}-31.0-mozilla-language.patch # bug 472042
-
 	if use crypt ; then
 		mv "${WORKDIR}"/enigmail "${S}"/mailnews/extensions/enigmail
 		pushd "${S}"/mailnews/extensions/enigmail &>/dev/null || die

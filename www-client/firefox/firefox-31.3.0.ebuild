@@ -153,8 +153,6 @@ src_prepare() {
 
 	epatch "${FILESDIR}"/${PN}-32.0-hppa-js-configure.patch # bug 524556
 
-	epatch "${FILESDIR}"/${PN}-31.0-mozilla-language.patch # bug 472042
-
 	# Allow user to apply any additional patches without modifing ebuild
 	epatch_user
 
