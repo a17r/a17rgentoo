@@ -1225,7 +1225,7 @@ diff --git a/browser/components/preferences/advanced.js b/browser/components/pre
 +                              .createInstance(Components.interfaces.nsIProcess);
 +      process.init(shellObj);
 +      var args = ["--file", "kdeglobals", "--group", "General", "--key",
-+          "BrowserApplication", "MozillaFirefox"];
++          "BrowserApplication", "firefox"];
 +      process.run(false, args, args.length);
 +    }
      let selectedIndex =

@@ -154,6 +154,8 @@ src_prepare() {
 	EPATCH_FORCE="yes" \
 	epatch "${WORKDIR}/firefox"
 
+	epatch "${FILESDIR}"/${PN}-31.0-mozilla-language.patch # bug 472042
+
 	# Allow user to apply any additional patches without modifing ebuild
 	epatch_user
 
@@ -182,15 +184,8 @@ src_prepare() {
 		install -m 644 "${FILESDIR}/kde.js" browser/app/profile/kde.js
 
 		# patches taken from http://www.rosenauer.org/hg/mozilla
-		epatch "${FILESDIR}"/mozilla-kde-24.1.1.patch
-		epatch "${FILESDIR}"/firefox-kde-24.1.1.patch
-#		epatch "${FILESDIR}"/mozilla-nongnome-proxies.patch
-
-		# Replace wrong binary path from mozilla-kde.patch
-		sed -i 's/usr\/lib\/mozilla\/kmozillahelper/usr\/bin\/kmozillahelper/' toolkit/xre/nsKDEUtils.cpp || die
-
-		# Replace wrong desktop file name from firefox-kde.patch
-		sed -i '/BrowserApplication/ s/MozillaFirefox/firefox/' browser/components/preferences/advanced.js || die
+		epatch "${FILESDIR}"/${PN}-24.1.1-mozilla-kde.patch
+		epatch "${FILESDIR}"/${PN}-24.1.1-kde.patch
 	fi
 
 	# Ensure that our plugins dir is enabled as default
