@@ -80,7 +80,9 @@ CDEPEND="
 			)
 		)
 		=app-crypt/gnupg-1.4*
-	) )"
+	) )
+	kde? (
+		kde-misc/kmozillahelper )"
 
 DEPEND="${CDEPEND}
 	>=sys-devel/binutils-2.16.1

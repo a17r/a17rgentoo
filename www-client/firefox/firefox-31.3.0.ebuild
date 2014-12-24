@@ -54,6 +54,8 @@ ASM_DEPEND=">=dev-lang/yasm-1.1"
 CDEPEND="
 	>=dev-libs/nss-3.17.1
 	>=dev-libs/nspr-4.10.6
+	kde? (
+		kde-misc/kmozillahelper )
 "
 
 DEPEND="${CDEPEND}
