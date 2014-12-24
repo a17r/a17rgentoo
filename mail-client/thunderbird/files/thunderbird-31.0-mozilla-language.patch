@@ -1,0 +1,28 @@
+# HG changeset patch
+# User Wolfgang Rosenauer <wr@rosenauer.org>
+# Parent 13eb644c1216aed92b29dbc63fc26ce66f98c66c
+Bug 583793 - Firefox interface language set to LANG, ignores LANGUAGE
+
+diff --git a/mozilla/intl/locale/src/nsLocaleService.cpp b/mozilla/intl/locale/src/nsLocaleService.cpp
+--- a/mozilla/intl/locale/src/nsLocaleService.cpp
++++ b/mozilla/intl/locale/src/nsLocaleService.cpp
+@@ -127,6 +127,7 @@ nsLocaleService::nsLocaleService(void)
+ #else
+     // Get system configuration
+     const char* lang = getenv("LANG");
++    const char* language = getenv("LANGUAGE");
+ #endif
+ 
+     nsAutoString xpLocale, platformLocale;
+@@ -155,6 +156,11 @@ nsLocaleService::nsLocaleService(void)
+         if (NS_FAILED(result)) {
+             return;
+         }
++        // LANGUAGE is overriding LC_MESSAGES
++        if (i == LC_MESSAGES && language && *language) {
++          CopyASCIItoUTF16(language, platformLocale);
++          result = nsPosixLocale::GetXPLocale(language, xpLocale);
++        }
+         resultLocale->AddCategory(category, xpLocale);
+         resultLocale->AddCategory(category_platform, platformLocale);
+     }
