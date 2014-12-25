@@ -23,22 +23,19 @@ LICENSE="BSD"
 SLOT="0"
 IUSE="dbus doc examples iconv ini java keytometa simpleini static-libs syslog systemd tcl test +uname xml yajl"
 
-RDEPEND=">=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
+RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
+	>=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
 	dbus? ( >=sys-apps/dbus-1.6.18-r1[${MULTILIB_USEDEP}] )
 	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
 	java? ( >=virtual/jdk-1.8.0:1.8 )
 	uname? ( sys-apps/coreutils )
 	systemd? ( virtual/udev[systemd] )
-	yajl? (
-		<dev-libs/yajl-2[${MULTILIB_USEDEP}]
-		>=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}]
-	)"
+	yajl? ( >=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}] )"
 DEPEND="${RDEPEND}
-	sys-devel/libtool
 	doc? ( app-doc/doxygen )
 	test? ( >=dev-cpp/gtest-1.7.0 )"
 
-DOCS="README.md doc/AUTHORS doc/NEWS.md doc/todo/TODO"
+DOCS="README.md doc/AUTHORS doc/CODING.md doc/NEWS.md doc/todo/TODO"
 # tries to write to user's home directory (and doesn't respect HOME)
 RESTRICT="test"
 
