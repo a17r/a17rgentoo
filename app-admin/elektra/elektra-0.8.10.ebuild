@@ -21,12 +21,14 @@ fi
 
 LICENSE="BSD"
 SLOT="0"
-IUSE="dbus doc examples iconv ini keytometa simpleini static-libs syslog tcl test +uname xml yajl"
+IUSE="dbus doc examples iconv ini java keytometa simpleini static-libs syslog systemd tcl test +uname xml yajl"
 
 RDEPEND=">=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
 	dbus? ( >=sys-apps/dbus-1.6.18-r1[${MULTILIB_USEDEP}] )
 	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
+	java? ( >=virtual/jdk-1.8.0:1.8 )
 	uname? ( sys-apps/coreutils )
+	systemd? ( virtual/udev[systemd] )
 	yajl? (
 		<dev-libs/yajl-2[${MULTILIB_USEDEP}]
 		>=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}]
@@ -36,27 +38,27 @@ DEPEND="${RDEPEND}
 	doc? ( app-doc/doxygen )
 	test? ( >=dev-cpp/gtest-1.7.0 )"
 
-DOCS="README.md doc/AUTHORS doc/CHANGES doc/NEWS doc/todo/TODO"
+DOCS="README.md doc/AUTHORS doc/NEWS.md doc/todo/TODO"
 # tries to write to user's home directory (and doesn't respect HOME)
 RESTRICT="test"
 
 src_prepare() {
 
-	epatch "${FILESDIR}/${PN}-0.8.7-conditional-glob-tests.patch"
+	epatch "${FILESDIR}/${PN}-0.8.8-conditional-glob-tests.patch"
 
 	einfo remove bundled libs
 	# TODO: Remove bundled inih from src/plugins/ini (add to portage):
 	# https://code.google.com/p/inih/
 	rm -rf src/external || die
 
-	local tests="augeas fstab hosts ini yajl"
-	if ! use test ; then
-		einfo remove test data
-		for test in ${tests}; do
-			sed -e '/TARGET_TEST_DATA_FOLDER/ s/^#*/#/' \
-				-i src/plugins/${test}/CMakeLists.txt || die
-		done
-	fi
+# 	local tests="augeas fstab hosts ini yajl"
+# 	if ! use test ; then
+# 		einfo remove test data
+# 		for test in ${tests}; do
+# 			sed -e '/TARGET_TEST_DATA_FOLDER/ s/^#*/#/' \
+# 				-i src/plugins/${test}/CMakeLists.txt || die
+# 		done
+# 	fi
 
 	#move doc files to correct location
 	sed -e "s/elektra-api/${PF}/" \
@@ -66,15 +68,17 @@ src_prepare() {
 }
 
 multilib_src_configure() {
-	local my_plugins="ccode;dump;error;fstab;glob;hexcode;hidden;hosts;network;ni;null;path;resolver;struct;success;template;timeofday;tracer;type;validation"
+	local my_plugins="ccode;constants;dump;error;fstab;glob;hexcode;hidden;hosts;line;network;ni;null;path;regexstore;rename;resolver;struct;sync;template;timeofday;tracer;type;validation"
 
 	use dbus      && my_plugins+=";dbus"
 #	use doc       && my_plugins+=";doc"		#bug 514402; examples?
 	use iconv     && my_plugins+=";iconv"
 	use ini       && my_plugins+=";ini"		#bundles inih - baaad
+	use java      && my_plugins+=";jni"
 	use keytometa && my_plugins+=";keytometa"
 	use simpleini && my_plugins+=";simpleini"
 	use syslog    && my_plugins+=";syslog"
+	use systemd   && my_plugins+=";journald"
 	use tcl       && my_plugins+=";tcl"
 	use uname     && my_plugins+=";uname"
 	use xml       && my_plugins+=";xmltool"
