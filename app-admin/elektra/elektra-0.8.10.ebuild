@@ -21,13 +21,20 @@ fi
 
 LICENSE="BSD"
 SLOT="0"
-IUSE="dbus doc examples iconv ini java keytometa simpleini static-libs syslog systemd tcl test +uname xml yajl"
+PLUGIN_IUSE="iconv ini java keytometa simpleini syslog systemd tcl +uname xml yajl";
+IUSE="dbus doc examples qt5 static-libs test ${PLUGIN_IUSE}"
 
 RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 	>=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
 	dbus? ( >=sys-apps/dbus-1.6.18-r1[${MULTILIB_USEDEP}] )
 	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
 	java? ( >=virtual/jdk-1.8.0:1.8 )
+	qt5? (
+		>=dev-qt/qtdeclarative-5.3
+		>=dev-qt/qtgui-5.3
+		>=dev-qt/qttest-5.3
+		>=dev-qt/qtwidgets-5.3
+	)
 	uname? ( sys-apps/coreutils )
 	systemd? ( virtual/udev[systemd] )
 	yajl? ( >=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}] )"
@@ -81,8 +88,13 @@ multilib_src_configure() {
 	use xml       && my_plugins+=";xmltool"
 	use yajl      && my_plugins+=";yajl"
 
+	local my_tools="kdb"
+
+	use qt5       && my_tools+=";qt-gui"
+
 	mycmakeargs=(
 		"-DPLUGINS=${my_plugins}"
+		"-DTOOLS=${my_tools}"
 		"-DLATEX_COMPILER=OFF"
 		"-DTARGET_CMAKE_FOLDER=share/cmake/Modules"
 		$(multilib_is_native_abi && cmake-utils_use doc BUILD_DOCUMENTATION \
