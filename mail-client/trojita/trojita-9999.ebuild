@@ -33,7 +33,7 @@ RDEPEND="
 		dev-qt/linguist-tools:5
 		dev-qt/qtgui:5
 		dev-qt/qtnetwork:5
-		dev-qt/qtsql:5
+		dev-qt/qtsql:5[sqlite]
 		dev-qt/qtwebkit:5
 		dev-qt/qtwidgets:5
 	)
