@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+<use>
+	<flag name='aac'>Support AAC decode</flag>
+	<flag name='adplug'>Build with AdPlug (Adlib sound card emulation)
+		support</flag>
+	<flag name='alsa'>Support ALSA output</flag>
+	<flag name='bs2b'>Enable Bauer Bauer stereophonic-to-binaural
+		headphone filter</flag>
+	<flag name='cdda'>Support CD-DA input</flag>
+	<flag name='cue'>Support CUE sheets using the libcue library</flag>
+	<flag name='ffmpeg'>Support Libav/FFmpeg library</flag>
+	<flag name='filewriter'>Enable outputing to file</flag>
+	<flag name='flac'>Support FLAC decode</flag>
+	<flag name='fluidsynth'>Support FluidSynth as MIDI synth backend</flag>
+	<flag name="gnome">Support GNOME shortcut</flag>
+	<flag name='jack'>Support JACK output</flag>
+	<flag name='libnotify'>Enable desktop notification</flag>
+	<flag name='midi'>Build with amidi-plug (MIDI synth) support</flag>
+	<flag name='pulseaudio'>Support Pulseaudio output</flag>
+	<flag name='scrobbler'>Build with scrobbler/LastFM submission support</flag>
+	<flag name='sid'>Build with SID (Commodore 64 Audio) support</flag>
+	<flag name='soxr'>Support SOX Resampler library</flag>
+	<flag name='soxr'>Enable OpenGL spectram analizer</flag>
+	<flag name='volbis'>Support Volbis decode</flag>
+</use>
+
+
+<herd>sound</herd>
+<maintainer>
+  <email>jdhore@gentoo.org</email>
+  <name>Jeff Horelick</name>
+</maintainer>
+
+<upstream><doc>http://audacious-media-player.org/</doc></upstream>
+</pkgmetadata>
