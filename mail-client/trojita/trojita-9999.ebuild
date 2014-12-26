@@ -61,6 +61,8 @@ DEPEND="${RDEPEND}
 
 DOCS="README LICENSE"
 
+PATCHES=( "${FILESDIR}/${PN}-9999-trojita-9999-fix-build-with-qt5keychain.patch" )
+
 src_configure() {
 	local mycmakeargs=(
 		$(cmake-utils_use_with qt5 QT5)
