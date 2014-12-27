@@ -104,7 +104,7 @@ COMMON_DEPEND="
 	app-text/liblangtag
 	=app-text/libmspub-0.0*
 	=app-text/libmwaw-0.2*
-	=app-text/libodfgen-0.0*
+	=app-text/libodfgen-0.0*	>=app-text/libodfgen-0.0.3
 	app-text/libwpd:0.9[tools]
 	app-text/libwpg:0.2
 	=app-text/libwps-0.2*
