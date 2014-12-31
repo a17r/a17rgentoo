@@ -1,6 +1,6 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/x11-base/xorg-server/xorg-server-1.16.2.901.ebuild,v 1.1 2014/12/09 22:06:42 remi Exp $
+# $Header: /var/cvsroot/gentoo-x86/x11-base/xorg-server/xorg-server-1.16.2.901-r1.ebuild,v 1.1 2014/12/11 10:08:41 mgorny Exp $
 
 EAPI=5
 
@@ -15,8 +15,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86
 IUSE_SERVERS="dmx kdrive xnest xorg xvfb"
 IUSE="${IUSE_SERVERS} glamor ipv6 minimal nptl selinux +suid systemd tslib +udev unwind wayland"
 
-CDEPEND=">=app-admin/eselect-opengl-1.0.8
-	!>=app-admin/eselect-opengl-1.3.0
+CDEPEND=">=app-admin/eselect-opengl-1.3.0
 	dev-libs/openssl
 	media-libs/freetype
 	>=x11-apps/iceauth-1.0.2
@@ -49,7 +48,7 @@ CDEPEND=">=app-admin/eselect-opengl-1.0.8
 	)
 	glamor? (
 		media-libs/libepoxy
-		media-libs/mesa[egl,gbm]
+		>=media-libs/mesa-10.3.4-r1[egl,gbm]
 		!x11-libs/glamor
 	)
 	kdrive? (
@@ -59,7 +58,7 @@ CDEPEND=">=app-admin/eselect-opengl-1.0.8
 	!minimal? (
 		>=x11-libs/libX11-1.1.5
 		>=x11-libs/libXext-1.0.5
-		>=media-libs/mesa-9.2.0[nptl=]
+		>=media-libs/mesa-10.3.4-r1[nptl=]
 	)
 	tslib? ( >=x11-libs/tslib-1.0 )
 	udev? ( >=virtual/udev-150 )
@@ -81,7 +80,7 @@ DEPEND="${CDEPEND}
 	>=x11-proto/damageproto-1.1
 	>=x11-proto/fixesproto-5.0
 	>=x11-proto/fontsproto-2.1.3
-	>=x11-proto/glproto-1.4.17
+	>=x11-proto/glproto-1.4.17-r1
 	>=x11-proto/inputproto-2.2.99.1
 	>=x11-proto/kbproto-1.0.3
 	>=x11-proto/randrproto-1.4.0
@@ -188,24 +187,11 @@ src_configure() {
 		--with-sha1=libcrypto
 	)
 
-	# Xorg-server requires includes from OS mesa which are not visible for
-	# users of binary drivers.
-	mkdir -p "${T}/mesa-symlinks/GL"
-	for i in gl glx glxmd glxproto glxtokens; do
-		ln -s "${EROOT}usr/$(get_libdir)/opengl/xorg-x11/include/$i.h" "${T}/mesa-symlinks/GL/$i.h" || die
-	done
-	for i in glext glxext; do
-		ln -s "${EROOT}usr/$(get_libdir)/opengl/global/include/$i.h" "${T}/mesa-symlinks/GL/$i.h" || die
-	done
-	append-cppflags "-I${T}/mesa-symlinks"
-
 	xorg-2_src_configure
 }
 
 src_install() {
 	xorg-2_src_install
-
-	dynamic_libgl_install
 
 	server_based_install
 
@@ -247,19 +233,6 @@ pkg_postrm() {
 	if [[ -z ${REPLACED_BY_VERSION} && -e ${EROOT}/usr/$(get_libdir)/xorg/modules ]]; then
 		rm -rf "${EROOT}"/usr/$(get_libdir)/xorg/modules
 	fi
-}
-
-dynamic_libgl_install() {
-	# next section is to setup the dynamic libGL stuff
-	ebegin "Moving GL files for dynamic switching"
-		dodir /usr/$(get_libdir)/opengl/xorg-x11/extensions
-		local x=""
-		for x in "${ED}"/usr/$(get_libdir)/xorg/modules/extensions/lib{glx,dri,dri2}*; do
-			if [ -f ${x} -o -L ${x} ]; then
-				mv -f ${x} "${ED}"/usr/$(get_libdir)/opengl/xorg-x11/extensions
-			fi
-		done
-	eend 0
 }
 
 server_based_install() {
