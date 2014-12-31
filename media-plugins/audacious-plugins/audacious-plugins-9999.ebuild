@@ -14,10 +14,10 @@ EGIT_REPO_URI="git://github.com/audacious-media-player/${PN}.git"
 LICENSE="BSD filewriter? ( GPL-2+ ) libnotify? ( GPL-3+ ) pulseaudio? ( GPL-2+ ) sndfile? ( GPL-2+ ) spectrum? ( GPL-2+ )"
 SLOT="0"
 KEYWORDS=""
-IUSE="aac adplug alsa bs2b cdda cue ffmpeg filewriter flac gnome gtk
+IUSE="aac adplug alsa bs2b cdda cue ffmpeg +filewriter flac gnome gtk
       jack lame libav libnotify libsamplerate lirc midi mms mp3 nls
-      pulseaudio -qt5 scrobbler sdl sid sndfile soxr spectrum vorbis wavpack"
-REQUIRED_USE=" ffmpeg? ( !libav ) qt5? ( !filewriter !spectrum )"
+      pulseaudio qt5 scrobbler sdl sid sndfile soxr +spectrum vorbis wavpack"
+REQUIRED_USE=" ffmpeg? ( !libav )"
 
 RDEPEND="app-arch/unzip
 	>=dev-libs/dbus-glib-0.60
@@ -36,7 +36,7 @@ RDEPEND="app-arch/unzip
 	ffmpeg? ( >=virtual/ffmpeg-0.7.3 )
 	flac? ( >=media-libs/libvorbis-1.0
 		>=media-libs/flac-1.2.1-r1 )
-	gtk? ( x11-libs/gtk+:3 )
+	gtk? ( x11-libs/gtk+:2 )
 	jack? ( >=media-libs/bio2jack-0.4
 		media-sound/jack-audio-connection-kit )
 	lame? ( media-sound/lame )
