@@ -27,7 +27,7 @@ BRANDING="${PN}-branding-gentoo-0.8.tar.xz"
 # PATCHSET="${P}-patchset-01.tar.xz"
 
 [[ ${PV} == *9999* ]] && SCM_ECLASS="git-2"
-inherit base autotools bash-completion-r1 check-reqs eutils java-pkg-opt-2 kde4-base pax-utils python-single-r1 multilib toolchain-funcs flag-o-matic nsplugins ${SCM_ECLASS}
+inherit base multiprocessing autotools bash-completion-r1 check-reqs eutils java-pkg-opt-2 kde4-base pax-utils python-single-r1 multilib toolchain-funcs flag-o-matic nsplugins ${SCM_ECLASS}
 unset SCM_ECLASS
 
 DESCRIPTION="LibreOffice, a full office productivity suite"
@@ -91,7 +91,7 @@ unset lo_xt
 LICENSE="|| ( LGPL-3 MPL-1.1 )"
 SLOT="0"
 [[ ${PV} == *9999* ]] || \
-KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
+KEYWORDS="~amd64 ~arm ~ppc ~x86 ~amd64-linux ~x86-linux"
 
 # FIXME: collada? ( media-libs/opencollada )
 #        how to configure system-collada?
@@ -386,10 +386,6 @@ src_configure() {
 	local internal_libs
 	local lo_ext
 	local ext_opts
-	local jbs=$(sed -ne 's/.*\(-j[[:space:]]*\|--jobs=\)\([[:digit:]]\+\).*/\2/;T;p' <<< "${MAKEOPTS}")
-
-	# recheck that there is some value in jobs
-	[[ -z ${jbs} ]] && jbs="1"
 
 	# sane: just sane.h header that is used for scan in writer, not
 	#       linked or anything else, worthless to depend on
@@ -488,7 +484,7 @@ src_configure() {
 		--with-external-thes-dir="${EPREFIX}/usr/share/myspell" \
 		--with-external-tar="${DISTDIR}" \
 		--with-lang="" \
-		--with-parallelism=${jbs} \
+		--with-parallelism=$(makeopts_jobs) \
 		--with-system-ucpp \
 		--with-vendor="Gentoo Foundation" \
 		--with-x \
