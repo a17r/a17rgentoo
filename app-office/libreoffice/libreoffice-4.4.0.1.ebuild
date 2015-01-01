@@ -512,13 +512,13 @@ src_configure() {
 		$(use_enable X graphite) \
 		$(use_enable X randr) \
 		$(use_enable X randr-link) \
-		$(use_enable X x) \
 		$(use_with coinmp system-coinmp) \
 		$(use_with gltf system-libgltf) \
 		$(use_with java) \
 		$(use_with mysql system-mysql-cppconn) \
 		$(use_with odk doxygen) \
 		$(use_with X theme) \
+		$(use_with X x) \
 		${internal_libs} \
 		${java_opts} \
 		${ext_opts}
