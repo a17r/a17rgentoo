@@ -74,7 +74,7 @@ unset EXT_URI
 unset ADDONS_SRC
 
 IUSE="bluetooth +branding coinmp collada +cups dbus debug eds firebird gltf gnome gstreamer
-+gtk gtk3 jemalloc kde mysql odk postgres telepathy test vlc"
++gtk gtk3 jemalloc kde mysql odk postgres telepathy test vlc +X"
 
 LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 # Unpackaged separate extensions:
@@ -127,7 +127,6 @@ COMMON_DEPEND="
 	>=dev-lang/perl-5.0
 	>=dev-libs/openssl-1.0.0d:0
 	>=dev-libs/redland-1.0.16
-	media-gfx/graphite2
 	>=media-libs/fontconfig-2.8.0
 	media-libs/freetype:2
 	>=media-libs/glew-1.10
@@ -143,12 +142,6 @@ COMMON_DEPEND="
 	net-nds/openldap
 	sci-mathematics/lpsolve
 	virtual/jpeg:0
-	>=x11-libs/cairo-1.10.0[X]
-	x11-libs/libXinerama
-	x11-libs/libXrandr
-	x11-libs/libXrender
-	virtual/glu
-	virtual/opengl
 	bluetooth? ( net-wireless/bluez )
 	coinmp? ( sci-libs/coinor-mp )
 	cups? ( net-print/cups )
@@ -182,6 +175,15 @@ COMMON_DEPEND="
 		dev-libs/glib:2
 		>=net-libs/telepathy-glib-0.18.0
 		>=x11-libs/gtk+-2.24:2
+	)
+	X? (
+		media-gfx/graphite2
+		>=x11-libs/cairo-1.10.0[X]
+		x11-libs/libXinerama
+		x11-libs/libXrandr
+		x11-libs/libXrender
+		virtual/glu
+		virtual/opengl
 	)
 "
 
@@ -229,15 +231,17 @@ DEPEND="${COMMON_DEPEND}
 	sys-devel/ucpp
 	sys-libs/zlib
 	virtual/pkgconfig
-	x11-libs/libXt
-	x11-libs/libXtst
-	x11-proto/randrproto
-	x11-proto/xextproto
-	x11-proto/xineramaproto
-	x11-proto/xproto
 	java? (
 		>=virtual/jdk-1.6
 		>=dev-java/ant-core-1.7
+	)
+	X? (
+		x11-libs/libXt
+		x11-libs/libXtst
+		x11-proto/randrproto
+		x11-proto/xextproto
+		x11-proto/xineramaproto
+		x11-proto/xproto
 	)
 	odk? ( >=app-doc/doxygen-1.8.4 )
 	test? ( dev-util/cppunit )
@@ -254,6 +258,9 @@ REQUIRED_USE="
 	collada? ( gltf )
 	gnome? ( gtk )
 	eds? ( gnome )
+	gtk? ( X )
+	java? ( X )
+	kde? ( X )
 	telepathy? ( gtk )
 	libreoffice_extensions_nlpsolver? ( java )
 	libreoffice_extensions_scripting-beanshell? ( java )
@@ -428,8 +435,6 @@ src_configure() {
 	fi
 
 	# system headers/libs/...: enforce using system packages
-	# --enable-cairo: ensure that cairo is always required
-	# --enable-graphite: disabling causes build breakages
 	# --enable-*-link: link to the library rather than just dlopen on runtime
 	# --enable-release-build: build the libreoffice as release
 	# --disable-fetch-external: prevent dowloading during compile phase
@@ -448,14 +453,10 @@ src_configure() {
 		--with-system-libs \
 		--with-system-jars \
 		--with-system-dicts \
-		--enable-cairo-canvas \
-		--enable-graphite \
 		--enable-largefile \
 		--enable-mergelibs \
 		--enable-neon \
 		--enable-python=system \
-		--enable-randr \
-		--enable-randr-link \
 		--enable-release-build \
 		--disable-hardlink-deliver \
 		--disable-ccache \
@@ -481,7 +482,6 @@ src_configure() {
 		--with-parallelism=$(makeopts_jobs) \
 		--with-system-ucpp \
 		--with-vendor="Gentoo Foundation" \
-		--with-x \
 		--without-fonts \
 		--without-myspell-dicts \
 		--without-help \
@@ -508,11 +508,17 @@ src_configure() {
 		$(use_enable postgres postgresql-sdbc) \
 		$(use_enable telepathy) \
 		$(use_enable vlc) \
+		$(use_enable X cairo-canvas) \
+		$(use_enable X graphite) \
+		$(use_enable X randr) \
+		$(use_enable X randr-link) \
+		$(use_enable X x) \
 		$(use_with coinmp system-coinmp) \
 		$(use_with gltf system-libgltf) \
 		$(use_with java) \
 		$(use_with mysql system-mysql-cppconn) \
 		$(use_with odk doxygen) \
+		$(use_with X theme) \
 		${internal_libs} \
 		${java_opts} \
 		${ext_opts}
