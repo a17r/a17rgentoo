@@ -1,0 +1,249 @@
+From b45305fce5bb1abec263fcff9d81ebecd6306ede Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Mon, 17 Dec 2012 16:21:27 +0100
+Subject: drm/i915: Implement workaround for broken CS tlb on i830/845
+
+Now that Chris Wilson demonstrated that the key for stability on early
+gen 2 is to simple _never_ exchange the physical backing storage of
+batch buffers I've tried a stab at a kernel solution. Doesn't look too
+nefarious imho, now that I don't try to be too clever for my own good
+any more.
+
+v2: After discussing the various techniques, we've decided to always blit
+batches on the suspect devices, but allow userspace to opt out of the
+kernel workaround assume full responsibility for providing coherent
+batches. The principal reason is that avoiding the blit does improve
+performance in a few key microbenchmarks and also in cairo-trace
+replays.
+
+Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+[danvet:
+- Drop the hunk which uses HAS_BROKEN_CS_TLB to implement the ring
+  wrap w/a. Suggested by Chris Wilson.
+- Also add the ACTHD check from Chris Wilson for the error state
+  dumping, so that we still catch batches when userspace opts out of
+  the w/a.]
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index 8f63cd5..99daa89 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -989,6 +989,9 @@ static int i915_getparam(struct drm_device *dev, void *data,
+ 	case I915_PARAM_HAS_SECURE_BATCHES:
+ 		value = capable(CAP_SYS_ADMIN);
+ 		break;
++	case I915_PARAM_HAS_PINNED_BATCHES:
++		value = 1;
++		break;
+ 	default:
+ 		DRM_DEBUG_DRIVER("Unknown parameter %d\n",
+ 				 param->param);
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -1100,6 +1100,7 @@ struct drm_i915_gem_object {
+ 	 */
+ 	atomic_t pending_flip;
+ };
++#define to_gem_object(obj) (&((struct drm_i915_gem_object *)(obj))->base)
+ 
+ #define to_intel_bo(x) container_of(x, struct drm_i915_gem_object, base)
+ 
+@@ -1199,6 +1200,9 @@ struct drm_i915_file_private {
+ #define HAS_OVERLAY(dev)		(INTEL_INFO(dev)->has_overlay)
+ #define OVERLAY_NEEDS_PHYSICAL(dev)	(INTEL_INFO(dev)->overlay_needs_physical)
+ 
++/* Early gen2 have a totally busted CS tlb and require pinned batches. */
++#define HAS_BROKEN_CS_TLB(dev)		(IS_I830(dev) || IS_845G(dev))
++
+ /* With the 945 and later, Y tiling got adjusted so that it was 32 128-byte
+  * rows, which changed the alignment requirements and fence programming.
+  */
+diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -808,6 +808,8 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
+ 
+ 		flags |= I915_DISPATCH_SECURE;
+ 	}
++	if (args->flags & I915_EXEC_IS_PINNED)
++		flags |= I915_DISPATCH_PINNED;
+ 
+ 	switch (args->flags & I915_EXEC_RING_MASK) {
+ 	case I915_EXEC_DEFAULT:
+diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
+--- a/drivers/gpu/drm/i915/i915_irq.c
++++ b/drivers/gpu/drm/i915/i915_irq.c
+@@ -1087,6 +1087,18 @@ i915_error_first_batchbuffer(struct drm_i915_private *dev_priv,
+ 	if (!ring->get_seqno)
+ 		return NULL;
+ 
++	if (HAS_BROKEN_CS_TLB(dev_priv->dev)) {
++		u32 acthd = I915_READ(ACTHD);
++
++		if (WARN_ON(ring->id != RCS))
++			return NULL;
++
++		obj = ring->private;
++		if (acthd >= obj->gtt_offset &&
++		    acthd < obj->gtt_offset + obj->base.size)
++			return i915_error_object_create(dev_priv, obj);
++	}
++
+ 	seqno = ring->get_seqno(ring);
+ 	list_for_each_entry(obj, &dev_priv->mm.active_list, mm_list) {
+ 		if (obj->ring != ring)
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index 2346b92..ae253e0 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -547,9 +547,14 @@ static int init_render_ring(struct intel_ring_buffer *ring)
+ 
+ static void render_ring_cleanup(struct intel_ring_buffer *ring)
+ {
++	struct drm_device *dev = ring->dev;
++
+ 	if (!ring->private)
+ 		return;
+ 
++	if (HAS_BROKEN_CS_TLB(dev))
++		drm_gem_object_unreference(to_gem_object(ring->private));
++
+ 	cleanup_pipe_control(ring);
+ }
+ 
+@@ -969,6 +974,8 @@ i965_dispatch_execbuffer(struct intel_ring_buffer *ring,
+ 	return 0;
+ }
+ 
++/* Just userspace ABI convention to limit the wa batch bo to a resonable size */
++#define I830_BATCH_LIMIT (256*1024)
+ static int
+ i830_dispatch_execbuffer(struct intel_ring_buffer *ring,
+ 				u32 offset, u32 len,
+@@ -976,15 +983,47 @@ i830_dispatch_execbuffer(struct intel_ring_buffer *ring,
+ {
+ 	int ret;
+ 
+-	ret = intel_ring_begin(ring, 4);
+-	if (ret)
+-		return ret;
++	if (flags & I915_DISPATCH_PINNED) {
++		ret = intel_ring_begin(ring, 4);
++		if (ret)
++			return ret;
+ 
+-	intel_ring_emit(ring, MI_BATCH_BUFFER);
+-	intel_ring_emit(ring, offset | (flags & I915_DISPATCH_SECURE ? 0 : MI_BATCH_NON_SECURE));
+-	intel_ring_emit(ring, offset + len - 8);
+-	intel_ring_emit(ring, 0);
+-	intel_ring_advance(ring);
++		intel_ring_emit(ring, MI_BATCH_BUFFER);
++		intel_ring_emit(ring, offset | (flags & I915_DISPATCH_SECURE ? 0 : MI_BATCH_NON_SECURE));
++		intel_ring_emit(ring, offset + len - 8);
++		intel_ring_emit(ring, MI_NOOP);
++		intel_ring_advance(ring);
++	} else {
++		struct drm_i915_gem_object *obj = ring->private;
++		u32 cs_offset = obj->gtt_offset;
++
++		if (len > I830_BATCH_LIMIT)
++			return -ENOSPC;
++
++		ret = intel_ring_begin(ring, 9+3);
++		if (ret)
++			return ret;
++		/* Blit the batch (which has now all relocs applied) to the stable batch
++		 * scratch bo area (so that the CS never stumbles over its tlb
++		 * invalidation bug) ... */
++		intel_ring_emit(ring, XY_SRC_COPY_BLT_CMD |
++				XY_SRC_COPY_BLT_WRITE_ALPHA |
++				XY_SRC_COPY_BLT_WRITE_RGB);
++		intel_ring_emit(ring, BLT_DEPTH_32 | BLT_ROP_GXCOPY | 4096);
++		intel_ring_emit(ring, 0);
++		intel_ring_emit(ring, (DIV_ROUND_UP(len, 4096) << 16) | 1024);
++		intel_ring_emit(ring, cs_offset);
++		intel_ring_emit(ring, 0);
++		intel_ring_emit(ring, 4096);
++		intel_ring_emit(ring, offset);
++		intel_ring_emit(ring, MI_FLUSH);
++
++		/* ... and execute it. */
++		intel_ring_emit(ring, MI_BATCH_BUFFER);
++		intel_ring_emit(ring, cs_offset | (flags & I915_DISPATCH_SECURE ? 0 : MI_BATCH_NON_SECURE));
++		intel_ring_emit(ring, cs_offset + len - 8);
++		intel_ring_advance(ring);
++	}
+ 
+ 	return 0;
+ }
+@@ -1596,6 +1635,27 @@ int intel_init_render_ring_buffer(struct drm_device *dev)
+ 	ring->init = init_render_ring;
+ 	ring->cleanup = render_ring_cleanup;
+ 
++	/* Workaround batchbuffer to combat CS tlb bug. */
++	if (HAS_BROKEN_CS_TLB(dev)) {
++		struct drm_i915_gem_object *obj;
++		int ret;
++
++		obj = i915_gem_alloc_object(dev, I830_BATCH_LIMIT);
++		if (obj == NULL) {
++			DRM_ERROR("Failed to allocate batch bo\n");
++			return -ENOMEM;
++		}
++
++		ret = i915_gem_object_pin(obj, 0, true, false);
++		if (ret != 0) {
++			drm_gem_object_unreference(&obj->base);
++			DRM_ERROR("Failed to ping batch bo\n");
++			return ret;
++		}
++
++		ring->private = obj;
++	}
++
+ 	return intel_init_ring_buffer(dev, ring);
+ }
+ 
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.h b/drivers/gpu/drm/i915/intel_ringbuffer.h
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.h
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.h
+@@ -94,6 +94,7 @@ struct  intel_ring_buffer {
+ 					       u32 offset, u32 length,
+ 					       unsigned flags);
+ #define I915_DISPATCH_SECURE 0x1
++#define I915_DISPATCH_PINNED 0x2
+ 	void		(*cleanup)(struct intel_ring_buffer *ring);
+ 	int		(*sync_to)(struct intel_ring_buffer *ring,
+ 				   struct intel_ring_buffer *to,
+diff --git a/include/uapi/drm/i915_drm.h b/include/uapi/drm/i915_drm.h
+--- a/include/uapi/drm/i915_drm.h
++++ b/include/uapi/drm/i915_drm.h
+@@ -307,6 +307,7 @@ typedef struct drm_i915_irq_wait {
+ #define I915_PARAM_HAS_PRIME_VMAP_FLUSH	 21
+ #define I915_PARAM_RSVD_FOR_FUTURE_USE	 22
+ #define I915_PARAM_HAS_SECURE_BATCHES	 23
++#define I915_PARAM_HAS_PINNED_BATCHES	 24
+ 
+ typedef struct drm_i915_getparam {
+ 	int param;
+@@ -677,6 +678,15 @@ struct drm_i915_gem_execbuffer2 {
+  */
+ #define I915_EXEC_SECURE		(1<<9)
+ 
++/** Inform the kernel that the batch is and will always be pinned. This
++ * negates the requirement for a workaround to be performed to avoid
++ * an incoherent CS (such as can be found on 830/845). If this flag is
++ * not passed, the kernel will endeavour to make sure the batch is
++ * coherent with the CS before execution. If this flag is passed,
++ * userspace assumes the responsibility for ensuring the same.
++ */
++#define I915_EXEC_IS_PINNED		(1<<10)
++
+ #define I915_EXEC_CONTEXT_ID_MASK	(0xffffffff)
+ #define i915_execbuffer2_set_context_id(eb2, context) \
+ 	(eb2).rsvd1 = context & I915_EXEC_CONTEXT_ID_MASK
+-- 
+cgit v0.10.1

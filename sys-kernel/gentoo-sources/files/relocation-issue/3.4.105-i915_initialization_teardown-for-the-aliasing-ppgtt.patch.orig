@@ -1,0 +1,325 @@
+From 1d2a314c97ceaf383de8e23cdde46729927d433c Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Thu, 9 Feb 2012 17:15:46 +0100
+Subject: drm/i915: initialization/teardown for the aliasing ppgtt
+
+This just adds the setup and teardown code for the ppgtt PDE and the
+last-level pagetables, which are fixed for the entire lifetime, at
+least for the moment.
+
+v2: Kill the stray debug printk noted by and improve the pte
+definitions as suggested by Chris Wilson.
+
+v3: Clean up the aperture stealing code as noted by Ben Widawsky.
+
+v4: Paint the init code in a more pleasing colour as suggest by Chris
+Wilson.
+
+v5: Explain the magic numbers noticed by Ben Widawsky.
+
+Reviewed-by: Ben Widawsky <ben@bwidawsk.net>
+Tested-by: Chris Wilson <chris@chris-wilson.co.uk>
+Tested-by: Eugeni Dodonov <eugeni.dodonov@intel.com>
+Reviewed-by: Eugeni Dodonov <eugeni.dodonov@intel.com>
+Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index dfef956..039fbf4 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -1196,22 +1196,39 @@ static int i915_load_gem_init(struct drm_device *dev)
+ 	/* Basic memrange allocator for stolen space */
+ 	drm_mm_init(&dev_priv->mm.stolen, 0, prealloc_size);
+ 
+-	/* Let GEM Manage all of the aperture.
+-	 *
+-	 * However, leave one page at the end still bound to the scratch page.
+-	 * There are a number of places where the hardware apparently
+-	 * prefetches past the end of the object, and we've seen multiple
+-	 * hangs with the GPU head pointer stuck in a batchbuffer bound
+-	 * at the last page of the aperture.  One page should be enough to
+-	 * keep any prefetching inside of the aperture.
+-	 */
+-	i915_gem_do_init(dev, 0, mappable_size, gtt_size - PAGE_SIZE);
++	if (HAS_ALIASING_PPGTT(dev)) {
++		/* PPGTT pdes are stolen from global gtt ptes, so shrink the
++		 * aperture accordingly when using aliasing ppgtt. */
++		gtt_size -= I915_PPGTT_PD_ENTRIES*PAGE_SIZE;
++		/* For paranoia keep the guard page in between. */
++		gtt_size -= PAGE_SIZE;
++
++		i915_gem_do_init(dev, 0, mappable_size, gtt_size);
++
++		ret = i915_gem_init_aliasing_ppgtt(dev);
++		if (ret)
++			return ret;
++	} else {
++		/* Let GEM Manage all of the aperture.
++		 *
++		 * However, leave one page at the end still bound to the scratch
++		 * page.  There are a number of places where the hardware
++		 * apparently prefetches past the end of the object, and we've
++		 * seen multiple hangs with the GPU head pointer stuck in a
++		 * batchbuffer bound at the last page of the aperture.  One page
++		 * should be enough to keep any prefetching inside of the
++		 * aperture.
++		 */
++		i915_gem_do_init(dev, 0, mappable_size, gtt_size - PAGE_SIZE);
++	}
+ 
+ 	mutex_lock(&dev->struct_mutex);
+ 	ret = i915_gem_init_hw(dev);
+ 	mutex_unlock(&dev->struct_mutex);
+-	if (ret)
++	if (ret) {
++		i915_gem_cleanup_aliasing_ppgtt(dev);
+ 		return ret;
++	}
+ 
+ 	/* Try to set up FBC with a reasonable compressed buffer size */
+ 	if (I915_HAS_FBC(dev) && i915_powersave) {
+@@ -1298,6 +1315,7 @@ cleanup_gem:
+ 	mutex_lock(&dev->struct_mutex);
+ 	i915_gem_cleanup_ringbuffer(dev);
+ 	mutex_unlock(&dev->struct_mutex);
++	i915_gem_cleanup_aliasing_ppgtt(dev);
+ cleanup_vga_switcheroo:
+ 	vga_switcheroo_unregister_client(dev->pdev);
+ cleanup_vga_client:
+@@ -2184,6 +2202,7 @@ int i915_driver_unload(struct drm_device *dev)
+ 		i915_gem_free_all_phys_object(dev);
+ 		i915_gem_cleanup_ringbuffer(dev);
+ 		mutex_unlock(&dev->struct_mutex);
++		i915_gem_cleanup_aliasing_ppgtt(dev);
+ 		if (I915_HAS_FBC(dev) && i915_powersave)
+ 			i915_cleanup_compression(dev);
+ 		drm_mm_takedown(&dev_priv->mm.stolen);
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 28740bc..03a9e49 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -258,6 +258,16 @@ struct intel_device_info {
+ 	u8 has_llc:1;
+ };
+ 
++#define I915_PPGTT_PD_ENTRIES 512
++#define I915_PPGTT_PT_ENTRIES 1024
++struct i915_hw_ppgtt {
++	unsigned num_pd_entries;
++	struct page **pt_pages;
++	uint32_t pd_offset;
++	dma_addr_t *pt_dma_addr;
++	dma_addr_t scratch_page_dma_addr;
++};
++
+ enum no_fbc_reason {
+ 	FBC_NO_OUTPUT, /* no outputs enabled to compress */
+ 	FBC_STOLEN_TOO_SMALL, /* not enough space to hold compressed buffers */
+@@ -578,6 +588,9 @@ typedef struct drm_i915_private {
+ 		struct io_mapping *gtt_mapping;
+ 		int gtt_mtrr;
+ 
++		/** PPGTT used for aliasing the PPGTT with the GTT */
++		struct i915_hw_ppgtt *aliasing_ppgtt;
++
+ 		struct shrinker inactive_shrinker;
+ 
+ 		/**
+@@ -973,6 +986,8 @@ struct drm_i915_file_private {
+ #define HAS_LLC(dev)            (INTEL_INFO(dev)->has_llc)
+ #define I915_NEED_GFX_HWS(dev)	(INTEL_INFO(dev)->need_gfx_hws)
+ 
++#define HAS_ALIASING_PPGTT(dev)	(INTEL_INFO(dev)->gen >=6)
++
+ #define HAS_OVERLAY(dev)		(INTEL_INFO(dev)->has_overlay)
+ #define OVERLAY_NEEDS_PHYSICAL(dev)	(INTEL_INFO(dev)->overlay_needs_physical)
+ 
+@@ -1232,6 +1247,9 @@ int i915_gem_object_set_cache_level(struct drm_i915_gem_object *obj,
+ 				    enum i915_cache_level cache_level);
+ 
+ /* i915_gem_gtt.c */
++int __must_check i915_gem_init_aliasing_ppgtt(struct drm_device *dev);
++void i915_gem_cleanup_aliasing_ppgtt(struct drm_device *dev);
++
+ void i915_gem_restore_gtt_mappings(struct drm_device *dev);
+ int __must_check i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj);
+ void i915_gem_gtt_rebind_object(struct drm_i915_gem_object *obj,
+diff --git a/drivers/gpu/drm/i915/i915_gem_gtt.c b/drivers/gpu/drm/i915/i915_gem_gtt.c
+index 11bddd5..f408f8c 100644
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c
++++ b/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -29,6 +29,145 @@
+ #include "i915_trace.h"
+ #include "intel_drv.h"
+ 
++/* PPGTT support for Sandybdrige/Gen6 and later */
++static void i915_ppgtt_clear_range(struct i915_hw_ppgtt *ppgtt,
++				   unsigned first_entry,
++				   unsigned num_entries)
++{
++	int i, j;
++	uint32_t *pt_vaddr;
++	uint32_t scratch_pte;
++
++	scratch_pte = GEN6_PTE_ADDR_ENCODE(ppgtt->scratch_page_dma_addr);
++	scratch_pte |= GEN6_PTE_VALID | GEN6_PTE_CACHE_LLC;
++
++	for (i = 0; i < ppgtt->num_pd_entries; i++) {
++		pt_vaddr = kmap_atomic(ppgtt->pt_pages[i]);
++
++		for (j = 0; j < I915_PPGTT_PT_ENTRIES; j++)
++			pt_vaddr[j] = scratch_pte;
++
++		kunmap_atomic(pt_vaddr);
++	}
++
++}
++
++int i915_gem_init_aliasing_ppgtt(struct drm_device *dev)
++{
++	struct drm_i915_private *dev_priv = dev->dev_private;
++	struct i915_hw_ppgtt *ppgtt;
++	uint32_t pd_entry;
++	unsigned first_pd_entry_in_global_pt;
++	uint32_t __iomem *pd_addr;
++	int i;
++	int ret = -ENOMEM;
++
++	/* ppgtt PDEs reside in the global gtt pagetable, which has 512*1024
++	 * entries. For aliasing ppgtt support we just steal them at the end for
++	 * now. */
++	first_pd_entry_in_global_pt = 512*1024 - I915_PPGTT_PD_ENTRIES;
++
++	ppgtt = kzalloc(sizeof(*ppgtt), GFP_KERNEL);
++	if (!ppgtt)
++		return ret;
++
++	ppgtt->num_pd_entries = I915_PPGTT_PD_ENTRIES;
++	ppgtt->pt_pages = kzalloc(sizeof(struct page *)*ppgtt->num_pd_entries,
++				  GFP_KERNEL);
++	if (!ppgtt->pt_pages)
++		goto err_ppgtt;
++
++	for (i = 0; i < ppgtt->num_pd_entries; i++) {
++		ppgtt->pt_pages[i] = alloc_page(GFP_KERNEL);
++		if (!ppgtt->pt_pages[i])
++			goto err_pt_alloc;
++	}
++
++	if (dev_priv->mm.gtt->needs_dmar) {
++		ppgtt->pt_dma_addr = kzalloc(sizeof(dma_addr_t)
++						*ppgtt->num_pd_entries,
++					     GFP_KERNEL);
++		if (!ppgtt->pt_dma_addr)
++			goto err_pt_alloc;
++	}
++
++	pd_addr = dev_priv->mm.gtt->gtt + first_pd_entry_in_global_pt;
++	for (i = 0; i < ppgtt->num_pd_entries; i++) {
++		dma_addr_t pt_addr;
++		if (dev_priv->mm.gtt->needs_dmar) {
++			pt_addr = pci_map_page(dev->pdev, ppgtt->pt_pages[i],
++					       0, 4096,
++					       PCI_DMA_BIDIRECTIONAL);
++
++			if (pci_dma_mapping_error(dev->pdev,
++						  pt_addr)) {
++				ret = -EIO;
++				goto err_pd_pin;
++
++			}
++			ppgtt->pt_dma_addr[i] = pt_addr;
++		} else
++			pt_addr = page_to_phys(ppgtt->pt_pages[i]);
++
++		pd_entry = GEN6_PDE_ADDR_ENCODE(pt_addr);
++		pd_entry |= GEN6_PDE_VALID;
++
++		writel(pd_entry, pd_addr + i);
++	}
++	readl(pd_addr);
++
++	ppgtt->scratch_page_dma_addr = dev_priv->mm.gtt->scratch_page_dma;
++
++	i915_ppgtt_clear_range(ppgtt, 0,
++			       ppgtt->num_pd_entries*I915_PPGTT_PT_ENTRIES);
++
++	ppgtt->pd_offset = (first_pd_entry_in_global_pt)*sizeof(uint32_t);
++
++	dev_priv->mm.aliasing_ppgtt = ppgtt;
++
++	return 0;
++
++err_pd_pin:
++	if (ppgtt->pt_dma_addr) {
++		for (i--; i >= 0; i--)
++			pci_unmap_page(dev->pdev, ppgtt->pt_dma_addr[i],
++				       4096, PCI_DMA_BIDIRECTIONAL);
++	}
++err_pt_alloc:
++	kfree(ppgtt->pt_dma_addr);
++	for (i = 0; i < ppgtt->num_pd_entries; i++) {
++		if (ppgtt->pt_pages[i])
++			__free_page(ppgtt->pt_pages[i]);
++	}
++	kfree(ppgtt->pt_pages);
++err_ppgtt:
++	kfree(ppgtt);
++
++	return ret;
++}
++
++void i915_gem_cleanup_aliasing_ppgtt(struct drm_device *dev)
++{
++	struct drm_i915_private *dev_priv = dev->dev_private;
++	struct i915_hw_ppgtt *ppgtt = dev_priv->mm.aliasing_ppgtt;
++	int i;
++
++	if (!ppgtt)
++		return;
++
++	if (ppgtt->pt_dma_addr) {
++		for (i = 0; i < ppgtt->num_pd_entries; i++)
++			pci_unmap_page(dev->pdev, ppgtt->pt_dma_addr[i],
++				       4096, PCI_DMA_BIDIRECTIONAL);
++	}
++
++	kfree(ppgtt->pt_dma_addr);
++	for (i = 0; i < ppgtt->num_pd_entries; i++)
++		__free_page(ppgtt->pt_pages[i]);
++	kfree(ppgtt->pt_pages);
++	kfree(ppgtt);
++}
++
+ /* XXX kill agp_type! */
+ static unsigned int cache_level_to_agp_type(struct drm_device *dev,
+ 					    enum i915_cache_level cache_level)
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index 89816fe..92eb404 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -92,6 +92,22 @@
+ #define  GEN6_GRDOM_MEDIA		(1 << 2)
+ #define  GEN6_GRDOM_BLT			(1 << 3)
+ 
++/* PPGTT stuff */
++#define GEN6_GTT_ADDR_ENCODE(addr)	((addr) | (((addr) >> 28) & 0xff0))
++
++#define GEN6_PDE_VALID			(1 << 0)
++#define GEN6_PDE_LARGE_PAGE		(2 << 0) /* use 32kb pages */
++/* gen6+ has bit 11-4 for physical addr bit 39-32 */
++#define GEN6_PDE_ADDR_ENCODE(addr)	GEN6_GTT_ADDR_ENCODE(addr)
++
++#define GEN6_PTE_VALID			(1 << 0)
++#define GEN6_PTE_UNCACHED		(1 << 1)
++#define GEN6_PTE_CACHE_LLC		(2 << 1)
++#define GEN6_PTE_CACHE_LLC_MLC		(3 << 1)
++#define GEN6_PTE_CACHE_BITS		(3 << 1)
++#define GEN6_PTE_GFDT			(1 << 3)
++#define GEN6_PTE_ADDR_ENCODE(addr)	GEN6_GTT_ADDR_ENCODE(addr)
++
+ /* VGA stuff */
+ 
+ #define VGA_ST01_MDA 0x3ba
+-- 
+cgit v0.10.1

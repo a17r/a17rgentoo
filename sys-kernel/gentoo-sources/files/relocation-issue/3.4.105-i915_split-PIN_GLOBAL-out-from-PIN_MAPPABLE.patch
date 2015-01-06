@@ -1,0 +1,74 @@
+From bf3d149b25f67f241735b91a56b7f070bc0a5407 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Fri, 14 Feb 2014 14:01:12 +0100
+Subject: drm/i915: split PIN_GLOBAL out from PIN_MAPPABLE
+
+With abitrary pin flags it makes sense to split out a "please bind
+this into global gtt" from the "please allocate in the mappable
+range".
+
+Use this unconditionally in our global gtt pin helper since this is
+what its callers want. Later patches will drop PIN_MAPPABLE where it's
+not strictly needed.
+
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 8a6db27..8300c5b 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -2078,6 +2078,7 @@ void i915_gem_vma_destroy(struct i915_vma *vma);
+ 
+ #define PIN_MAPPABLE 0x1
+ #define PIN_NONBLOCK 0x2
++#define PIN_GLOBAL 0x4
+ int __must_check i915_gem_object_pin(struct drm_i915_gem_object *obj,
+ 				     struct i915_address_space *vm,
+ 				     uint32_t alignment,
+@@ -2286,7 +2287,7 @@ i915_gem_obj_ggtt_pin(struct drm_i915_gem_object *obj,
+ 		      uint32_t alignment,
+ 		      unsigned flags)
+ {
+-	return i915_gem_object_pin(obj, obj_to_ggtt(obj), alignment, flags);
++	return i915_gem_object_pin(obj, obj_to_ggtt(obj), alignment, flags | PIN_GLOBAL);
+ }
+ 
+ /* i915_gem_context.c */
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index aa263e3..b3a15c9 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -3838,7 +3838,7 @@ i915_gem_object_pin(struct drm_i915_gem_object *obj,
+ 	struct i915_vma *vma;
+ 	int ret;
+ 
+-	if (WARN_ON(flags & PIN_MAPPABLE && !i915_is_ggtt(vm)))
++	if (WARN_ON(flags & (PIN_GLOBAL | PIN_MAPPABLE) && !i915_is_ggtt(vm)))
+ 		return -EINVAL;
+ 
+ 	vma = i915_gem_obj_to_vma(obj, vm);
+@@ -3872,7 +3872,7 @@ i915_gem_object_pin(struct drm_i915_gem_object *obj,
+ 	vma = i915_gem_obj_to_vma(obj, vm);
+ 
+ 	vma->bind_vma(vma, obj->cache_level,
+-		      flags & PIN_MAPPABLE ? GLOBAL_BIND : 0);
++		      flags & PIN_GLOBAL ? GLOBAL_BIND : 0);
+ 
+ 	i915_gem_obj_to_vma(obj, vm)->pin_count++;
+ 	if (flags & PIN_MAPPABLE)
+diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+index 013bd5a..b35849b 100644
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -558,7 +558,7 @@ i915_gem_execbuffer_reserve_vma(struct i915_vma *vma,
+ 		flags |= PIN_MAPPABLE;
+ 
+ 	if (entry->flags & EXEC_OBJECT_NEEDS_GTT)
+-		flags |= PIN_MAPPABLE;
++		flags |= PIN_GLOBAL;
+ 
+ 	ret = i915_gem_object_pin(obj, vma->vm, entry->alignment, flags);
+ 	if (ret)
+-- 
+cgit v0.10.1

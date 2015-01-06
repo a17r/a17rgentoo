@@ -1,0 +1,629 @@
+From 6b9d89b4365ab52bc26f8259122f422e93d87821 Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Tue, 10 Jul 2012 11:15:23 +0100
+Subject: drm: Add colouring to the range allocator
+
+In order to support snoopable memory on non-LLC architectures (so that
+we can bind vgem objects into the i915 GATT for example), we have to
+avoid the prefetcher on the GPU from crossing memory domains and so
+prevent allocation of a snoopable PTE immediately following an uncached
+PTE. To do that, we need to extend the range allocator with support for
+tracking and segregating different node colours.
+
+This will be used by i915 to segregate memory domains within the GTT.
+
+v2: Now with more drm_mm helpers and less driver interference.
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Dave Airlie <airlied@redhat.com
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Dave Airlie <airlied@gmail.com>
+
+diff --git a/drivers/gpu/drm/drm_gem.c b/drivers/gpu/drm/drm_gem.c
+index d58e69d..fbe0842 100644
+--- a/drivers/gpu/drm/drm_gem.c
++++ b/drivers/gpu/drm/drm_gem.c
+@@ -354,7 +354,7 @@ drm_gem_create_mmap_offset(struct drm_gem_object *obj)
+ 
+ 	/* Get a DRM GEM mmap offset allocated... */
+ 	list->file_offset_node = drm_mm_search_free(&mm->offset_manager,
+-			obj->size / PAGE_SIZE, 0, 0);
++			obj->size / PAGE_SIZE, 0, false);
+ 
+ 	if (!list->file_offset_node) {
+ 		DRM_ERROR("failed to allocate offset for bo %d\n", obj->name);
+diff --git a/drivers/gpu/drm/drm_mm.c b/drivers/gpu/drm/drm_mm.c
+index 961fb54..9bb82f7 100644
+--- a/drivers/gpu/drm/drm_mm.c
++++ b/drivers/gpu/drm/drm_mm.c
+@@ -118,45 +118,53 @@ static inline unsigned long drm_mm_hole_node_end(struct drm_mm_node *hole_node)
+ 
+ static void drm_mm_insert_helper(struct drm_mm_node *hole_node,
+ 				 struct drm_mm_node *node,
+-				 unsigned long size, unsigned alignment)
++				 unsigned long size, unsigned alignment,
++				 unsigned long color)
+ {
+ 	struct drm_mm *mm = hole_node->mm;
+-	unsigned long tmp = 0, wasted = 0;
+ 	unsigned long hole_start = drm_mm_hole_node_start(hole_node);
+ 	unsigned long hole_end = drm_mm_hole_node_end(hole_node);
++	unsigned long adj_start = hole_start;
++	unsigned long adj_end = hole_end;
+ 
+ 	BUG_ON(!hole_node->hole_follows || node->allocated);
+ 
+-	if (alignment)
+-		tmp = hole_start % alignment;
++	if (mm->color_adjust)
++		mm->color_adjust(hole_node, color, &adj_start, &adj_end);
+ 
+-	if (!tmp) {
++	if (alignment) {
++		unsigned tmp = adj_start % alignment;
++		if (tmp)
++			adj_start += alignment - tmp;
++	}
++
++	if (adj_start == hole_start) {
+ 		hole_node->hole_follows = 0;
+-		list_del_init(&hole_node->hole_stack);
+-	} else
+-		wasted = alignment - tmp;
++		list_del(&hole_node->hole_stack);
++	}
+ 
+-	node->start = hole_start + wasted;
++	node->start = adj_start;
+ 	node->size = size;
+ 	node->mm = mm;
++	node->color = color;
+ 	node->allocated = 1;
+ 
+ 	INIT_LIST_HEAD(&node->hole_stack);
+ 	list_add(&node->node_list, &hole_node->node_list);
+ 
+-	BUG_ON(node->start + node->size > hole_end);
++	BUG_ON(node->start + node->size > adj_end);
+ 
++	node->hole_follows = 0;
+ 	if (node->start + node->size < hole_end) {
+ 		list_add(&node->hole_stack, &mm->hole_stack);
+ 		node->hole_follows = 1;
+-	} else {
+-		node->hole_follows = 0;
+ 	}
+ }
+ 
+ struct drm_mm_node *drm_mm_get_block_generic(struct drm_mm_node *hole_node,
+ 					     unsigned long size,
+ 					     unsigned alignment,
++					     unsigned long color,
+ 					     int atomic)
+ {
+ 	struct drm_mm_node *node;
+@@ -165,7 +173,7 @@ struct drm_mm_node *drm_mm_get_block_generic(struct drm_mm_node *hole_node,
+ 	if (unlikely(node == NULL))
+ 		return NULL;
+ 
+-	drm_mm_insert_helper(hole_node, node, size, alignment);
++	drm_mm_insert_helper(hole_node, node, size, alignment, color);
+ 
+ 	return node;
+ }
+@@ -181,11 +189,11 @@ int drm_mm_insert_node(struct drm_mm *mm, struct drm_mm_node *node,
+ {
+ 	struct drm_mm_node *hole_node;
+ 
+-	hole_node = drm_mm_search_free(mm, size, alignment, 0);
++	hole_node = drm_mm_search_free(mm, size, alignment, false);
+ 	if (!hole_node)
+ 		return -ENOSPC;
+ 
+-	drm_mm_insert_helper(hole_node, node, size, alignment);
++	drm_mm_insert_helper(hole_node, node, size, alignment, 0);
+ 
+ 	return 0;
+ }
+@@ -194,50 +202,57 @@ EXPORT_SYMBOL(drm_mm_insert_node);
+ static void drm_mm_insert_helper_range(struct drm_mm_node *hole_node,
+ 				       struct drm_mm_node *node,
+ 				       unsigned long size, unsigned alignment,
++				       unsigned long color,
+ 				       unsigned long start, unsigned long end)
+ {
+ 	struct drm_mm *mm = hole_node->mm;
+-	unsigned long tmp = 0, wasted = 0;
+ 	unsigned long hole_start = drm_mm_hole_node_start(hole_node);
+ 	unsigned long hole_end = drm_mm_hole_node_end(hole_node);
++	unsigned long adj_start = hole_start;
++	unsigned long adj_end = hole_end;
+ 
+ 	BUG_ON(!hole_node->hole_follows || node->allocated);
+ 
+-	if (hole_start < start)
+-		wasted += start - hole_start;
+-	if (alignment)
+-		tmp = (hole_start + wasted) % alignment;
++	if (mm->color_adjust)
++		mm->color_adjust(hole_node, color, &adj_start, &adj_end);
+ 
+-	if (tmp)
+-		wasted += alignment - tmp;
++	if (adj_start < start)
++		adj_start = start;
++
++	if (alignment) {
++		unsigned tmp = adj_start % alignment;
++		if (tmp)
++			adj_start += alignment - tmp;
++	}
+ 
+-	if (!wasted) {
++	if (adj_start == hole_start) {
+ 		hole_node->hole_follows = 0;
+-		list_del_init(&hole_node->hole_stack);
++		list_del(&hole_node->hole_stack);
+ 	}
+ 
+-	node->start = hole_start + wasted;
++	node->start = adj_start;
+ 	node->size = size;
+ 	node->mm = mm;
++	node->color = color;
+ 	node->allocated = 1;
+ 
+ 	INIT_LIST_HEAD(&node->hole_stack);
+ 	list_add(&node->node_list, &hole_node->node_list);
+ 
+-	BUG_ON(node->start + node->size > hole_end);
++	BUG_ON(node->start + node->size > adj_end);
+ 	BUG_ON(node->start + node->size > end);
+ 
++	node->hole_follows = 0;
+ 	if (node->start + node->size < hole_end) {
+ 		list_add(&node->hole_stack, &mm->hole_stack);
+ 		node->hole_follows = 1;
+-	} else {
+-		node->hole_follows = 0;
+ 	}
+ }
+ 
+ struct drm_mm_node *drm_mm_get_block_range_generic(struct drm_mm_node *hole_node,
+ 						unsigned long size,
+ 						unsigned alignment,
++						unsigned long color,
+ 						unsigned long start,
+ 						unsigned long end,
+ 						int atomic)
+@@ -248,7 +263,7 @@ struct drm_mm_node *drm_mm_get_block_range_generic(struct drm_mm_node *hole_node
+ 	if (unlikely(node == NULL))
+ 		return NULL;
+ 
+-	drm_mm_insert_helper_range(hole_node, node, size, alignment,
++	drm_mm_insert_helper_range(hole_node, node, size, alignment, color,
+ 				   start, end);
+ 
+ 	return node;
+@@ -267,11 +282,11 @@ int drm_mm_insert_node_in_range(struct drm_mm *mm, struct drm_mm_node *node,
+ 	struct drm_mm_node *hole_node;
+ 
+ 	hole_node = drm_mm_search_free_in_range(mm, size, alignment,
+-						start, end, 0);
++						start, end, false);
+ 	if (!hole_node)
+ 		return -ENOSPC;
+ 
+-	drm_mm_insert_helper_range(hole_node, node, size, alignment,
++	drm_mm_insert_helper_range(hole_node, node, size, alignment, 0,
+ 				   start, end);
+ 
+ 	return 0;
+@@ -336,27 +351,23 @@ EXPORT_SYMBOL(drm_mm_put_block);
+ static int check_free_hole(unsigned long start, unsigned long end,
+ 			   unsigned long size, unsigned alignment)
+ {
+-	unsigned wasted = 0;
+-
+ 	if (end - start < size)
+ 		return 0;
+ 
+ 	if (alignment) {
+ 		unsigned tmp = start % alignment;
+ 		if (tmp)
+-			wasted = alignment - tmp;
+-	}
+-
+-	if (end >= start + size + wasted) {
+-		return 1;
++			start += alignment - tmp;
+ 	}
+ 
+-	return 0;
++	return end >= start + size;
+ }
+ 
+-struct drm_mm_node *drm_mm_search_free(const struct drm_mm *mm,
+-				       unsigned long size,
+-				       unsigned alignment, int best_match)
++struct drm_mm_node *drm_mm_search_free_generic(const struct drm_mm *mm,
++					       unsigned long size,
++					       unsigned alignment,
++					       unsigned long color,
++					       bool best_match)
+ {
+ 	struct drm_mm_node *entry;
+ 	struct drm_mm_node *best;
+@@ -368,10 +379,17 @@ struct drm_mm_node *drm_mm_search_free(const struct drm_mm *mm,
+ 	best_size = ~0UL;
+ 
+ 	list_for_each_entry(entry, &mm->hole_stack, hole_stack) {
++		unsigned long adj_start = drm_mm_hole_node_start(entry);
++		unsigned long adj_end = drm_mm_hole_node_end(entry);
++
++		if (mm->color_adjust) {
++			mm->color_adjust(entry, color, &adj_start, &adj_end);
++			if (adj_end <= adj_start)
++				continue;
++		}
++
+ 		BUG_ON(!entry->hole_follows);
+-		if (!check_free_hole(drm_mm_hole_node_start(entry),
+-				     drm_mm_hole_node_end(entry),
+-				     size, alignment))
++		if (!check_free_hole(adj_start, adj_end, size, alignment))
+ 			continue;
+ 
+ 		if (!best_match)
+@@ -385,14 +403,15 @@ struct drm_mm_node *drm_mm_search_free(const struct drm_mm *mm,
+ 
+ 	return best;
+ }
+-EXPORT_SYMBOL(drm_mm_search_free);
+-
+-struct drm_mm_node *drm_mm_search_free_in_range(const struct drm_mm *mm,
+-						unsigned long size,
+-						unsigned alignment,
+-						unsigned long start,
+-						unsigned long end,
+-						int best_match)
++EXPORT_SYMBOL(drm_mm_search_free_generic);
++
++struct drm_mm_node *drm_mm_search_free_in_range_generic(const struct drm_mm *mm,
++							unsigned long size,
++							unsigned alignment,
++							unsigned long color,
++							unsigned long start,
++							unsigned long end,
++							bool best_match)
+ {
+ 	struct drm_mm_node *entry;
+ 	struct drm_mm_node *best;
+@@ -410,6 +429,13 @@ struct drm_mm_node *drm_mm_search_free_in_range(const struct drm_mm *mm,
+ 			end : drm_mm_hole_node_end(entry);
+ 
+ 		BUG_ON(!entry->hole_follows);
++
++		if (mm->color_adjust) {
++			mm->color_adjust(entry, color, &adj_start, &adj_end);
++			if (adj_end <= adj_start)
++				continue;
++		}
++
+ 		if (!check_free_hole(adj_start, adj_end, size, alignment))
+ 			continue;
+ 
+@@ -424,7 +450,7 @@ struct drm_mm_node *drm_mm_search_free_in_range(const struct drm_mm *mm,
+ 
+ 	return best;
+ }
+-EXPORT_SYMBOL(drm_mm_search_free_in_range);
++EXPORT_SYMBOL(drm_mm_search_free_in_range_generic);
+ 
+ /**
+  * Moves an allocation. To be used with embedded struct drm_mm_node.
+@@ -437,6 +463,7 @@ void drm_mm_replace_node(struct drm_mm_node *old, struct drm_mm_node *new)
+ 	new->mm = old->mm;
+ 	new->start = old->start;
+ 	new->size = old->size;
++	new->color = old->color;
+ 
+ 	old->allocated = 0;
+ 	new->allocated = 1;
+@@ -452,9 +479,12 @@ EXPORT_SYMBOL(drm_mm_replace_node);
+  * Warning: As long as the scan list is non-empty, no other operations than
+  * adding/removing nodes to/from the scan list are allowed.
+  */
+-void drm_mm_init_scan(struct drm_mm *mm, unsigned long size,
+-		      unsigned alignment)
++void drm_mm_init_scan(struct drm_mm *mm,
++		      unsigned long size,
++		      unsigned alignment,
++		      unsigned long color)
+ {
++	mm->scan_color = color;
+ 	mm->scan_alignment = alignment;
+ 	mm->scan_size = size;
+ 	mm->scanned_blocks = 0;
+@@ -474,11 +504,14 @@ EXPORT_SYMBOL(drm_mm_init_scan);
+  * Warning: As long as the scan list is non-empty, no other operations than
+  * adding/removing nodes to/from the scan list are allowed.
+  */
+-void drm_mm_init_scan_with_range(struct drm_mm *mm, unsigned long size,
++void drm_mm_init_scan_with_range(struct drm_mm *mm,
++				 unsigned long size,
+ 				 unsigned alignment,
++				 unsigned long color,
+ 				 unsigned long start,
+ 				 unsigned long end)
+ {
++	mm->scan_color = color;
+ 	mm->scan_alignment = alignment;
+ 	mm->scan_size = size;
+ 	mm->scanned_blocks = 0;
+@@ -522,17 +555,21 @@ int drm_mm_scan_add_block(struct drm_mm_node *node)
+ 
+ 	hole_start = drm_mm_hole_node_start(prev_node);
+ 	hole_end = drm_mm_hole_node_end(prev_node);
++
++	adj_start = hole_start;
++	adj_end = hole_end;
++
++	if (mm->color_adjust)
++		mm->color_adjust(prev_node, mm->scan_color, &adj_start, &adj_end);
++
+ 	if (mm->scan_check_range) {
+-		adj_start = hole_start < mm->scan_start ?
+-			mm->scan_start : hole_start;
+-		adj_end = hole_end > mm->scan_end ?
+-			mm->scan_end : hole_end;
+-	} else {
+-		adj_start = hole_start;
+-		adj_end = hole_end;
++		if (adj_start < mm->scan_start)
++			adj_start = mm->scan_start;
++		if (adj_end > mm->scan_end)
++			adj_end = mm->scan_end;
+ 	}
+ 
+-	if (check_free_hole(adj_start , adj_end,
++	if (check_free_hole(adj_start, adj_end,
+ 			    mm->scan_size, mm->scan_alignment)) {
+ 		mm->scan_hit_start = hole_start;
+ 		mm->scan_hit_size = hole_end;
+@@ -616,6 +653,8 @@ int drm_mm_init(struct drm_mm * mm, unsigned long start, unsigned long size)
+ 	mm->head_node.size = start - mm->head_node.start;
+ 	list_add_tail(&mm->head_node.hole_stack, &mm->hole_stack);
+ 
++	mm->color_adjust = NULL;
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL(drm_mm_init);
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 2b54142..0fdb3d2 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -2748,8 +2748,8 @@ i915_gem_object_bind_to_gtt(struct drm_i915_gem_object *obj,
+ 	if (map_and_fenceable)
+ 		free_space =
+ 			drm_mm_search_free_in_range(&dev_priv->mm.gtt_space,
+-						    size, alignment, 0,
+-						    dev_priv->mm.gtt_mappable_end,
++						    size, alignment,
++						    0, dev_priv->mm.gtt_mappable_end,
+ 						    0);
+ 	else
+ 		free_space = drm_mm_search_free(&dev_priv->mm.gtt_space,
+@@ -2760,7 +2760,7 @@ i915_gem_object_bind_to_gtt(struct drm_i915_gem_object *obj,
+ 			obj->gtt_space =
+ 				drm_mm_get_block_range_generic(free_space,
+ 							       size, alignment, 0,
+-							       dev_priv->mm.gtt_mappable_end,
++							       0, dev_priv->mm.gtt_mappable_end,
+ 							       0);
+ 		else
+ 			obj->gtt_space =
+diff --git a/drivers/gpu/drm/i915/i915_gem_evict.c b/drivers/gpu/drm/i915/i915_gem_evict.c
+index ae7c24e..eba0308 100644
+--- a/drivers/gpu/drm/i915/i915_gem_evict.c
++++ b/drivers/gpu/drm/i915/i915_gem_evict.c
+@@ -78,11 +78,12 @@ i915_gem_evict_something(struct drm_device *dev, int min_size,
+ 
+ 	INIT_LIST_HEAD(&unwind_list);
+ 	if (mappable)
+-		drm_mm_init_scan_with_range(&dev_priv->mm.gtt_space, min_size,
+-					    alignment, 0,
+-					    dev_priv->mm.gtt_mappable_end);
++		drm_mm_init_scan_with_range(&dev_priv->mm.gtt_space,
++					    min_size, alignment, 0,
++					    0, dev_priv->mm.gtt_mappable_end);
+ 	else
+-		drm_mm_init_scan(&dev_priv->mm.gtt_space, min_size, alignment);
++		drm_mm_init_scan(&dev_priv->mm.gtt_space,
++				 min_size, alignment, 0);
+ 
+ 	/* First see if there is a large enough contiguous idle region... */
+ 	list_for_each_entry(obj, &dev_priv->mm.inactive_list, mm_list) {
+diff --git a/include/drm/drm_mm.h b/include/drm/drm_mm.h
+index 564b14a..06d7f79 100644
+--- a/include/drm/drm_mm.h
++++ b/include/drm/drm_mm.h
+@@ -50,6 +50,7 @@ struct drm_mm_node {
+ 	unsigned scanned_next_free : 1;
+ 	unsigned scanned_preceeds_hole : 1;
+ 	unsigned allocated : 1;
++	unsigned long color;
+ 	unsigned long start;
+ 	unsigned long size;
+ 	struct drm_mm *mm;
+@@ -66,6 +67,7 @@ struct drm_mm {
+ 	spinlock_t unused_lock;
+ 	unsigned int scan_check_range : 1;
+ 	unsigned scan_alignment;
++	unsigned long scan_color;
+ 	unsigned long scan_size;
+ 	unsigned long scan_hit_start;
+ 	unsigned scan_hit_size;
+@@ -73,6 +75,9 @@ struct drm_mm {
+ 	unsigned long scan_start;
+ 	unsigned long scan_end;
+ 	struct drm_mm_node *prev_scanned_node;
++
++	void (*color_adjust)(struct drm_mm_node *node, unsigned long color,
++			     unsigned long *start, unsigned long *end);
+ };
+ 
+ static inline bool drm_mm_node_allocated(struct drm_mm_node *node)
+@@ -100,11 +105,13 @@ static inline bool drm_mm_initialized(struct drm_mm *mm)
+ extern struct drm_mm_node *drm_mm_get_block_generic(struct drm_mm_node *node,
+ 						    unsigned long size,
+ 						    unsigned alignment,
++						    unsigned long color,
+ 						    int atomic);
+ extern struct drm_mm_node *drm_mm_get_block_range_generic(
+ 						struct drm_mm_node *node,
+ 						unsigned long size,
+ 						unsigned alignment,
++						unsigned long color,
+ 						unsigned long start,
+ 						unsigned long end,
+ 						int atomic);
+@@ -112,13 +119,13 @@ static inline struct drm_mm_node *drm_mm_get_block(struct drm_mm_node *parent,
+ 						   unsigned long size,
+ 						   unsigned alignment)
+ {
+-	return drm_mm_get_block_generic(parent, size, alignment, 0);
++	return drm_mm_get_block_generic(parent, size, alignment, 0, 0);
+ }
+ static inline struct drm_mm_node *drm_mm_get_block_atomic(struct drm_mm_node *parent,
+ 							  unsigned long size,
+ 							  unsigned alignment)
+ {
+-	return drm_mm_get_block_generic(parent, size, alignment, 1);
++	return drm_mm_get_block_generic(parent, size, alignment, 0, 1);
+ }
+ static inline struct drm_mm_node *drm_mm_get_block_range(
+ 						struct drm_mm_node *parent,
+@@ -127,8 +134,19 @@ static inline struct drm_mm_node *drm_mm_get_block_range(
+ 						unsigned long start,
+ 						unsigned long end)
+ {
+-	return drm_mm_get_block_range_generic(parent, size, alignment,
+-						start, end, 0);
++	return drm_mm_get_block_range_generic(parent, size, alignment, 0,
++					      start, end, 0);
++}
++static inline struct drm_mm_node *drm_mm_get_color_block_range(
++						struct drm_mm_node *parent,
++						unsigned long size,
++						unsigned alignment,
++						unsigned long color,
++						unsigned long start,
++						unsigned long end)
++{
++	return drm_mm_get_block_range_generic(parent, size, alignment, color,
++					      start, end, 0);
+ }
+ static inline struct drm_mm_node *drm_mm_get_block_atomic_range(
+ 						struct drm_mm_node *parent,
+@@ -137,7 +155,7 @@ static inline struct drm_mm_node *drm_mm_get_block_atomic_range(
+ 						unsigned long start,
+ 						unsigned long end)
+ {
+-	return drm_mm_get_block_range_generic(parent, size, alignment,
++	return drm_mm_get_block_range_generic(parent, size, alignment, 0,
+ 						start, end, 1);
+ }
+ extern int drm_mm_insert_node(struct drm_mm *mm, struct drm_mm_node *node,
+@@ -149,18 +167,59 @@ extern int drm_mm_insert_node_in_range(struct drm_mm *mm,
+ extern void drm_mm_put_block(struct drm_mm_node *cur);
+ extern void drm_mm_remove_node(struct drm_mm_node *node);
+ extern void drm_mm_replace_node(struct drm_mm_node *old, struct drm_mm_node *new);
+-extern struct drm_mm_node *drm_mm_search_free(const struct drm_mm *mm,
+-					      unsigned long size,
+-					      unsigned alignment,
+-					      int best_match);
+-extern struct drm_mm_node *drm_mm_search_free_in_range(
++extern struct drm_mm_node *drm_mm_search_free_generic(const struct drm_mm *mm,
++						      unsigned long size,
++						      unsigned alignment,
++						      unsigned long color,
++						      bool best_match);
++extern struct drm_mm_node *drm_mm_search_free_in_range_generic(
++						const struct drm_mm *mm,
++						unsigned long size,
++						unsigned alignment,
++						unsigned long color,
++						unsigned long start,
++						unsigned long end,
++						bool best_match);
++static inline struct drm_mm_node *drm_mm_search_free(const struct drm_mm *mm,
++						     unsigned long size,
++						     unsigned alignment,
++						     bool best_match)
++{
++	return drm_mm_search_free_generic(mm,size, alignment, 0, best_match);
++}
++static inline  struct drm_mm_node *drm_mm_search_free_in_range(
+ 						const struct drm_mm *mm,
+ 						unsigned long size,
+ 						unsigned alignment,
+ 						unsigned long start,
+ 						unsigned long end,
+-						int best_match);
+-extern int drm_mm_init(struct drm_mm *mm, unsigned long start,
++						bool best_match)
++{
++	return drm_mm_search_free_in_range_generic(mm, size, alignment, 0,
++						   start, end, best_match);
++}
++static inline struct drm_mm_node *drm_mm_search_free_color(const struct drm_mm *mm,
++							   unsigned long size,
++							   unsigned alignment,
++							   unsigned long color,
++							   bool best_match)
++{
++	return drm_mm_search_free_generic(mm,size, alignment, color, best_match);
++}
++static inline  struct drm_mm_node *drm_mm_search_free_in_range_color(
++						const struct drm_mm *mm,
++						unsigned long size,
++						unsigned alignment,
++						unsigned long color,
++						unsigned long start,
++						unsigned long end,
++						bool best_match)
++{
++	return drm_mm_search_free_in_range_generic(mm, size, alignment, color,
++						   start, end, best_match);
++}
++extern int drm_mm_init(struct drm_mm *mm,
++		       unsigned long start,
+ 		       unsigned long size);
+ extern void drm_mm_takedown(struct drm_mm *mm);
+ extern int drm_mm_clean(struct drm_mm *mm);
+@@ -171,10 +230,14 @@ static inline struct drm_mm *drm_get_mm(struct drm_mm_node *block)
+ 	return block->mm;
+ }
+ 
+-void drm_mm_init_scan(struct drm_mm *mm, unsigned long size,
+-		      unsigned alignment);
+-void drm_mm_init_scan_with_range(struct drm_mm *mm, unsigned long size,
++void drm_mm_init_scan(struct drm_mm *mm,
++		      unsigned long size,
++		      unsigned alignment,
++		      unsigned long color);
++void drm_mm_init_scan_with_range(struct drm_mm *mm,
++				 unsigned long size,
+ 				 unsigned alignment,
++				 unsigned long color,
+ 				 unsigned long start,
+ 				 unsigned long end);
+ int drm_mm_scan_add_block(struct drm_mm_node *node);
+-- 
+cgit v0.10.1

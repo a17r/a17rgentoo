@@ -1,0 +1,53 @@
+From 65f5687603ea6ede1cb01b3d6c16a8c1fac88541 Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Tue, 17 Apr 2012 16:38:12 +0100
+Subject: drm/i915: Replace open coded MI_BATCH_GTT
+
+The (2<<6) virtual memory space selector harks back to gen3 and is
+mandatory given our use of GTT space for batchbuffers. On gen4+, use of
+the GTT became mandatory and bit6 marked reserved. However the code must
+now explicitly set (1<<7), which conveniently is also (2<<6).
+
+To clarify the meaning for future readers, replace the open coded (2<<6)
+with MI_BATCH_GTT.
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index d093dba..0d3b97f 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -231,6 +231,7 @@
+ #define   MI_BATCH_NON_SECURE	(1)
+ #define   MI_BATCH_NON_SECURE_I965 (1<<8)
+ #define MI_BATCH_BUFFER_START	MI_INSTR(0x31, 0)
++#define   MI_BATCH_GTT		    (2<<6) /* aliased with (1<<7) on gen4 */
+ #define MI_SEMAPHORE_MBOX	MI_INSTR(0x16, 1) /* gen6+ */
+ #define  MI_SEMAPHORE_GLOBAL_GTT    (1<<22)
+ #define  MI_SEMAPHORE_UPDATE	    (1<<21)
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index 492812d..4ae651b 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -786,7 +786,8 @@ i965_dispatch_execbuffer(struct intel_ring_buffer *ring, u32 offset, u32 length)
+ 		return ret;
+ 
+ 	intel_ring_emit(ring,
+-			MI_BATCH_BUFFER_START | (2 << 6) |
++			MI_BATCH_BUFFER_START |
++			MI_BATCH_GTT |
+ 			MI_BATCH_NON_SECURE_I965);
+ 	intel_ring_emit(ring, offset);
+ 	intel_ring_advance(ring);
+@@ -823,7 +824,7 @@ i915_dispatch_execbuffer(struct intel_ring_buffer *ring,
+ 	if (ret)
+ 		return ret;
+ 
+-	intel_ring_emit(ring, MI_BATCH_BUFFER_START | (2 << 6));
++	intel_ring_emit(ring, MI_BATCH_BUFFER_START | MI_BATCH_GTT);
+ 	intel_ring_emit(ring, offset | MI_BATCH_NON_SECURE);
+ 	intel_ring_advance(ring);
+ 
+-- 
+cgit v0.10.1

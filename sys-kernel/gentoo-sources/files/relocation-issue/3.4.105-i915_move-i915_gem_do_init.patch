@@ -1,0 +1,130 @@
+From 644ec02b5d135b63369a5dbf74976cdeef310dcd Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Mon, 26 Mar 2012 09:45:40 +0200
+Subject: drm/i915: s/i915_gem_do_init/i915_gem_init_global_gtt
+
+... because this is what it actually doesn now that we have the global
+gtt vs. ppgtt split.
+
+Also move it to the other global gtt functions in i915_gem_gtt.c
+
+Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index fdff009..b6e0a45 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -1210,7 +1210,7 @@ static int i915_load_gem_init(struct drm_device *dev)
+ 		/* For paranoia keep the guard page in between. */
+ 		gtt_size -= PAGE_SIZE;
+ 
+-		i915_gem_do_init(dev, 0, mappable_size, gtt_size);
++		i915_gem_init_global_gtt(dev, 0, mappable_size, gtt_size);
+ 
+ 		ret = i915_gem_init_aliasing_ppgtt(dev);
+ 		if (ret)
+@@ -1226,7 +1226,8 @@ static int i915_load_gem_init(struct drm_device *dev)
+ 		 * should be enough to keep any prefetching inside of the
+ 		 * aperture.
+ 		 */
+-		i915_gem_do_init(dev, 0, mappable_size, gtt_size - PAGE_SIZE);
++		i915_gem_init_global_gtt(dev, 0, mappable_size,
++					 gtt_size - PAGE_SIZE);
+ 	}
+ 
+ 	ret = i915_gem_init_hw(dev);
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 9c75a7b..d680f09 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -1253,10 +1253,6 @@ int __must_check i915_gem_init_hw(struct drm_device *dev);
+ void i915_gem_init_swizzling(struct drm_device *dev);
+ void i915_gem_init_ppgtt(struct drm_device *dev);
+ void i915_gem_cleanup_ringbuffer(struct drm_device *dev);
+-void i915_gem_do_init(struct drm_device *dev,
+-		      unsigned long start,
+-		      unsigned long mappable_end,
+-		      unsigned long end);
+ int __must_check i915_gpu_idle(struct drm_device *dev, bool do_retire);
+ int __must_check i915_gem_idle(struct drm_device *dev);
+ int __must_check i915_add_request(struct intel_ring_buffer *ring,
+@@ -1305,6 +1301,10 @@ void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
+ 				enum i915_cache_level cache_level);
+ void i915_gem_gtt_unbind_object(struct drm_i915_gem_object *obj);
+ void i915_gem_gtt_finish_object(struct drm_i915_gem_object *obj);
++void i915_gem_init_global_gtt(struct drm_device *dev,
++			      unsigned long start,
++			      unsigned long mappable_end,
++			      unsigned long end);
+ 
+ /* i915_gem_evict.c */
+ int __must_check i915_gem_evict_something(struct drm_device *dev, int min_size,
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 0a16366..90e3fc1 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -125,25 +125,6 @@ i915_gem_object_is_inactive(struct drm_i915_gem_object *obj)
+ 	return obj->gtt_space && !obj->active && obj->pin_count == 0;
+ }
+ 
+-void i915_gem_do_init(struct drm_device *dev,
+-		      unsigned long start,
+-		      unsigned long mappable_end,
+-		      unsigned long end)
+-{
+-	drm_i915_private_t *dev_priv = dev->dev_private;
+-
+-	drm_mm_init(&dev_priv->mm.gtt_space, start, end - start);
+-
+-	dev_priv->mm.gtt_start = start;
+-	dev_priv->mm.gtt_mappable_end = mappable_end;
+-	dev_priv->mm.gtt_end = end;
+-	dev_priv->mm.gtt_total = end - start;
+-	dev_priv->mm.mappable_gtt_total = min(end, mappable_end) - start;
+-
+-	/* Take over this portion of the GTT */
+-	intel_gtt_clear_range(start / PAGE_SIZE, (end-start) / PAGE_SIZE);
+-}
+-
+ int
+ i915_gem_init_ioctl(struct drm_device *dev, void *data,
+ 		    struct drm_file *file)
+@@ -155,7 +136,8 @@ i915_gem_init_ioctl(struct drm_device *dev, void *data,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&dev->struct_mutex);
+-	i915_gem_do_init(dev, args->gtt_start, args->gtt_end, args->gtt_end);
++	i915_gem_init_global_gtt(dev, args->gtt_start,
++				 args->gtt_end, args->gtt_end);
+ 	mutex_unlock(&dev->struct_mutex);
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/i915/i915_gem_gtt.c b/drivers/gpu/drm/i915/i915_gem_gtt.c
+index 72be806..98ed612 100644
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c
++++ b/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -421,3 +421,22 @@ void i915_gem_gtt_finish_object(struct drm_i915_gem_object *obj)
+ 
+ 	undo_idling(dev_priv, interruptible);
+ }
++
++void i915_gem_init_global_gtt(struct drm_device *dev,
++			      unsigned long start,
++			      unsigned long mappable_end,
++			      unsigned long end)
++{
++	drm_i915_private_t *dev_priv = dev->dev_private;
++
++	drm_mm_init(&dev_priv->mm.gtt_space, start, end - start);
++
++	dev_priv->mm.gtt_start = start;
++	dev_priv->mm.gtt_mappable_end = mappable_end;
++	dev_priv->mm.gtt_end = end;
++	dev_priv->mm.gtt_total = end - start;
++	dev_priv->mm.mappable_gtt_total = min(end, mappable_end) - start;
++
++	/* Take over this portion of the GTT */
++	intel_gtt_clear_range(start / PAGE_SIZE, (end-start) / PAGE_SIZE);
++}
+-- 
+cgit v0.10.1

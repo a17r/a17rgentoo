@@ -1,0 +1,152 @@
+From 741639079cb49d796be50827e13b592121184ff8 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 15 Feb 2012 23:50:21 +0100
+Subject: drm/i915: split out dma mapping from global gtt bind/unbind functions
+
+Note that there's a functional change buried in this patch wrt the ilk
+dmar workaround: We now only idle the gpu while tearing down the dmar
+mappings, not while clearing the gtt. Keeping the current semantics
+would have made for some really ugly code and afaik the issue is only
+with the dmar unmapping that needs a fully idle gpu.
+
+Reviewed-and-tested-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index e7a00b7..3619f76 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -1291,10 +1291,11 @@ void i915_ppgtt_unbind_object(struct i915_hw_ppgtt *ppgtt,
+ 			      struct drm_i915_gem_object *obj);
+ 
+ void i915_gem_restore_gtt_mappings(struct drm_device *dev);
+-int __must_check i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj);
+-void i915_gem_gtt_rebind_object(struct drm_i915_gem_object *obj,
++int __must_check i915_gem_gtt_prepare_object(struct drm_i915_gem_object *obj);
++void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
+ 				enum i915_cache_level cache_level);
+ void i915_gem_gtt_unbind_object(struct drm_i915_gem_object *obj);
++void i915_gem_gtt_finish_object(struct drm_i915_gem_object *obj);
+ 
+ /* i915_gem_evict.c */
+ int __must_check i915_gem_evict_something(struct drm_device *dev, int min_size,
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 1f441f5..031ca5b 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -2102,6 +2102,7 @@ i915_gem_object_unbind(struct drm_i915_gem_object *obj)
+ 		i915_ppgtt_unbind_object(dev_priv->mm.aliasing_ppgtt, obj);
+ 		obj->has_aliasing_ppgtt_mapping = 0;
+ 	}
++	i915_gem_gtt_finish_object(obj);
+ 
+ 	i915_gem_object_put_pages_gtt(obj);
+ 
+@@ -2746,7 +2747,7 @@ i915_gem_object_bind_to_gtt(struct drm_i915_gem_object *obj,
+ 		return ret;
+ 	}
+ 
+-	ret = i915_gem_gtt_bind_object(obj);
++	ret = i915_gem_gtt_prepare_object(obj);
+ 	if (ret) {
+ 		i915_gem_object_put_pages_gtt(obj);
+ 		drm_mm_put_block(obj->gtt_space);
+@@ -2757,6 +2758,7 @@ i915_gem_object_bind_to_gtt(struct drm_i915_gem_object *obj,
+ 
+ 		goto search_free;
+ 	}
++	i915_gem_gtt_bind_object(obj, obj->cache_level);
+ 
+ 	list_add_tail(&obj->gtt_list, &dev_priv->mm.gtt_list);
+ 	list_add_tail(&obj->mm_list, &dev_priv->mm.inactive_list);
+@@ -2950,7 +2952,7 @@ int i915_gem_object_set_cache_level(struct drm_i915_gem_object *obj,
+ 				return ret;
+ 		}
+ 
+-		i915_gem_gtt_rebind_object(obj, cache_level);
++		i915_gem_gtt_bind_object(obj, cache_level);
+ 		if (obj->has_aliasing_ppgtt_mapping)
+ 			i915_ppgtt_bind_object(dev_priv->mm.aliasing_ppgtt,
+ 					       obj, cache_level);
+diff --git a/drivers/gpu/drm/i915/i915_gem_gtt.c b/drivers/gpu/drm/i915/i915_gem_gtt.c
+index 2eacd78..bf33eaf 100644
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c
++++ b/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -355,42 +355,28 @@ void i915_gem_restore_gtt_mappings(struct drm_device *dev)
+ 
+ 	list_for_each_entry(obj, &dev_priv->mm.gtt_list, gtt_list) {
+ 		i915_gem_clflush_object(obj);
+-		i915_gem_gtt_rebind_object(obj, obj->cache_level);
++		i915_gem_gtt_bind_object(obj, obj->cache_level);
+ 	}
+ 
+ 	intel_gtt_chipset_flush();
+ }
+ 
+-int i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj)
++int i915_gem_gtt_prepare_object(struct drm_i915_gem_object *obj)
+ {
+ 	struct drm_device *dev = obj->base.dev;
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+-	unsigned int agp_type = cache_level_to_agp_type(dev, obj->cache_level);
+-	int ret;
+ 
+-	if (dev_priv->mm.gtt->needs_dmar) {
+-		ret = intel_gtt_map_memory(obj->pages,
+-					   obj->base.size >> PAGE_SHIFT,
+-					   &obj->sg_list,
+-					   &obj->num_sg);
+-		if (ret != 0)
+-			return ret;
+-
+-		intel_gtt_insert_sg_entries(obj->sg_list,
+-					    obj->num_sg,
+-					    obj->gtt_space->start >> PAGE_SHIFT,
+-					    agp_type);
+-	} else
+-		intel_gtt_insert_pages(obj->gtt_space->start >> PAGE_SHIFT,
+-				       obj->base.size >> PAGE_SHIFT,
+-				       obj->pages,
+-				       agp_type);
+-
+-	return 0;
++	if (dev_priv->mm.gtt->needs_dmar)
++		return intel_gtt_map_memory(obj->pages,
++					    obj->base.size >> PAGE_SHIFT,
++					    &obj->sg_list,
++					    &obj->num_sg);
++	else
++		return 0;
+ }
+ 
+-void i915_gem_gtt_rebind_object(struct drm_i915_gem_object *obj,
+-				enum i915_cache_level cache_level)
++void i915_gem_gtt_bind_object(struct drm_i915_gem_object *obj,
++			      enum i915_cache_level cache_level)
+ {
+ 	struct drm_device *dev = obj->base.dev;
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+@@ -412,15 +398,18 @@ void i915_gem_gtt_rebind_object(struct drm_i915_gem_object *obj,
+ 
+ void i915_gem_gtt_unbind_object(struct drm_i915_gem_object *obj)
+ {
++	intel_gtt_clear_range(obj->gtt_space->start >> PAGE_SHIFT,
++			      obj->base.size >> PAGE_SHIFT);
++}
++
++void i915_gem_gtt_finish_object(struct drm_i915_gem_object *obj)
++{
+ 	struct drm_device *dev = obj->base.dev;
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	bool interruptible;
+ 
+ 	interruptible = do_idling(dev_priv);
+ 
+-	intel_gtt_clear_range(obj->gtt_space->start >> PAGE_SHIFT,
+-			      obj->base.size >> PAGE_SHIFT);
+-
+ 	if (obj->sg_list) {
+ 		intel_gtt_unmap_memory(obj->sg_list, obj->num_sg);
+ 		obj->sg_list = NULL;
+-- 
+cgit v0.10.1

@@ -1,0 +1,97 @@
+From a39d7efc6200d05b9ca3cfeec5dd82f6dd03f4e8 Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Tue, 24 Apr 2012 18:22:52 +0100
+Subject: drm/i915: Remove i915_gem_evict_inactive()
+
+This was only used by one external caller who would just be as happy
+with evict-everything, so perform the replacement and make the function
+private.
+
+In the process we note that unbinding the inactive list should not fail,
+and make it a warning instead.
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index c144013..57f60fa 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -1370,10 +1370,7 @@ void i915_gem_init_global_gtt(struct drm_device *dev,
+ /* i915_gem_evict.c */
+ int __must_check i915_gem_evict_something(struct drm_device *dev, int min_size,
+ 					  unsigned alignment, bool mappable);
+-int __must_check i915_gem_evict_everything(struct drm_device *dev,
+-					   bool purgeable_only);
+-int __must_check i915_gem_evict_inactive(struct drm_device *dev,
+-					 bool purgeable_only);
++int i915_gem_evict_everything(struct drm_device *dev, bool purgeable_only);
+ 
+ /* i915_gem_tiling.c */
+ void i915_gem_detect_bit_6_swizzle(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index ad2a692..2fc7c55 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -3455,13 +3455,8 @@ i915_gem_idle(struct drm_device *dev)
+ 	}
+ 
+ 	/* Under UMS, be paranoid and evict. */
+-	if (!drm_core_check_feature(dev, DRIVER_MODESET)) {
+-		ret = i915_gem_evict_inactive(dev, false);
+-		if (ret) {
+-			mutex_unlock(&dev->struct_mutex);
+-			return ret;
+-		}
+-	}
++	if (!drm_core_check_feature(dev, DRIVER_MODESET))
++		i915_gem_evict_everything(dev, false);
+ 
+ 	i915_gem_reset_fences(dev);
+ 
+diff --git a/drivers/gpu/drm/i915/i915_gem_evict.c b/drivers/gpu/drm/i915/i915_gem_evict.c
+index 21a8271..399a3a8 100644
+--- a/drivers/gpu/drm/i915/i915_gem_evict.c
++++ b/drivers/gpu/drm/i915/i915_gem_evict.c
+@@ -166,8 +166,9 @@ int
+ i915_gem_evict_everything(struct drm_device *dev, bool purgeable_only)
+ {
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+-	int ret;
++	struct drm_i915_gem_object *obj, *next;
+ 	bool lists_empty;
++	int ret;
+ 
+ 	lists_empty = (list_empty(&dev_priv->mm.inactive_list) &&
+ 		       list_empty(&dev_priv->mm.flushing_list) &&
+@@ -184,24 +185,14 @@ i915_gem_evict_everything(struct drm_device *dev, bool purgeable_only)
+ 
+ 	BUG_ON(!list_empty(&dev_priv->mm.flushing_list));
+ 
+-	return i915_gem_evict_inactive(dev, purgeable_only);
+-}
+-
+-/** Unbinds all inactive objects. */
+-int
+-i915_gem_evict_inactive(struct drm_device *dev, bool purgeable_only)
+-{
+-	drm_i915_private_t *dev_priv = dev->dev_private;
+-	struct drm_i915_gem_object *obj, *next;
+-
++	/* Having flushed everything, unbind() should never raise an error */
+ 	list_for_each_entry_safe(obj, next,
+ 				 &dev_priv->mm.inactive_list, mm_list) {
+ 		if (!purgeable_only || obj->madv != I915_MADV_WILLNEED) {
+-			int ret = i915_gem_object_unbind(obj);
+-			if (ret)
+-				return ret;
++			if (obj->pin_count == 0)
++				WARN_ON(i915_gem_object_unbind(obj));
+ 		}
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+-- 
+cgit v0.10.1

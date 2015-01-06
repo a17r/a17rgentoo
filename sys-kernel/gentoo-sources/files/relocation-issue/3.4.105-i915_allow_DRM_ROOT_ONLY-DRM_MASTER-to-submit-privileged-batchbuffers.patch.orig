@@ -1,0 +1,318 @@
+From d7d4eeddb8f72342f70621c4b3cb718af9361712 Mon Sep 17 00:00:00 2001
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Date: Wed, 17 Oct 2012 12:09:54 +0100
+Subject: drm/i915: Allow DRM_ROOT_ONLY|DRM_MASTER to submit privileged
+ batchbuffers
+
+With the introduction of per-process GTT space, the hardware designers
+thought it wise to also limit the ability to write to MMIO space to only
+a "secure" batch buffer. The ability to rewrite registers is the only
+way to program the hardware to perform certain operations like scanline
+waits (required for tear-free windowed updates). So we either have a
+choice of adding an interface to perform those synchronized updates
+inside the kernel, or we permit certain processes the ability to write
+to the "safe" registers from within its command stream. This patch
+exposes the ability to submit a SECURE batch buffer to
+DRM_ROOT_ONLY|DRM_MASTER processes.
+
+v2: Haswell split up bit8 into a ppgtt bit (still bit8) and a security
+bit (bit 13, accidentally not set). Also add a comment explaining why
+secure batches need a global gtt binding.
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk> (v1)
+[danvet: added hsw fixup.]
+Reviewed-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index 491394f..14271aa 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -1015,6 +1015,9 @@ static int i915_getparam(struct drm_device *dev, void *data,
+ 	case I915_PARAM_HAS_PRIME_VMAP_FLUSH:
+ 		value = 1;
+ 		break;
++	case I915_PARAM_HAS_SECURE_BATCHES:
++		value = capable(CAP_SYS_ADMIN);
++		break;
+ 	default:
+ 		DRM_DEBUG_DRIVER("Unknown parameter %d\n",
+ 				 param->param);
+diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+index 6a2f3e5..afbc924 100644
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -801,6 +801,7 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
+ 	u32 exec_start, exec_len;
+ 	u32 seqno;
+ 	u32 mask;
++	u32 flags;
+ 	int ret, mode, i;
+ 
+ 	if (!i915_gem_check_execbuffer(args)) {
+@@ -812,6 +813,14 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
+ 	if (ret)
+ 		return ret;
+ 
++	flags = 0;
++	if (args->flags & I915_EXEC_SECURE) {
++		if (!file->is_master || !capable(CAP_SYS_ADMIN))
++		    return -EPERM;
++
++		flags |= I915_DISPATCH_SECURE;
++	}
++
+ 	switch (args->flags & I915_EXEC_RING_MASK) {
+ 	case I915_EXEC_DEFAULT:
+ 	case I915_EXEC_RENDER:
+@@ -984,6 +993,13 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
+ 	}
+ 	batch_obj->base.pending_read_domains |= I915_GEM_DOMAIN_COMMAND;
+ 
++	/* snb/ivb/vlv conflate the "batch in ppgtt" bit with the "non-secure
++	 * batch" bit. Hence we need to pin secure batches into the global gtt.
++	 * hsw should have this fixed, but let's be paranoid and do it
++	 * unconditionally for now. */
++	if (flags & I915_DISPATCH_SECURE && !batch_obj->has_global_gtt_mapping)
++		i915_gem_gtt_bind_object(batch_obj, batch_obj->cache_level);
++
+ 	ret = i915_gem_execbuffer_move_to_gpu(ring, &objects);
+ 	if (ret)
+ 		goto err;
+@@ -1029,7 +1045,7 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
+ 			goto err;
+ 	}
+ 
+-	trace_i915_gem_ring_dispatch(ring, seqno);
++	trace_i915_gem_ring_dispatch(ring, seqno, flags);
+ 
+ 	exec_start = batch_obj->gtt_offset + args->batch_start_offset;
+ 	exec_len = args->batch_len;
+@@ -1041,12 +1057,15 @@ i915_gem_do_execbuffer(struct drm_device *dev, void *data,
+ 				goto err;
+ 
+ 			ret = ring->dispatch_execbuffer(ring,
+-							exec_start, exec_len);
++							exec_start, exec_len,
++							flags);
+ 			if (ret)
+ 				goto err;
+ 		}
+ 	} else {
+-		ret = ring->dispatch_execbuffer(ring, exec_start, exec_len);
++		ret = ring->dispatch_execbuffer(ring,
++						exec_start, exec_len,
++						flags);
+ 		if (ret)
+ 			goto err;
+ 	}
+diff --git a/drivers/gpu/drm/i915/i915_reg.h b/drivers/gpu/drm/i915/i915_reg.h
+index d7f516c..455beb4 100644
+--- a/drivers/gpu/drm/i915/i915_reg.h
++++ b/drivers/gpu/drm/i915/i915_reg.h
+@@ -244,8 +244,11 @@
+ #define   MI_INVALIDATE_TLB	(1<<18)
+ #define   MI_INVALIDATE_BSD	(1<<7)
+ #define MI_BATCH_BUFFER		MI_INSTR(0x30, 1)
+-#define   MI_BATCH_NON_SECURE	(1)
+-#define   MI_BATCH_NON_SECURE_I965 (1<<8)
++#define   MI_BATCH_NON_SECURE		(1)
++/* for snb/ivb/vlv this also means "batch in ppgtt" when ppgtt is enabled. */
++#define   MI_BATCH_NON_SECURE_I965 	(1<<8)
++#define   MI_BATCH_PPGTT_HSW		(1<<8)
++#define   MI_BATCH_NON_SECURE_HSW 	(1<<13)
+ #define MI_BATCH_BUFFER_START	MI_INSTR(0x31, 0)
+ #define   MI_BATCH_GTT		    (2<<6) /* aliased with (1<<7) on gen4 */
+ #define MI_SEMAPHORE_MBOX	MI_INSTR(0x16, 1) /* gen6+ */
+diff --git a/drivers/gpu/drm/i915/i915_trace.h b/drivers/gpu/drm/i915/i915_trace.h
+index 8134421..3db4a68 100644
+--- a/drivers/gpu/drm/i915/i915_trace.h
++++ b/drivers/gpu/drm/i915/i915_trace.h
+@@ -229,24 +229,26 @@ TRACE_EVENT(i915_gem_evict_everything,
+ );
+ 
+ TRACE_EVENT(i915_gem_ring_dispatch,
+-	    TP_PROTO(struct intel_ring_buffer *ring, u32 seqno),
+-	    TP_ARGS(ring, seqno),
++	    TP_PROTO(struct intel_ring_buffer *ring, u32 seqno, u32 flags),
++	    TP_ARGS(ring, seqno, flags),
+ 
+ 	    TP_STRUCT__entry(
+ 			     __field(u32, dev)
+ 			     __field(u32, ring)
+ 			     __field(u32, seqno)
++			     __field(u32, flags)
+ 			     ),
+ 
+ 	    TP_fast_assign(
+ 			   __entry->dev = ring->dev->primary->index;
+ 			   __entry->ring = ring->id;
+ 			   __entry->seqno = seqno;
++			   __entry->flags = flags;
+ 			   i915_trace_irq_get(ring, seqno);
+ 			   ),
+ 
+-	    TP_printk("dev=%u, ring=%u, seqno=%u",
+-		      __entry->dev, __entry->ring, __entry->seqno)
++	    TP_printk("dev=%u, ring=%u, seqno=%u, flags=%x",
++		      __entry->dev, __entry->ring, __entry->seqno, __entry->flags)
+ );
+ 
+ TRACE_EVENT(i915_gem_ring_flush,
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index 984a0c5..6c6f95a 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -965,7 +965,9 @@ gen6_ring_put_irq(struct intel_ring_buffer *ring)
+ }
+ 
+ static int
+-i965_dispatch_execbuffer(struct intel_ring_buffer *ring, u32 offset, u32 length)
++i965_dispatch_execbuffer(struct intel_ring_buffer *ring,
++			 u32 offset, u32 length,
++			 unsigned flags)
+ {
+ 	int ret;
+ 
+@@ -976,7 +978,7 @@ i965_dispatch_execbuffer(struct intel_ring_buffer *ring, u32 offset, u32 length)
+ 	intel_ring_emit(ring,
+ 			MI_BATCH_BUFFER_START |
+ 			MI_BATCH_GTT |
+-			MI_BATCH_NON_SECURE_I965);
++			(flags & I915_DISPATCH_SECURE ? 0 : MI_BATCH_NON_SECURE_I965));
+ 	intel_ring_emit(ring, offset);
+ 	intel_ring_advance(ring);
+ 
+@@ -985,7 +987,8 @@ i965_dispatch_execbuffer(struct intel_ring_buffer *ring, u32 offset, u32 length)
+ 
+ static int
+ i830_dispatch_execbuffer(struct intel_ring_buffer *ring,
+-				u32 offset, u32 len)
++				u32 offset, u32 len,
++				unsigned flags)
+ {
+ 	int ret;
+ 
+@@ -994,7 +997,7 @@ i830_dispatch_execbuffer(struct intel_ring_buffer *ring,
+ 		return ret;
+ 
+ 	intel_ring_emit(ring, MI_BATCH_BUFFER);
+-	intel_ring_emit(ring, offset | MI_BATCH_NON_SECURE);
++	intel_ring_emit(ring, offset | (flags & I915_DISPATCH_SECURE ? 0 : MI_BATCH_NON_SECURE));
+ 	intel_ring_emit(ring, offset + len - 8);
+ 	intel_ring_emit(ring, 0);
+ 	intel_ring_advance(ring);
+@@ -1004,7 +1007,8 @@ i830_dispatch_execbuffer(struct intel_ring_buffer *ring,
+ 
+ static int
+ i915_dispatch_execbuffer(struct intel_ring_buffer *ring,
+-				u32 offset, u32 len)
++			 u32 offset, u32 len,
++			 unsigned flags)
+ {
+ 	int ret;
+ 
+@@ -1013,7 +1017,7 @@ i915_dispatch_execbuffer(struct intel_ring_buffer *ring,
+ 		return ret;
+ 
+ 	intel_ring_emit(ring, MI_BATCH_BUFFER_START | MI_BATCH_GTT);
+-	intel_ring_emit(ring, offset | MI_BATCH_NON_SECURE);
++	intel_ring_emit(ring, offset | (flags & I915_DISPATCH_SECURE ? 0 : MI_BATCH_NON_SECURE));
+ 	intel_ring_advance(ring);
+ 
+ 	return 0;
+@@ -1403,8 +1407,30 @@ static int gen6_ring_flush(struct intel_ring_buffer *ring,
+ }
+ 
+ static int
++hsw_ring_dispatch_execbuffer(struct intel_ring_buffer *ring,
++			      u32 offset, u32 len,
++			      unsigned flags)
++{
++	int ret;
++
++	ret = intel_ring_begin(ring, 2);
++	if (ret)
++		return ret;
++
++	intel_ring_emit(ring,
++			MI_BATCH_BUFFER_START | MI_BATCH_PPGTT_HSW |
++			(flags & I915_DISPATCH_SECURE ? 0 : MI_BATCH_NON_SECURE_HSW));
++	/* bit0-7 is the length on GEN6+ */
++	intel_ring_emit(ring, offset);
++	intel_ring_advance(ring);
++
++	return 0;
++}
++
++static int
+ gen6_ring_dispatch_execbuffer(struct intel_ring_buffer *ring,
+-			      u32 offset, u32 len)
++			      u32 offset, u32 len,
++			      unsigned flags)
+ {
+ 	int ret;
+ 
+@@ -1412,7 +1438,9 @@ gen6_ring_dispatch_execbuffer(struct intel_ring_buffer *ring,
+ 	if (ret)
+ 		return ret;
+ 
+-	intel_ring_emit(ring, MI_BATCH_BUFFER_START | MI_BATCH_NON_SECURE_I965);
++	intel_ring_emit(ring,
++			MI_BATCH_BUFFER_START |
++			(flags & I915_DISPATCH_SECURE ? 0 : MI_BATCH_NON_SECURE_I965));
+ 	/* bit0-7 is the length on GEN6+ */
+ 	intel_ring_emit(ring, offset);
+ 	intel_ring_advance(ring);
+@@ -1491,7 +1519,9 @@ int intel_init_render_ring_buffer(struct drm_device *dev)
+ 		ring->irq_enable_mask = I915_USER_INTERRUPT;
+ 	}
+ 	ring->write_tail = ring_write_tail;
+-	if (INTEL_INFO(dev)->gen >= 6)
++	if (IS_HASWELL(dev))
++		ring->dispatch_execbuffer = hsw_ring_dispatch_execbuffer;
++	else if (INTEL_INFO(dev)->gen >= 6)
+ 		ring->dispatch_execbuffer = gen6_ring_dispatch_execbuffer;
+ 	else if (INTEL_INFO(dev)->gen >= 4)
+ 		ring->dispatch_execbuffer = i965_dispatch_execbuffer;
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.h b/drivers/gpu/drm/i915/intel_ringbuffer.h
+index 2ea7a31..3745d1d 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.h
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.h
+@@ -81,7 +81,9 @@ struct  intel_ring_buffer {
+ 	u32		(*get_seqno)(struct intel_ring_buffer *ring,
+ 				     bool lazy_coherency);
+ 	int		(*dispatch_execbuffer)(struct intel_ring_buffer *ring,
+-					       u32 offset, u32 length);
++					       u32 offset, u32 length,
++					       unsigned flags);
++#define I915_DISPATCH_SECURE 0x1
+ 	void		(*cleanup)(struct intel_ring_buffer *ring);
+ 	int		(*sync_to)(struct intel_ring_buffer *ring,
+ 				   struct intel_ring_buffer *to,
+diff --git a/include/drm/i915_drm.h b/include/drm/i915_drm.h
+index c883300..0e6e135 100644
+--- a/include/drm/i915_drm.h
++++ b/include/drm/i915_drm.h
+@@ -314,6 +314,7 @@ typedef struct drm_i915_irq_wait {
+ #define I915_PARAM_HAS_SEMAPHORES	 20
+ #define I915_PARAM_HAS_PRIME_VMAP_FLUSH	 21
+ #define I915_PARAM_RSVD_FOR_FUTURE_USE	 22
++#define I915_PARAM_HAS_SECURE_BATCHES	 23
+ 
+ typedef struct drm_i915_getparam {
+ 	int param;
+@@ -679,6 +680,11 @@ struct drm_i915_gem_execbuffer2 {
+ /** Resets the SO write offset registers for transform feedback on gen7. */
+ #define I915_EXEC_GEN7_SOL_RESET	(1<<8)
+ 
++/** Request a privileged ("secure") batch buffer. Note only available for
++ * DRM_ROOT_ONLY | DRM_MASTER processes.
++ */
++#define I915_EXEC_SECURE		(1<<9)
++
+ #define I915_EXEC_CONTEXT_ID_MASK	(0xffffffff)
+ #define i915_execbuffer2_set_context_id(eb2, context) \
+ 	(eb2).rsvd1 = context & I915_EXEC_CONTEXT_ID_MASK
+-- 
+cgit v0.10.1
