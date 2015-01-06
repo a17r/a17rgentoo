@@ -454,7 +454,6 @@ src_configure() {
 		--with-system-jars \
 		--with-system-dicts \
 		--enable-largefile \
-		--enable-mergelibs \
 		--enable-neon \
 		--enable-python=system \
 		--enable-release-build \
@@ -512,6 +511,7 @@ src_configure() {
 		$(use_enable X graphite) \
 		$(use_enable X randr) \
 		$(use_enable X randr-link) \
+		$(use_enable !X mergelibs) \
 		$(use_with coinmp system-coinmp) \
 		$(use_with gltf system-libgltf) \
 		$(use_with java) \
