@@ -1,4 +1,4 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -25,6 +25,8 @@ src_prepare() {
 	epatch "${FILESDIR}"/3.4.89-backport-soreuseport-01-named-constants-for-sk_reuse.patch \
 		"${FILESDIR}"/3.4.89-backport-soreuseport-02-infrastructure.patch \
 		"${FILESDIR}"/3.4.89-backport-soreuseport-03-udp-tcp-ipv4-ipv6-implementation.patch
+
+	epatch "${FILESDIR}"/3.4.105-set-i9xx-lvds-clock-limits-according-to-specification.patch
 }
 
 pkg_postinst() {
