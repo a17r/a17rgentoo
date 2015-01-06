@@ -107,7 +107,7 @@ COMMON_DEPEND="
 	>=app-text/libetonyek-0.1.1
 	app-text/liblangtag
 	>=app-text/libmspub-0.1.0
-	>=app-text/libmwaw-0.3.3
+	>=app-text/libmwaw-0.3.4
 	>=app-text/libodfgen-0.1.0
 	app-text/libwpd:0.10[tools]
 	app-text/libwpg:0.3
