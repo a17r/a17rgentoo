@@ -1,4 +1,4 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -15,8 +15,8 @@ LICENSE="BSD filewriter? ( GPL-2+ ) libnotify? ( GPL-3+ ) pulseaudio? ( GPL-2+ )
 SLOT="0"
 KEYWORDS=""
 IUSE="aac adplug alsa bs2b cdda cue ffmpeg +filewriter flac gnome gtk
-      jack lame libav libnotify libsamplerate lirc midi mms mp3 nls
-      pulseaudio qt5 scrobbler sdl sid sndfile soxr +spectrum vorbis wavpack"
+	jack lame libav libnotify libsamplerate lirc midi mms mp3 nls
+	pulseaudio qt5 scrobbler sdl sid sndfile soxr +spectrum vorbis wavpack"
 REQUIRED_USE=" ffmpeg? ( !libav )"
 
 RDEPEND="app-arch/unzip
@@ -46,17 +46,17 @@ RDEPEND="app-arch/unzip
 	mms? ( >=media-libs/libmms-0.3 )
 	mp3? ( >=media-sound/mpg123-1.12.1 )
 	pulseaudio? ( >=media-sound/pulseaudio-0.9.3 )
-    qt5? ( dev-qt/qtcore:5
-           dev-qt/qtgui:5
-           dev-qt/qtwidgets:5
-           media-sound/audacious[qt5] )
+	qt5? ( dev-qt/qtcore:5
+		dev-qt/qtgui:5
+		dev-qt/qtwidgets:5
+		media-sound/audacious[qt5] )
 	scrobbler? ( net-misc/curl )
 	sdl? ( media-libs/libsdl[sound] )
 	sid? ( >=media-libs/libsidplayfp-1.0.0 )
 	sndfile? ( >=media-libs/libsndfile-1.0.17-r1 )
-        soxr? ( media-libs/soxr )
+		soxr? ( media-libs/soxr )
 	vorbis? ( >=media-libs/libvorbis-1.2.0
-		  >=media-libs/libogg-1.1.3 )
+		>=media-libs/libogg-1.1.3 )
 	wavpack? ( >=media-sound/wavpack-4.50.1-r1 )"
 
 DEPEND="${RDEPEND}
@@ -66,7 +66,7 @@ DEPEND="${RDEPEND}
 DOCS="AUTHORS"
 
 pkg_setup() {
-    use qt5 && export PATH="/usr/$(get_libdir)/qt5/bin:${PATH}"
+	use qt5 && export PATH="/usr/$(get_libdir)/qt5/bin:${PATH}"
 }
 
 src_prepare() {
@@ -78,7 +78,7 @@ src_prepare() {
 			--c-namespace Mpris \
 			--generate-c-code object-player mpris2-player.xml
 		cd "${S}"
-    fi
+	fi
 }
 
 src_configure() {
@@ -93,8 +93,8 @@ src_configure() {
 		$(use_enable bs2b) \
 		$(use_enable cdda cdaudio) \
 		$(use_enable cue) \
-        $(use_with ffmpeg ffmpeg ffmpeg) \
-        $(use_with libav ffmpeg libav) \
+		$(use_with ffmpeg ffmpeg ffmpeg) \
+		$(use_with libav ffmpeg libav) \
 		$(use_enable filewriter) \
 		$(use_enable flac flacng) \
 		$(use_enable flac filewriter_flac) \
@@ -121,13 +121,13 @@ src_configure() {
 		$(use_enable soxr) \
 		$(use_enable vorbis) \
 		$(use_enable wavpack)
- 
-#	if use qt5 ; then
-#        sed -i 's/GENERAL_PLUGINS ?= /GENERAL_PLUGINS ?= qtui/g' extra.mk
-#        sed -i 's/@USE_QT@/yes/g' extra.mk
-#        cd "${S}/src/qtui"
-#        sed -i 's/CFLAGS += /CFLAGS += -fPIC/g' Makefile
-#        sed -i 's/CPPFLAGS += /CPPFLAGS += -fPIC/g' Makefile
-#        cd "${S}"
-#    fi
+
+# 	if use qt5 ; then
+# 		sed -i 's/GENERAL_PLUGINS ?= /GENERAL_PLUGINS ?= qtui/g' extra.mk
+# 		sed -i 's/@USE_QT@/yes/g' extra.mk
+# 		cd "${S}/src/qtui"
+# 		sed -i 's/CFLAGS += /CFLAGS += -fPIC/g' Makefile
+# 		sed -i 's/CPPFLAGS += /CPPFLAGS += -fPIC/g' Makefile
+# 		cd "${S}"
+# 	fi
 }

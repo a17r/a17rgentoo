@@ -1,4 +1,4 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -25,23 +25,23 @@ RDEPEND=">=dev-libs/dbus-glib-0.60
 	"
 
 DEPEND="${RDEPEND}
-    dev-util/gdbus-codegen
+	dev-util/gdbus-codegen
 	virtual/pkgconfig
 	chardet? ( >=app-i18n/libguess-1.1 )
-    gtk? ( x11-libs/gtk+:2 )
+	gtk? ( x11-libs/gtk+:2 )
 	nls? ( dev-util/intltool )
-    qt5? ( dev-qt/qtcore:5
-           dev-qt/qtgui:5
-           dev-qt/qtwidgets:5 )
-    "
+	qt5? ( dev-qt/qtcore:5
+		dev-qt/qtgui:5
+		dev-qt/qtwidgets:5 )
+	"
 
 PDEPEND="
-    ~media-plugins/audacious-plugins-9999
-    qt5? ( media-plugins/audacious-plugins[qt5] )
-    "
+	~media-plugins/audacious-plugins-9999
+	qt5? ( media-plugins/audacious-plugins[qt5] )
+	"
 
 pkg_setup() {
-    use qt5 && export PATH="/usr/$(get_libdir)/qt5/bin:${PATH}"
+	use qt5 && export PATH="/usr/$(get_libdir)/qt5/bin:${PATH}"
 }
 
 src_configure() {
@@ -66,8 +66,8 @@ src_install() {
 }
 
 pkg_postinst() {
-    if use qt5 && ( use gtk || use gtk3 ) ; then
-        ewarn 'It is not possible to switch between GTK+ and Qt while Audacious is running.'
-        ewarn 'Run audacious --qt to get the Qt interface.'
-    fi
+	if use qt5 && ( use gtk || use gtk3 ) ; then
+		ewarn 'It is not possible to switch between GTK+ and Qt while Audacious is running.'
+		ewarn 'Run audacious --qt to get the Qt interface.'
+	fi
 }
