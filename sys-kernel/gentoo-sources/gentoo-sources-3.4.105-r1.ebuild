@@ -40,35 +40,37 @@ src_prepare() {
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_ppgtt-binding_unbinding-support.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_split-out-dma-mapping-from-global-gtt-bind_unbind-functions.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_drop-gtt-slowpath.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_clear-the-entire-gtt-when-using-gem.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_move-i915_gem_do_init.patch \
+		"${FILESDIR}"/relocation-issue/3.4.105-i915_clear-the-entire-gtt-when-using-gem.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_ring-irq-cleanups.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_open-code-gen6+-ring-irqs.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_dynamically-set-up-the-render-ring-functions-and-params.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_abstract-away-ring-specific-irq_get_put.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_dynamically-set-up-bsd-ring-functions-and-params.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_rip-out-ring_irq_mask.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_split-out-the-gen5-ring-irq-get_put-functions.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_set-ring_size-in-common-ring-setup-code.patch \
+		"${FILESDIR}"/relocation-issue/3.4.105-i915_dynamically-set-up-the-render-ring-functions-and-params.patch \
+		"${FILESDIR}"/relocation-issue/3.4.105-i915_dynamically-set-up-bsd-ring-functions-and-params.patch \
+		"${FILESDIR}"/relocation-issue/3.4.105-i915_abstract-away-ring-specific-irq_get_put.patch \
+		"${FILESDIR}"/relocation-issue/3.4.105-i915_split-out-the-gen5-ring-irq-get_put-functions.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_splitup-ring-dispatch_execbuffer-functions.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_replace-open-coded-MI_BATCH_GTT.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_remove-i915_gem_evict_inactive.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_add-colouring-to-the-range-allocator.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_segregate-memory-domains-in-the-GTT-using-coloring.patch \
 		"${FILESDIR}"/relocation-issue/3.4.105-i915_only-pwrite-through-the-GTT-if-there-is-space-in-the-aperture.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_track-unbound-pages.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_allow_DRM_ROOT_ONLY-DRM_MASTER-to-submit-privileged-batchbuffers.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_defer-assignment-of-obj_gtt_space-until-after-all-possible-mallocs.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_preallocate-the-drm_mm_node-prior-to-manipulating-the-GTT.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_implement-workaround-for-broken-CS-tlb-on-i830_845.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_pre-fixes-for-checkpatch.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_create-VMAs.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_use-new-bind_unbind-in-eviction-code.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_consolidate-binding-parameters-into-flags.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-i915_split-PIN_GLOBAL-out-from-PIN_MAPPABLE.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-prevent-negative-relocation-deltas-from-wrapping.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-evict-CS-TLBs-between-batches.patch \
-		"${FILESDIR}"/relocation-issue/3.4.105-disallow-pin-ioctl-completely-for-kms-drivers.patch
+		"${FILESDIR}"/relocation-issue/3.4.105-i915_shutup-six-instances-of-Warray-bounds.patch
+
+#########
+# # 		"${FILESDIR}"/relocation-issue/3.4.105-i915_track-unbound-pages.patch \
+# 	epatch "${FILESDIR}"/relocation-issue/3.4.105-i915_allow_DRM_ROOT_ONLY-DRM_MASTER-to-submit-privileged-batchbuffers.patch \
+# 		"${FILESDIR}"/relocation-issue/3.4.105-i915_defer-assignment-of-obj_gtt_space-until-after-all-possible-mallocs.patch
+# # 		"${FILESDIR}"/relocation-issue/3.4.105-i915_preallocate-the-drm_mm_node-prior-to-manipulating-the-GTT.patch \
+# 	epatch "${FILESDIR}"/relocation-issue/3.4.105-i915_implement-workaround-for-broken-CS-tlb-on-i830_845.patch \
+# 		"${FILESDIR}"/relocation-issue/3.4.105-i915_pre-fixes-for-checkpatch.patch \
+# 		"${FILESDIR}"/relocation-issue/3.4.105-i915_use-new-bind_unbind-in-eviction-code.patch \
+# 		"${FILESDIR}"/relocation-issue/3.4.105-i915_consolidate-binding-parameters-into-flags.patch \
+# 		"${FILESDIR}"/relocation-issue/3.4.105-i915_split-PIN_GLOBAL-out-from-PIN_MAPPABLE.patch \
+# 		"${FILESDIR}"/relocation-issue/3.4.105-prevent-negative-relocation-deltas-from-wrapping.patch \
+# 		"${FILESDIR}"/relocation-issue/3.4.105-evict-CS-TLBs-between-batches.patch \
+# 		"${FILESDIR}"/relocation-issue/3.4.105-disallow-pin-ioctl-completely-for-kms-drivers.patch
 
 	# backport optimistic locking from 3.16
 # 	epatch "${FILESDIR}"/3.4.105-backport-optimistic-spinning-10-move-the-mutex-code-to-kernel_locking.patch \

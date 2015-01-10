@@ -1,0 +1,26 @@
+From 1a8c55d37268d8b7ab7797e6d378caa697dbd029 Mon Sep 17 00:00:00 2001
+From: Ben Widawsky <ben@bwidawsk.net>
+Date: Wed, 15 Feb 2012 14:42:42 +0100
+Subject: drm/i915: [dinq] shut up six instances of -Warray-bounds
+
+Introduced in commits c1cd90ed and d27b1e0e
+
+Signed-off-by: Ben Widawsky <ben@bwidawsk.net>
+[danvet: s/fix/shut up in the commit msg and add a comment to the
+BUG_ON.]
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+
+diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
+index fdb7cce..66c90d4 100644
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -704,6 +704,7 @@ static void i915_ring_error_state(struct seq_file *m,
+ 				  struct drm_i915_error_state *error,
+ 				  unsigned ring)
+ {
++	BUG_ON(ring > VCS); /* shut up confused gcc */
+ 	seq_printf(m, "%s command stream:\n", ring_str(ring));
+ 	seq_printf(m, "  HEAD: 0x%08x\n", error->head[ring]);
+ 	seq_printf(m, "  TAIL: 0x%08x\n", error->tail[ring]);
+-- 
+cgit v0.10.2
