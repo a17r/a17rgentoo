@@ -1,4 +1,4 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: /var/cvsroot/gentoo-x86/mail-client/trojita/trojita-9999.ebuild,v 1.24 2014/04/29 16:44:18 johu Exp $
 
@@ -60,8 +60,6 @@ DEPEND="${RDEPEND}
 "
 
 DOCS="README LICENSE"
-
-PATCHES=( "${FILESDIR}/${PN}-9999-fix-build-with-qt5keychain.patch" )
 
 src_configure() {
 	local mycmakeargs=(
