@@ -208,7 +208,6 @@ fi
 # FIXME: cppunit should be moved to test conditional
 #        after everything upstream is under gbuild
 #        as dmake execute tests right away
-# 	net-misc/npapi-sdk
 DEPEND="${COMMON_DEPEND}
 	>=dev-libs/libatomic_ops-7.2d
 	>=dev-libs/libxml2-2.7.8
@@ -219,6 +218,7 @@ DEPEND="${COMMON_DEPEND}
 	dev-util/intltool
 	>=dev-util/mdds-0.10.3:=
 	media-libs/glm
+	net-misc/npapi-sdk
 	>=sys-apps/findutils-4.4.2
 	sys-devel/bison
 	sys-apps/coreutils
