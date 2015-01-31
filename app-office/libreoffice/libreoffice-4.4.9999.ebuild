@@ -27,7 +27,7 @@ BRANDING="${PN}-branding-gentoo-0.8.tar.xz"
 # PATCHSET="${P}-patchset-01.tar.xz"
 
 [[ ${PV} == *9999* ]] && SCM_ECLASS="git-2"
-inherit base multiprocessing autotools bash-completion-r1 check-reqs eutils java-pkg-opt-2 kde4-base pax-utils python-single-r1 multilib toolchain-funcs flag-o-matic nsplugins ${SCM_ECLASS}
+inherit base multiprocessing autotools bash-completion-r1 check-reqs eutils java-pkg-opt-2 kde4-base pax-utils python-single-r1 multilib toolchain-funcs flag-o-matic ${SCM_ECLASS}
 unset SCM_ECLASS
 
 DESCRIPTION="LibreOffice, a full office productivity suite"
@@ -208,6 +208,7 @@ fi
 # FIXME: cppunit should be moved to test conditional
 #        after everything upstream is under gbuild
 #        as dmake execute tests right away
+# 	net-misc/npapi-sdk
 DEPEND="${COMMON_DEPEND}
 	>=dev-libs/libatomic_ops-7.2d
 	>=dev-libs/libxml2-2.7.8
@@ -218,7 +219,6 @@ DEPEND="${COMMON_DEPEND}
 	dev-util/intltool
 	>=dev-util/mdds-0.10.3:=
 	media-libs/glm
-	net-misc/npapi-sdk
 	>=sys-apps/findutils-4.4.2
 	sys-devel/bison
 	sys-apps/coreutils
@@ -564,9 +564,6 @@ src_install() {
 		dodir /etc/env.d
 		echo "CONFIG_PROTECT=/usr/$(get_libdir)/${PN}/program/sofficerc" > "${ED}"/etc/env.d/99${PN}
 	fi
-
-	# symlink the nsplugin to proper location
-	# use gtk && inst_plugin /usr/$(get_libdir)/libreoffice/program/libnpsoplugin.so
 
 	# Hack for offlinehelp, this needs fixing upstream at some point.
 	# It is broken because we send --without-help
