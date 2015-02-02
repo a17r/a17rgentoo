@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Header: /var/cvsroot/gentoo-x86/media-libs/opencollada/opencollada-0_p20130925.ebuild,v 1 2013/09/25 18:32:28 blueness Exp $
 
-EAPI="3"
+EAPI="5"
 
 inherit eutils multilib cmake-utils vcs-snapshot
 
@@ -53,9 +53,9 @@ src_configure() {
 	cmake-utils_src_configure
 }
 
-src_compile() {
-	MAKEOPTS="${MAKEOPTS} -j1" cmake-utils_src_compile  # TODO
-}
+# src_compile() {
+# 	MAKEOPTS="${MAKEOPTS} -j1" cmake-utils_src_compile  # TODO
+# }
 
 src_install() {
 	cmake-utils_src_install
@@ -68,4 +68,10 @@ src_install() {
 			> "${D}"/etc/env.d/99opencollada || die
 
 	dobin build/bin/OpenCOLLADAValidator || die
+
+	local l
+	cd "${D}"/usr/$(get_libdir)/opencollada || die
+	for l in lib{Open,Gen,Math}*.so; do
+		dosym opencollada/${l} /usr/$(get_libdir)/${l}
+	done
 }
