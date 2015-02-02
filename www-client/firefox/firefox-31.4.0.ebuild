@@ -1,6 +1,6 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/www-client/firefox/firefox-31.3.0.ebuild,v 1.5 2014/12/10 19:34:36 ago Exp $
+# $Header: $
 
 EAPI="5"
 VIRTUALX_REQUIRED="pgo"
@@ -365,9 +365,9 @@ src_install() {
 	fi
 
 	# Required in order to use plugins and even run firefox on hardened.
-	pax-mark m "${ED}"${MOZILLA_FIVE_HOME}/{firefox,firefox-bin,plugin-container}
+	pax-mark m "${ED}"${MOZILLA_FIVE_HOME}/plugin-container
 	# Required in order for jit to work on hardened, as of firefox-31
-	use jit && pax-mark p "${ED}"${MOZILLA_FIVE_HOME}/{firefox,firefox-bin}
+	use jit && pax-mark pm "${ED}"${MOZILLA_FIVE_HOME}/{firefox,firefox-bin}
 
 	if use minimal; then
 		rm -r "${ED}"/usr/include "${ED}${MOZILLA_FIVE_HOME}"/{idl,include,lib,sdk} \
