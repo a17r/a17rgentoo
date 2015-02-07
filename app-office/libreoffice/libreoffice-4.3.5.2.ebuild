@@ -99,7 +99,7 @@ COMMON_DEPEND="
 	${PYTHON_DEPS}
 	app-arch/zip
 	app-arch/unzip
-	>=app-text/hunspell-1.3.3
+	>=app-text/hunspell-1.3.2-r3
 	app-text/mythes
 	>=app-text/libabw-0.1.0
 	>=app-text/libexttextcat-3.2
@@ -254,15 +254,15 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.3.3.2-make-valgrind-support-optional.patch"
 
 	# from 4.3 branch
-	"${FILESDIR}/${PN}-4.3.5.2-return-IsUserDefined-without-negation.patch"
+	"${FILESDIR}/${PN}-4.3.5.2-return-IsUserDefined-w-o-negation.patch" # bug 524770
 
 	# from 4.4 branch
 	"${FILESDIR}/${PN}-4.3.1.2-implement--with-system-coinmp.patch"
-	"${FILESDIR}/${PN}-4.3.2.2-boost-1.56.0.patch"
 	"${FILESDIR}/${PN}-4.3.2.2-add-dbtools-to-libmerged.patch"
-	"${FILESDIR}/${PN}-4.3.2.2-implement-with-system-opencollada.patch"
 	"${FILESDIR}/${PN}-4.3.4.1-system-gltf-should-follow-system-libs.patch"
-	"${FILESDIR}/${PN}-4.3.4.1-detect-kde5-fallback-to-kde4ui.patch"
+	"${FILESDIR}/${PN}-4.3.4.1-boost-1.56.0.patch" # bug 522178
+	"${FILESDIR}/${PN}-4.3.5.2-system-opencollada.patch"
+	"${FILESDIR}/${PN}-4.3.5.2-detect-KDE5-fallback-to-KDE4UI.patch"
 	"${FILESDIR}/${PN}-4.3.4.1-bin-unused-disable-vba-option.patch"
 	"${FILESDIR}/${PN}-4.3.4.1-backport-pdf-signing-from-4.4.patch"
 )
