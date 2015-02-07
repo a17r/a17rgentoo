@@ -1,6 +1,6 @@
 # Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/media-libs/opencollada/opencollada-0_p20130925.ebuild,v 1 2013/09/25 18:32:28 blueness Exp $
+# $Header: $
 
 EAPI="5"
 
@@ -13,7 +13,7 @@ SRC_URI="https://github.com/KhronosGroup/OpenCOLLADA/tarball/${COMMIT} -> ${P}.t
 
 LICENSE="MIT"
 SLOT="0"
-KEYWORDS="~amd64 ~x86"
+KEYWORDS="~amd64 ~ppc64 ~x86"
 IUSE="expat"
 
 RDEPEND="dev-libs/libpcre
@@ -53,10 +53,6 @@ src_configure() {
 	cmake-utils_src_configure
 }
 
-# src_compile() {
-# 	MAKEOPTS="${MAKEOPTS} -j1" cmake-utils_src_compile  # TODO
-# }
-
 src_install() {
 	cmake-utils_src_install
 	if [[ $(get_libdir) != 'lib' ]]; then
@@ -71,7 +67,7 @@ src_install() {
 
 	local l
 	cd "${D}"/usr/$(get_libdir)/opencollada || die
-	for l in lib{Open,Gen,Math}*.so; do
+	for l in lib{Open,Gen}*.so; do
 		dosym opencollada/${l} /usr/$(get_libdir)/${l}
 	done
 }
