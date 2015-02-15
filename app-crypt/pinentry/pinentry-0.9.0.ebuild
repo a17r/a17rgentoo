@@ -1,6 +1,6 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/app-crypt/pinentry/pinentry-0.8.4.ebuild,v 1.1 2014/10/08 06:39:06 alonbl Exp $
+# $Header: $
 
 EAPI=5
 
@@ -47,6 +47,8 @@ src_prepare() {
 	fi
 	epatch "${FILESDIR}/${PN}-0.8.2-ncurses.patch"
 	epatch "${FILESDIR}/${PN}-0.8.2-texi.patch"
+	epatch "${FILESDIR}/${PN}-0.9.0-qt4-accessibility-optional.patch"
+	epatch "${FILESDIR}/${PN}-0.9.0-qt4-improve-moc-handling.patch"
 	eautoreconf
 }
 
