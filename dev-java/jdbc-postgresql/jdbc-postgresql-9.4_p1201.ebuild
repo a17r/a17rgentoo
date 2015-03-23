@@ -38,15 +38,14 @@ S="${WORKDIR}/postgresql-jdbc-${MY_PV}.src"
 java_prepare() {
 	find -name "*.class" -type f -exec rm -v {} + || die
 
-	sed -i -e '/name="compile"/ s/,maven-dependencies//' build.xml || die
+	sed -i -e '/<target name="compile"/ s/,maven-dependencies//' build.xml || die
 	sed -i -e '/<classpath.*dependency\.compile\.classpath/c\' build.xml || die
-	sed -i -e '/sspi/c\' build.xml || die
+	sed -i -e '/<target name="artifact-version"/ { N; /description/ { N; /depends/ s/depends="maven-dependencies"// } }' build.xml || die
+	sed -i -e '/<include.*sspi/c\' build.xml || die
 	sed -i -e '/<include.*osgi/c\' build.xml || die
 
 	rm -vrf org/postgresql/sspi || die
 	rm -vrf org/postgresql/osgi || die
-
-	sed -i -e '/<target name="artifact-version"/ { N; /description/ { N; /depends/ s/depends="maven-dependencies"// } }' build.xml || die
 
 	epatch "${FILESDIR}"/${P}-remove-sspi.patch
 	epatch "${FILESDIR}"/${P}-remove-osgi.patch
