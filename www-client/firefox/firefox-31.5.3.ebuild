@@ -42,6 +42,7 @@ HOMEPAGE="http://www.mozilla.com/firefox"
 KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linux"
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
+RESTRICT="!bindist? ( bindist )"
 IUSE="bindist hardened kde +minimal pgo selinux test"
 
 # More URIs appended below...
