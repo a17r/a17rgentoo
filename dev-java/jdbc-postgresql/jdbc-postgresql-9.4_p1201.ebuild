@@ -29,7 +29,8 @@ DEPEND="
 	)
 	test? (
 		dev-java/ant-junit
-		dev-db/postgresql[server]
+		dev-java/junit:4
+		>=dev-db/postgresql-9.3[server]
 	)"
 RDEPEND=">=virtual/jre-1.6"
 
@@ -40,12 +41,15 @@ java_prepare() {
 
 	sed -i -e '/<target name="compile"/ s/,maven-dependencies//' build.xml || die
 	sed -i -e '/<classpath.*dependency\.compile\.classpath/c\' build.xml || die
+	sed -i -e '/<classpath.*dependency\.runtime\.classpath/c\' build.xml || die
+	sed -i -e '/<classpath.*dependency\.test\.classpath/c\' build.xml || die
 	sed -i -e '/<target name="artifact-version"/ { N; /description/ { N; /depends/ s/depends="maven-dependencies"// } }' build.xml || die
 	sed -i -e '/<include.*sspi/c\' build.xml || die
 	sed -i -e '/<include.*osgi/c\' build.xml || die
 
-	rm -vrf org/postgresql/sspi || die
-	rm -vrf org/postgresql/osgi || die
+	rm -vrf org/postgresql/sspi || die "Error removing sspi"
+	rm -vrf org/postgresql/osgi || die "Error removing osgi"
+	rm -vrf org/postgresql/test/osgi || die "Error removing osgi tests"
 
 	epatch "${FILESDIR}"/${P}-remove-sspi.patch
 	epatch "${FILESDIR}"/${P}-remove-osgi.patch
@@ -53,7 +57,6 @@ java_prepare() {
 
 JAVA_ANT_REWRITE_CLASSPATH="yes"
 EANT_DOC_TARGET="publicapi"
-# EANT_EXTRA_ARGS="-Dartifact.version.string=${PN}"
 
 src_compile() {
 	EANT_BUILD_TARGET="release-version jar"
@@ -71,14 +74,14 @@ src_compile() {
 src_test() {
 	einfo "In order to run the tests successfully, you have to have:"
 	einfo "1) PostgreSQL server running"
-	einfo "2) database 'test' defined with user 'test' with password 'password'"
+	einfo "2) database 'test' defined with user 'test' with password 'test'"
 	einfo "   as owner of the database"
 	einfo "3) plpgsql support in the 'test' database"
 	einfo
 	einfo "You can find a general info on how to perform these steps at"
 	einfo "https://wiki.gentoo.org/wiki/PostgreSQL"
 
-	ANT_TASKS="ant-junit" eant test -Dgentoo.classpath=$(java-pkg_getjars --build-only junit)
+	ANT_TASKS="ant-junit" eant test -Dgentoo.classpath=$(java-pkg_getjars --build-only junit-4)
 }
 
 src_install() {
