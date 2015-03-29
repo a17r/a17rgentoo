@@ -39,19 +39,23 @@ S="${WORKDIR}/postgresql-jdbc-${MY_PV}.src"
 java_prepare() {
 	find -name "*.class" -type f -exec rm -v {} + || die
 
-	sed -i -e '/<target name="compile"/ s/,maven-dependencies//' build.xml || die
+	# Strip build.xml of maven deps
 	sed -i -e '/<classpath.*dependency\.compile\.classpath/c\' build.xml || die
 	sed -i -e '/<classpath.*dependency\.runtime\.classpath/c\' build.xml || die
 	sed -i -e '/<classpath.*dependency\.test\.classpath/c\' build.xml || die
-	sed -i -e '/<target name="artifact-version"/ { N; /description/ { N; /depends/ s/depends="maven-dependencies"// } }' build.xml || die
-	sed -i -e '/<include.*sspi/c\' build.xml || die
-	sed -i -e '/<include.*osgi/c\' build.xml || die
+	sed -i -e '/<target name="artifact-version"/,/<[/]target>/{s/depends="maven-dependencies"//}' build.xml || die
+	sed -i -e '/<target name="compile"/ s/,maven-dependencies//' build.xml || die
 
+	# Remove SSPI, it pulls in Waffle-JNA and is only used on Windows
+	sed -i -e '/<include.*sspi/c\' build.xml || die
 	rm -vrf org/postgresql/sspi || die "Error removing sspi"
+	epatch "${FILESDIR}"/${P}-remove-sspi.patch
+
+	# FIXME @someone who cares: enable through osgi flag?
+	sed -i -e '/<include.*osgi/c\' build.xml || die
+	sed -i -e '/<test.*osgi/c\' build.xml || die
 	rm -vrf org/postgresql/osgi || die "Error removing osgi"
 	rm -vrf org/postgresql/test/osgi || die "Error removing osgi tests"
-
-	epatch "${FILESDIR}"/${P}-remove-sspi.patch
 	epatch "${FILESDIR}"/${P}-remove-osgi.patch
 }
 
