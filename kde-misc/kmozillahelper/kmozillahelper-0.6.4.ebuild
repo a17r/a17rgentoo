@@ -1,8 +1,8 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-EAPI=4
+EAPI=5
 inherit kde4-base
 
 DESCRIPTION="KDE4 integration for Firefox"
@@ -11,13 +11,8 @@ SRC_URI="https://build.opensuse.org/source/mozilla:Factory/mozilla-kde4-integrat
 
 LICENSE="MIT"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~x86 ~ppc"
+KEYWORDS="~amd64 ~arm ~ppc ~x86"
 
-IUSE=""
+PATCHES=( "${FILESDIR}/CMakeLists.txt.diff" )
 
 S="${WORKDIR}/${PN}"
-
-src_prepare() {
-	epatch "${FILESDIR}/CMakeLists.txt.diff"
-	kde4-base_src_prepare
-}
