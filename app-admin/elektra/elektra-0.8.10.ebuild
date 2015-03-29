@@ -1,4 +1,4 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -21,14 +21,16 @@ fi
 
 LICENSE="BSD"
 SLOT="0"
-PLUGIN_IUSE="iconv ini java keytometa simpleini syslog systemd tcl +uname xml yajl";
+PLUGIN_IUSE="iconv ini keytometa simpleini syslog systemd tcl +uname xml yajl";
+# PLUGIN_IUSE+="java" # enable when jdk8 is unmasked
 IUSE="dbus doc examples qt5 static-libs test ${PLUGIN_IUSE}"
 
+# enable when jdk8 is unmasked
+#	java? ( >=virtual/jdk-1.8.0:1.8 )
 RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 	>=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
 	dbus? ( >=sys-apps/dbus-1.6.18-r1[${MULTILIB_USEDEP}] )
 	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
-	java? ( >=virtual/jdk-1.8.0:1.8 )
 	qt5? (
 		>=dev-qt/qtdeclarative-5.3
 		>=dev-qt/qtgui-5.3
@@ -78,7 +80,7 @@ multilib_src_configure() {
 #	use doc       && my_plugins+=";doc"		#bug 514402; examples?
 	use iconv     && my_plugins+=";iconv"
 	use ini       && my_plugins+=";ini"		#bundles inih - baaad
-	use java      && my_plugins+=";jni"
+# 	use java      && my_plugins+=";jni"		#enable when jdk8 is unmasked
 	use keytometa && my_plugins+=";keytometa"
 	use simpleini && my_plugins+=";simpleini"
 	use syslog    && my_plugins+=";syslog"
