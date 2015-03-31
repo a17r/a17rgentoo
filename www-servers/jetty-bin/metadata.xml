@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+<herd>java</herd>
+<use>
+	<flag name="anttasks">Support for jetty ant tasks</flag>
+	<flag name="client">client support</flag>
+	<flag name="stats">java5 stats</flag>
+	<flag name="tomcat7">tomcat-7 support</flag>
+</use>
+</pkgmetadata>
