@@ -1,12 +1,13 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/virtual/ssh/ssh-0.ebuild,v 1.1 2011/04/16 19:27:07 ulm Exp $
-EAPI="2"
+# $Header: $
+
+EAPI="5"
 
 inherit java-virtuals-2
 
 DESCRIPTION="Virtual for Jetty www server"
-HOMEPAGE=""
+HOMEPAGE="http://www.gentoo.org"
 SRC_URI=""
 
 LICENSE=""
