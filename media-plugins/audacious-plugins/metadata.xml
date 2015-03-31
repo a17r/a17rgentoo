@@ -22,7 +22,7 @@
 	<flag name='scrobbler'>Build with scrobbler/LastFM submission support</flag>
 	<flag name='sid'>Build with SID (Commodore 64 Audio) support</flag>
 	<flag name='soxr'>Support SOX Resampler library</flag>
-	<flag name='soxr'>Enable OpenGL spectram analizer</flag>
+	<flag name='spectrum'>Enable OpenGL spectram analizer</flag>
 	<flag name='volbis'>Support Volbis decode</flag>
 </use>
 
