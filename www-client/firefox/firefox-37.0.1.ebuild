@@ -59,7 +59,7 @@ ASM_DEPEND=">=dev-lang/yasm-1.1"
 # Mesa 7.10 needed for WebGL + bugfixes
 RDEPEND="
 	>=dev-libs/nss-3.17.4
-	>=dev-libs/nspr-4.10.7
+	>=dev-libs/nspr-4.10.8
 	kde? ( kde-misc/kmozillahelper )
 	selinux? ( sec-policy/selinux-mozilla )"
 
@@ -149,8 +149,6 @@ src_prepare() {
 	epatch "${WORKDIR}/firefox"
 
 	epatch "${FILESDIR}"/${PN}-35.0-gmp-clearkey-sprintf.patch
-	#epatch "${FILESDIR}"/${PN}-36.0-disable-ion.patch
-	#epatch "${FILESDIR}"/${PN}-36.0-depollute-CONST-from-dtoa.patch
 
 	# Allow user to apply any additional patches without modifing ebuild
 	epatch_user
