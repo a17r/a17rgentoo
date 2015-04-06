@@ -40,14 +40,18 @@ RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 	)
 	uname? ( sys-apps/coreutils )
 	systemd? ( virtual/udev[systemd] )
-	yajl? ( >=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}] )"
+	yajl? ( >=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}] )
+"
 DEPEND="${RDEPEND}
 	doc? ( app-doc/doxygen )
-	test? ( >=dev-cpp/gtest-1.7.0 )"
+	test? ( >=dev-cpp/gtest-1.7.0 )
+"
 
 DOCS="README.md doc/AUTHORS doc/CODING.md doc/NEWS.md doc/todo/TODO"
 # tries to write to user's home directory (and doesn't respect HOME)
 RESTRICT="test"
+
+MULTILIB_WRAPPED_HEADERS=( /usr/include/elektra/kdbconfig.h )
 
 src_prepare() {
 
@@ -58,16 +62,7 @@ src_prepare() {
 	# https://code.google.com/p/inih/
 	rm -rf src/external || die
 
-	local tests="augeas fstab hosts ini line yajl xmltool"
-	if ! use test ; then
-		einfo remove test data
-		for t in ${tests}; do
-			sed -e '/TARGET_TEST_DATA_FOLDER/ s/^#*/#/' \
-				-i src/plugins/${t}/CMakeLists.txt || die "Unable to remove ${t} test_data"
-		done
-	fi
-
-	#move doc files to correct location
+	# move doc files to correct location
 	sed -e "s/elektra-api/${PF}/" \
 		-i cmake/ElektraCache.cmake || die
 
@@ -75,27 +70,34 @@ src_prepare() {
 }
 
 multilib_src_configure() {
-	local my_plugins="ccode;constants;dump;error;fstab;glob;hexcode;hidden;hosts;keytometa;line;network;"
-	my_plugins+="ni;null;path;regexstore;rename;resolver;struct;sync;timeofday;tracer;type;validation"
+	local my_plugins="ALL"
 
-	use augeas    && multilib_is_native_abi && my_plugins+=";augeas"
-	use dbus      && my_plugins+=";dbus"
-	use iconv     && my_plugins+=";iconv"
-	use ini       && my_plugins+=";ini"		#bundles inih
-	use simpleini && my_plugins+=";simpleini"
-	use syslog    && my_plugins+=";syslog"
-	use systemd   && my_plugins+=";journald"
-	use tcl       && my_plugins+=";tcl"
-	use uname     && my_plugins+=";uname"
-	use xml       && my_plugins+=";xmltool"
-	use yajl      && my_plugins+=";yajl"
-	# use java      && my_plugins+=";jni"	# FIXME: enable when jdk8 is unmasked
-	### Disabled for good:
+	if use augeas ; then
+		multilib_is_native_abi || my_plugins+=";-augeas"	# no multilib ebuild available
+	else
+		my_plugins+=";-augeas"
+	fi
+	use dbus      || my_plugins+=";-dbus"
+	use iconv     || my_plugins+=";-iconv"
+	use ini       || my_plugins+=";-ini"		# bundles inih
+	use simpleini || my_plugins+=";-simpleini"
+	use syslog    || my_plugins+=";-syslog"
+	use systemd   || my_plugins+=";-journald"
+	use tcl       || my_plugins+=";-tcl"
+	use uname     || my_plugins+=";-uname"
+	use xml       || my_plugins+=";-xmltool"
+	use yajl      || my_plugins+=";-yajl"
+
+	# FIXME: enable when jdk8 is unmasked
+	my_plugins+=";-jni"
+
+	# Disabled for good (?):
 	# counter - Only useful for debugging the plugin framework
 	# doc - Documentation explaining the basic makeup of a function // bug #514402;
 	# noresolver - Does not resolve, but can act as one
 	# template - Template for new plugin written in C
 	# wresolver - Resolver for non-POSIX, e.g. w32/w64 systems
+	my_plugins+=";-counter;-doc;-noresolver;-template;-wresolver"
 
 	local my_tools="kdb"
 
@@ -116,4 +118,11 @@ multilib_src_configure() {
 	)
 
 	cmake-utils_src_configure
+}
+
+src_install() {
+	cmake-utils_src_install
+
+	einfo remove test_data
+	rm -rvf "${D}/usr/share/${PN}" || die "Failed to remove test_data"
 }
