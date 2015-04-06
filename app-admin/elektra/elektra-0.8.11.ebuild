@@ -6,7 +6,7 @@ EAPI=5
 
 inherit cmake-multilib eutils
 
-DESCRIPTION="universal and secure framework to store config parameters in a hierarchical key-value pair mechanism"
+DESCRIPTION="Universal and secure framework to store config parameters in a hierarchical key-value pair mechanism"
 HOMEPAGE="http://freedesktop.org/wiki/Software/Elektra"
 
 if [[ ${PV} == "9999" ]] ; then
@@ -21,7 +21,7 @@ fi
 
 LICENSE="BSD"
 SLOT="0"
-PLUGIN_IUSE="iconv ini keytometa simpleini syslog systemd tcl +uname xml yajl";
+PLUGIN_IUSE="augeas iconv ini simpleini syslog systemd tcl +uname xml yajl";
 # PLUGIN_IUSE+="java" # enable when jdk8 is unmasked
 IUSE="dbus doc examples qt5 static-libs test ${PLUGIN_IUSE}"
 
@@ -29,6 +29,7 @@ IUSE="dbus doc examples qt5 static-libs test ${PLUGIN_IUSE}"
 #	java? ( >=virtual/jdk-1.8.0:1.8 )
 RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 	>=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
+	augeas? ( app-admin/augeas )
 	dbus? ( >=sys-apps/dbus-1.6.18-r1[${MULTILIB_USEDEP}] )
 	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
 	qt5? (
@@ -57,14 +58,14 @@ src_prepare() {
 	# https://code.google.com/p/inih/
 	rm -rf src/external || die
 
-# 	local tests="augeas fstab hosts ini yajl"
-# 	if ! use test ; then
-# 		einfo remove test data
-# 		for test in ${tests}; do
-# 			sed -e '/TARGET_TEST_DATA_FOLDER/ s/^#*/#/' \
-# 				-i src/plugins/${test}/CMakeLists.txt || die
-# 		done
-# 	fi
+	local tests="augeas fstab hosts ini line yajl xmltool"
+	if ! use test ; then
+		einfo remove test data
+		for t in ${tests}; do
+			sed -e '/TARGET_TEST_DATA_FOLDER/ s/^#*/#/' \
+				-i src/plugins/${t}/CMakeLists.txt || die "Unable to remove ${t} test_data"
+		done
+	fi
 
 	#move doc files to correct location
 	sed -e "s/elektra-api/${PF}/" \
@@ -74,14 +75,13 @@ src_prepare() {
 }
 
 multilib_src_configure() {
-	local my_plugins="ccode;constants;dump;error;fstab;glob;hexcode;hidden;hosts;line;network;ni;null;path;regexstore;rename;resolver;struct;sync;template;timeofday;tracer;type;validation"
+	local my_plugins="ccode;constants;dump;error;fstab;glob;hexcode;hidden;hosts;keytometa;line;network;"
+	my_plugins+="ni;null;path;regexstore;rename;resolver;struct;sync;timeofday;tracer;type;validation"
 
+	use augeas    && multilib_is_native_abi && my_plugins+=";augeas"
 	use dbus      && my_plugins+=";dbus"
-#	use doc       && my_plugins+=";doc"		#bug 514402; examples?
 	use iconv     && my_plugins+=";iconv"
-	use ini       && my_plugins+=";ini"		#bundles inih - baaad
-# 	use java      && my_plugins+=";jni"		#enable when jdk8 is unmasked
-	use keytometa && my_plugins+=";keytometa"
+	use ini       && my_plugins+=";ini"		#bundles inih
 	use simpleini && my_plugins+=";simpleini"
 	use syslog    && my_plugins+=";syslog"
 	use systemd   && my_plugins+=";journald"
@@ -89,10 +89,17 @@ multilib_src_configure() {
 	use uname     && my_plugins+=";uname"
 	use xml       && my_plugins+=";xmltool"
 	use yajl      && my_plugins+=";yajl"
+	# use java      && my_plugins+=";jni"	# FIXME: enable when jdk8 is unmasked
+	### Disabled for good:
+	# counter - Only useful for debugging the plugin framework
+	# doc - Documentation explaining the basic makeup of a function // bug #514402;
+	# noresolver - Does not resolve, but can act as one
+	# template - Template for new plugin written in C
+	# wresolver - Resolver for non-POSIX, e.g. w32/w64 systems
 
 	local my_tools="kdb"
 
-	use qt5       && my_tools+=";qt-gui"
+	use qt5 && multilib_is_native_abi && my_tools+=";qt-gui"
 
 	mycmakeargs=(
 		"-DPLUGINS=${my_plugins}"

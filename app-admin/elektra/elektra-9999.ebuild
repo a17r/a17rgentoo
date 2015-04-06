@@ -1,1 +1,1 @@
-elektra-0.8.10.ebuild
+elektra-0.8.11.ebuild
