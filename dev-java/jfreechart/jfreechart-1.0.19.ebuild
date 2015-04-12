@@ -18,19 +18,20 @@ KEYWORDS="~amd64 ~ppc ~x86 ~amd64-linux ~x86-linux"
 IUSE="+servlet test"
 
 COMMON_DEPEND="
-	>=virtual/jdk-1.6
 	>=dev-java/jcommon-1.0.23:1.0
 	>=dev-java/jfreesvg-2.0
 	servlet? ( java-virtuals/servlet-api:2.3 )"
 
 DEPEND="${COMMON_DEPEND}
 	app-arch/unzip
+	>=virtual/jdk-1.6
 	test? (
 		dev-java/ant-junit:0
 		dev-java/junit:4
 	)"
 
-RDEPEND="${COMMON_DEPEND}"
+RDEPEND="${COMMON_DEPEND}
+	>=virtual/jre-1.6"
 
 JAVA_PKG_FILTER_COMPILER="jikes"
 

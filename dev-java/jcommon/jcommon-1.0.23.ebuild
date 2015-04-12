@@ -22,7 +22,7 @@ DEPEND="
 	>=virtual/jdk-1.6
 	app-arch/unzip
 	test? ( dev-java/junit:4 )"
-RDEPEND=">=virtual/jdk-1.6"
+RDEPEND=">=virtual/jre-1.6"
 
 S=${WORKDIR}/${MY_P}
 
