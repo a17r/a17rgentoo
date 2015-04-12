@@ -1,8 +1,8 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-EAPI="5"
+EAPI=5
 
 JAVA_PKG_IUSE="doc source"
 
@@ -23,8 +23,7 @@ COMMON_DEPEND="
 	>=dev-java/jfreesvg-2.0
 	servlet? ( java-virtuals/servlet-api:2.3 )"
 
-DEPEND="
-	${COMMON_DEPEND}
+DEPEND="${COMMON_DEPEND}
 	app-arch/unzip
 	test? (
 		dev-java/ant-junit:0

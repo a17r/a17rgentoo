@@ -17,11 +17,10 @@ SLOT="2.0"
 KEYWORDS="~amd64 ~ppc ~x86 ~amd64-linux ~x86-linux"
 IUSE="debug"
 
-RDEPEND="
-	>=virtual/jdk-1.5"
 DEPEND="
-	>=virtual/jdk-1.5
+	>=virtual/jdk-1.6
 	app-arch/unzip"
+RDEPEND=">=virtual/jre-1.6"
 
 java_prepare() {
 	find "${WORKDIR}" -name '*.jar' -print -delete || die

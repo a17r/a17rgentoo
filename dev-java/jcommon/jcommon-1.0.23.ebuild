@@ -1,4 +1,4 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -18,12 +18,11 @@ SLOT="1.0"
 KEYWORDS="~amd64 ~ppc ~x86 ~amd64-linux ~x86-linux"
 IUSE="debug"
 
-RDEPEND="
-	>=virtual/jdk-1.5"
 DEPEND="
-	>=virtual/jdk-1.5
+	>=virtual/jdk-1.6
 	app-arch/unzip
 	test? ( dev-java/junit:4 )"
+RDEPEND=">=virtual/jdk-1.6"
 
 S=${WORKDIR}/${MY_P}
 
