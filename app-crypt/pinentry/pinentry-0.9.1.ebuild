@@ -4,7 +4,7 @@
 
 EAPI=5
 
-inherit qmake-utils autotools multilib eutils flag-o-matic
+inherit qmake-utils autotools multilib eutils flag-o-matic toolchain-funcs
 
 DESCRIPTION="Collection of simple PIN or passphrase entry dialogs which utilize the Assuan protocol"
 HOMEPAGE="http://gnupg.org/aegypten2/index.html"
@@ -40,11 +40,13 @@ DOCS=( AUTHORS ChangeLog NEWS README THANKS TODO )
 
 src_prepare() {
 	epatch "${FILESDIR}/${PN}-0.8.2-ncurses.patch"
+	epatch "${FILESDIR}/${PN}-0.9.1-fix-memleak.patch"
 	eautoreconf
 }
 
 src_configure() {
 	use static && append-ldflags -static
+	[[ "$(gcc-major-version)" -ge 5 ]] && append-cxxflags -std=gnu++11
 
 	if [[ ${CHOST} == *-aix* ]] ; then
 		append-flags -I"${EPREFIX}/usr/$(get_libdir)/gnulib/include"
