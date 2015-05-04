@@ -1,19 +1,19 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/media-libs/oyranos/oyranos-0.9.4-r2.ebuild,v 1.2 2014/06/22 20:51:53 mgorny Exp $
+# $Header: $
 
 EAPI=5
 
 inherit eutils flag-o-matic cmake-utils cmake-multilib
 
-DESCRIPTION="colour management system allowing to share various settings across applications and services"
+DESCRIPTION="Colour management system allowing to share various settings across applications and services"
 HOMEPAGE="http://www.oyranos.org/"
 if [[ ${PV} == "9999" ]] ; then
-	EGIT_REPO_URI="git://www.${PN}.org/git/${PN}"
-	inherit git-2
+	EGIT_REPO_URI="https://github.com/${PN}-cms/${PN}.git"
+	inherit git-r3
 	KEYWORDS=""
 else
-	SRC_URI="mirror://sourceforge/oyranos/Oyranos/Oyranos%200.9/${P}.tar.bz2"
+	SRC_URI="https://github.com/oyranos-cms/oyranos/archive/${PV}.tar.gz -> ${P}.tar.gz"
 	KEYWORDS="~amd64 ~x86"
 fi
 
