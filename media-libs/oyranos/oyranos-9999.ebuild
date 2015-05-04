@@ -19,6 +19,7 @@ fi
 
 LICENSE="BSD"
 SLOT="0"
+KEYWORDS=""
 IUSE="X cairo cups doc exif fltk qt4 raw test"
 
 RDEPEND="
