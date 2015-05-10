@@ -22,6 +22,8 @@ SLOT="0"
 KEYWORDS=""
 IUSE="X cairo cups doc exif fltk qt4 raw test"
 
+OY_LINGUAS="cs;de;eo;eu;fr;ru" #TODO
+
 RDEPEND="
 	|| (
 		=app-admin/elektra-0.7*:0[${MULTILIB_USEDEP}]
@@ -53,7 +55,7 @@ DEPEND="${RDEPEND}
 		media-gfx/graphviz
 	)"
 
-DOCS="AUTHORS ChangeLog README"
+DOCS="AUTHORS.md ChangeLog.md README.md"
 RESTRICT="test"
 
 MULTILIB_CHOST_TOOLS=(
@@ -69,7 +71,7 @@ src_prepare() {
 	einfo remove bundled libs
 	rm -rf elektra* yajl || die
 
-	epatch "${FILESDIR}/${PN}"-0.9.5-buildsystem-r1.patch
+	epatch "${FILESDIR}/${PN}"-9999-buildsystem.patch
 
 	if use fltk ; then
 		#src/examples does not include fltk flags

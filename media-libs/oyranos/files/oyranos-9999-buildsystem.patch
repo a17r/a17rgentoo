@@ -1,7 +1,7 @@
---- a/CMakeLists.txt	2014-06-22 23:44:17.666047736 +0200
-+++ b/CMakeLists.txt	2014-06-22 23:45:13.656347758 +0200
-@@ -41,7 +41,7 @@
- 
+--- a/CMakeLists.txt	2015-05-10 18:58:12.908536217 +0200
++++ b/CMakeLists.txt	2015-05-10 19:04:13.577027240 +0200
+@@ -48,7 +48,7 @@
+ FIND_PROGRAM(CMAKE_AR_TMP NAMES ar)
  
  # detect top level projects
 -FIND_PACKAGE( Yajl )
@@ -9,20 +9,21 @@
  IF( HAVE_YAJL )
    INCLUDE_DIRECTORIES( ${YAJL_INCLUDE_DIRS} )
    LINK_DIRECTORIES( ${YAJL_LIBRARY_DIRS} )
-@@ -51,72 +51,16 @@
+@@ -58,73 +58,16 @@
    IF( NOT HAVE_YAJL_VERSION_H )
      INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/yajl/ )
    ENDIF( NOT HAVE_YAJL_VERSION_H )
 -ELSE( HAVE_YAJL )
 -  IF(CMAKE_VERSION VERSION_GREATER 2.8.0)
--    include(ExternalProject)
--    ExternalProject_Add( yajl
--    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/yajl
--    CONFIGURE_COMMAND cmake ${CMAKE_CURRENT_SOURCE_DIR}/yajl
--    BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/yajl
--    BUILD_COMMAND ${MAKE}
+-    #include(ExternalProject)
+-    #ExternalProject_Add( yajl
+-    #SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/yajl
+-    #CONFIGURE_COMMAND cmake ${CMAKE_CURRENT_SOURCE_DIR}/yajl
+-    #BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/yajl
+-    #BUILD_COMMAND ${MAKE}
 -    # skip installation
--    INSTALL_COMMAND echo )
+-    #INSTALL_COMMAND echo )
+-    ADD_SUBDIRECTORY( yajl )
 -    INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/yajl )
 -    LINK_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR}/yajl )
 -    SET( YAJL_LIBRARIES yajl-static )
