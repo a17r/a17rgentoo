@@ -22,7 +22,7 @@ SRC_URI="http://www.libraw.org/data/${MY_P}.tar.gz
 # can be obtained from here:
 # http://www.libraw.org/data/LICENSE.LibRaw.pdf
 LICENSE="LGPL-2.1 CDDL GPL-2 GPL-3"
-SLOT="0/11" # subslot = libraw soname version
+SLOT="0/12" # subslot = libraw soname version
 KEYWORDS=""
 IUSE="demosaic examples jpeg jpeg2k +lcms openmp"
 
