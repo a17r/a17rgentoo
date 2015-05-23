@@ -1,8 +1,11 @@
+# HG changeset patch
+# Parent  a21f91aa3ed60b4e95b47f45715dfda379dab7c8
+
 diff --git a/browser/base/content/browser-kde.xul b/browser/base/content/browser-kde.xul
 new file mode 100644
 --- /dev/null
 +++ b/browser/base/content/browser-kde.xul
-@@ -0,0 +1,1197 @@
+@@ -0,0 +1,1302 @@
 +#filter substitution
 +<?xml version="1.0"?>
 +# -*- Mode: HTML -*-
@@ -106,6 +109,12 @@ new file mode 100644
 +                accesskey="&moveToNewWindow.accesskey;"
 +                tbattr="tabbrowser-multiple"
 +                oncommand="gBrowser.replaceTabWithWindow(TabContextMenu.contextTab);"/>
++#ifdef E10S_TESTING_ONLY
++      <menuitem id="context_openNonRemoteWindow" label="Open in new non-e10s window"
++                tbattr="tabbrowser-remote"
++                hidden="true"
++                oncommand="gBrowser.openNonRemoteWindow(TabContextMenu.contextTab);"/>
++#endif
 +      <menuseparator/>
 +      <menuitem id="context_reloadAllTabs" label="&reloadAllTabs.label;" accesskey="&reloadAllTabs.accesskey;"
 +                tbattr="tabbrowser-multiple-visible"
@@ -139,11 +148,19 @@ new file mode 100644
 +    <!-- for search and content formfill/pw manager -->
 +    <panel type="autocomplete" id="PopupAutoComplete" noautofocus="true" hidden="true"/>
 +
++    <!-- for search with one-off buttons -->
++    <panel type="autocomplete" id="PopupSearchAutoComplete" noautofocus="true" hidden="true"/>
++
 +    <!-- for url bar autocomplete -->
 +    <panel type="autocomplete-richlistbox" id="PopupAutoCompleteRichResult" noautofocus="true" hidden="true"/>
 +
-+    <!-- for select dropdowns -->
-+    <menupopup id="ContentSelectDropdown" rolluponmousewheel="true" hidden="true"/>
++    <!-- for select dropdowns. The menupopup is what shows the list of options,
++         and the popuponly menulist makes things like the menuactive attributes
++         work correctly on the menupopup. ContentSelectDropdown expects the
++         popuponly menulist to be its immediate parent. -->
++    <menulist popuponly="true" id="ContentSelectDropdown" hidden="true">
++      <menupopup rolluponmousewheel="true"/>
++    </menulist>
 +
 +    <!-- for invalid form error message -->
 +    <panel id="invalid-form-popup" type="arrow" orient="vertical" noautofocus="true" hidden="true" level="parent">
@@ -175,7 +192,7 @@ new file mode 100644
 +      </row>
 +      <vbox id="editBookmarkPanelContent" flex="1" hidden="true"/>
 +      <hbox id="editBookmarkPanelBottomButtons" pack="end">
-+#ifdef XP_UNIX
++#ifndef XP_UNIX
 +        <button id="editBookmarkPanelDoneButton"
 +                class="editBookmarkPanelBottomButton"
 +                label="&editBookmark.done.label;"
@@ -225,7 +242,7 @@ new file mode 100644
 +      <hbox id="UITourTooltipButtons" flex="1" align="center"/>
 +     </vbox>
 +    </panel>
-+    <!-- type="default" forces frames to be created so that the panel's size can be determined --> 
++    <!-- type="default" forces frames to be created so that the panel's size can be determined -->
 +    <panel id="UITourHighlightContainer"
 +           type="default"
 +           hidden="true"
@@ -237,16 +254,33 @@ new file mode 100644
 +      <box id="UITourHighlight"></box>
 +    </panel>
 +
++    <panel id="abouthome-search-panel" orient="vertical" type="arrow" hidden="true"
++           onclick="this.hidePopup()">
++      <hbox id="abouthome-search-panel-manage"
++            onclick="openPreferences('paneSearch')">
++        <label>&changeSearchSettings.button;</label>
++      </hbox>
++    </panel>
++
 +    <panel id="social-share-panel"
 +           class="social-panel"
 +           type="arrow"
-+           orient="horizontal"
++           orient="vertical"
 +           onpopupshowing="SocialShare.onShowing()"
 +           onpopuphidden="SocialShare.onHidden()"
 +           hidden="true">
-+      <vbox class="social-share-toolbar">
-+        <vbox id="social-share-provider-buttons" flex="1"/>
-+      </vbox>
++      <hbox class="social-share-toolbar">
++        <toolbarbutton id="manage-share-providers" class="toolbarbutton share-provider-button"
++                       tooltiptext="&social.addons.label;"
++                       oncommand="BrowserOpenAddonsMgr('addons://list/service');
++                                  this.parentNode.parentNode.hidePopup();"/>
++        <arrowscrollbox id="social-share-provider-buttons" orient="horizontal" flex="1" pack="end">
++          <toolbarbutton id="add-share-provider" class="toolbarbutton share-provider-button" type="radio"
++                         group="share-providers" tooltiptext="&findShareServices.label;"
++                         oncommand="SocialShare.showDirectory()"/>
++        </arrowscrollbox>
++      </hbox>
++      <hbox id="share-container" flex="1"/>
 +    </panel>
 +
 +    <panel id="social-notification-panel"
@@ -266,16 +300,68 @@ new file mode 100644
 +           noautofocus="true"
 +           position="topcenter topright"/>
 +
++    <panel id="loop-notification-panel"
++           class="loop-panel social-panel"
++           type="arrow"
++           hidden="true"
++           noautofocus="true"/>
++
++    <panel id="loop-panel"
++           class="loop-panel social-panel"
++           type="arrow"
++           orient="horizontal"
++           hidden="true"/>
++
++    <menupopup id="processHangOptions"
++               onpopupshowing="ProcessHangMonitor.refreshMenu(window);">
++      <menuitem id="processHangTerminateScript"
++                oncommand="ProcessHangMonitor.terminateScript(window)"
++                accesskey="&processHang.terminateScript.accessKey;"
++                label="&processHang.terminateScript.label;"/>
++      <menuitem id="processHangDebugScript"
++                oncommand="ProcessHangMonitor.debugScript(window)"
++                accesskey="&processHang.debugScript.accessKey;"
++                label="&processHang.debugScript.label;"/>
++      <menuitem id="processHangTerminatePlugin"
++                oncommand="ProcessHangMonitor.terminatePlugin(window)"
++                accesskey="&processHang.terminatePlugin.accessKey;"
++                label="&processHang.terminatePlugin.label;"/>
++      <menuitem id="processHangTerminateProcess"
++                oncommand="ProcessHangMonitor.terminateProcess(window)"
++                accesskey="&processHang.terminateProcess.accessKey;"
++                label="&processHang.terminateProcess.label;"/>
++    </menupopup>
++
 +    <menupopup id="toolbar-context-menu"
 +               onpopupshowing="onViewToolbarsPopupShowing(event, document.getElementById('viewToolbarsMenuSeparator'));">
 +      <menuitem oncommand="gCustomizeMode.addToPanel(document.popupNode)"
 +                accesskey="&customizeMenu.moveToPanel.accesskey;"
 +                label="&customizeMenu.moveToPanel.label;"
++                contexttype="toolbaritem"
 +                class="customize-context-moveToPanel"/>
 +      <menuitem oncommand="gCustomizeMode.removeFromArea(document.popupNode)"
 +                accesskey="&customizeMenu.removeFromToolbar.accesskey;"
 +                label="&customizeMenu.removeFromToolbar.label;"
++                contexttype="toolbaritem"
 +                class="customize-context-removeFromToolbar"/>
++      <menuitem id="toolbar-context-reloadAllTabs"
++                class="toolbaritem-tabsmenu"
++                contexttype="tabbar"
++                oncommand="gBrowser.reloadAllTabs();"
++                label="&toolbarContextMenu.reloadAllTabs.label;"
++                accesskey="&toolbarContextMenu.reloadAllTabs.accesskey;"/>
++      <menuitem id="toolbar-context-bookmarkAllTabs"
++                class="toolbaritem-tabsmenu"
++                contexttype="tabbar"
++                command="Browser:BookmarkAllTabs"
++                label="&toolbarContextMenu.bookmarkAllTabs.label;"
++                accesskey="&toolbarContextMenu.bookmarkAllTabs.accesskey;"/>
++      <menuitem id="toolbar-context-undoCloseTab"
++                class="toolbaritem-tabsmenu"
++                contexttype="tabbar"
++                label="&toolbarContextMenu.undoCloseTab.label;"
++                accesskey="&toolbarContextMenu.undoCloseTab.accesskey;"
++                observes="History:UndoCloseTab"/>
 +      <menuseparator/>
 +      <menuseparator id="viewToolbarsMenuSeparator"/>
 +      <!-- XXXgijs: we're using oncommand handler here to avoid the event being
@@ -311,7 +397,7 @@ new file mode 100644
 +                oncommand="BrowserFullScreen();"/>
 +    </menupopup>
 +
-+    <menupopup id="contentAreaContextMenu" pagemenu="start"
++    <menupopup id="contentAreaContextMenu" pagemenu="#page-menu-separator"
 +               onpopupshowing="if (event.target != this)
 +                                 return true;
 +                               gContextMenu = new nsContextMenu(this, event.shiftKey);
@@ -463,6 +549,11 @@ new file mode 100644
 +#endif
 +    </tooltip>
 +
++    <tooltip id="share-button-tooltip" onpopupshowing="SocialShare.createTooltip(event);">
++      <label class="tooltip-label"/>
++      <label class="tooltip-label"/>
++    </tooltip>
++
 +#include popup-notifications.inc
 +
 +#include ../../components/customizableui/content/panelUI.inc.xul
@@ -484,6 +575,17 @@ new file mode 100644
 +
 +    <tooltip id="dynamic-shortcut-tooltip"
 +             onpopupshowing="UpdateDynamicShortcutTooltipText(this);"/>
++
++    <menupopup id="emeNotificationsPopup">
++      <menuitem id="emeNotificationsNotNow"
++                label="&emeNotificationsNotNow.label;"
++                acceskey="&emeNotificationsNotNow.accesskey;"
++                oncommand="gEMEHandler.onNotNow(this);"/>
++      <menuitem id="emeNotificationsDontAskAgain"
++                label="&emeNotificationsDontAskAgain.label;"
++                acceskey="&emeNotificationsDontAskAgain.accesskey;"
++                oncommand="gEMEHandler.onDontAskAgain(this);"/>
++    </menupopup>
 +  </popupset>
 +
 +#ifdef CAN_DRAW_IN_TITLEBAR
@@ -530,8 +632,7 @@ new file mode 100644
 +#endif
 +#endif
 +             context="toolbar-context-menu">
-+      <toolbaritem id="menubar-items" align="center"
-+                   cui-areatype="toolbar">
++      <toolbaritem id="menubar-items" align="center">
 +# The entire main menubar is placed into browser-menubar.inc, so that it can be shared by
 +# hiddenWindow.xul.
 +#include browser-menubar.inc
@@ -547,7 +648,6 @@ new file mode 100644
 +    </toolbar>
 +
 +    <toolbar id="TabsToolbar"
-+             class="toolbar-primary"
 +             fullscreentoolbar="true"
 +             customizable="true"
 +             mode="icons"
@@ -568,7 +668,6 @@ new file mode 100644
 +            flex="1"
 +            setfocus="false"
 +            tooltip="tabbrowser-tab-tooltip"
-+            cui-areatype="toolbar"
 +            stopwatchid="FX_TAB_CLICK_MS">
 +        <tab class="tabbrowser-tab" selected="true" fadein="true"/>
 +      </tabs>
@@ -578,7 +677,7 @@ new file mode 100644
 +                     label="&tabCmd.label;"
 +                     command="cmd_newNavigatorTab"
 +                     onclick="checkForMiddleClick(this, event);"
-+                     tooltiptext="&newTabButton.tooltip;"
++                     tooltip="dynamic-shortcut-tooltip"
 +                     ondrop="newTabButtonObserver.onDrop(event)"
 +                     ondragover="newTabButtonObserver.onDragOver(event)"
 +                     ondragenter="newTabButtonObserver.onDragOver(event)"
@@ -599,8 +698,12 @@ new file mode 100644
 +                    key="key_tabview"
 +                    label="&viewTabGroups.label;"
 +                    command="Browser:ToggleTabView"
-+                    cui-areatype="toolbar"
 +                    observes="tabviewGroupsNumber"/>
++          <menuitem id="alltabs_undoCloseTab"
++                    class="menuitem-iconic"
++                    key="key_undoCloseTab"
++                    label="&undoCloseTab.label;"
++                    observes="History:UndoCloseTab"/>
 +          <menuseparator id="alltabs-popup-separator"/>
 +        </menupopup>
 +      </toolbarbutton>
@@ -630,11 +733,15 @@ new file mode 100644
 +           to the default placements of buttons in CustomizableUI.jsm, so the
 +           customization code doesn't get confused.
 +      -->
-+    <toolbar id="nav-bar" class="toolbar-primary chromeclass-toolbar"
++    <toolbar id="nav-bar"
 +             aria-label="&navbarCmd.label;"
 +             fullscreentoolbar="true" mode="icons" customizable="true"
 +             iconsize="small"
-+             defaultset="urlbar-container,search-container,webrtc-status-button,bookmarks-menu-button,downloads-button,home-button,social-share-button,social-toolbar-item"
++#ifdef MOZ_DEV_EDITION
++             defaultset="urlbar-container,search-container,developer-button,bookmarks-menu-button,downloads-button,home-button,loop-button"
++#else
++             defaultset="urlbar-container,search-container,bookmarks-menu-button,downloads-button,home-button,loop-button"
++#endif
 +             customizationtarget="nav-bar-customization-target"
 +             overflowable="true"
 +             overflowbutton="nav-bar-overflow-button"
@@ -645,12 +752,10 @@ new file mode 100644
 +      <hbox id="nav-bar-customization-target" flex="1">
 +        <toolbaritem id="urlbar-container" flex="400" persist="width"
 +                     title="&locationItem.title;" removable="false"
-+                     cui-areatype="toolbar"
 +                     class="chromeclass-location" overflows="false">
 +          <toolbarbutton id="back-button" class="toolbarbutton-1 chromeclass-toolbar-additional"
 +                         label="&backCmd.label;"
 +                         command="Browser:BackOrBackDuplicate"
-+                         cui-areatype="toolbar"
 +                         onclick="checkForMiddleClick(this, event);"
 +                         tooltip="back-button-tooltip"
 +                         context="backForwardMenu"/>
@@ -658,7 +763,6 @@ new file mode 100644
 +            <toolbarbutton id="forward-button" class="toolbarbutton-1 chromeclass-toolbar-additional"
 +                           label="&forwardCmd.label;"
 +                           command="Browser:ForwardOrForwardDuplicate"
-+                           cui-areatype="toolbar"
 +                           onclick="checkForMiddleClick(this, event);"
 +                           tooltip="forward-button-tooltip"
 +                           context="backForwardMenu"/>
@@ -675,12 +779,11 @@ new file mode 100644
 +                     enablehistory="true"
 +                     maxrows="6"
 +                     newlines="stripsurroundingwhitespace"
-+                     oninput="gBrowser.userTypedValue = this.value;"
 +                     ontextentered="this.handleCommand(param);"
 +                     ontextreverted="return this.handleRevert();"
 +                     pageproxystate="invalid"
 +                     onfocus="document.getElementById('identity-box').style.MozUserFocus= 'normal'"
-+                     onblur="setTimeout(function() document.getElementById('identity-box').style.MozUserFocus = '', 0);">
++                     onblur="setTimeout(() => { document.getElementById('identity-box').style.MozUserFocus = ''; }, 0);">
 +              <box id="notification-popup-box" hidden="true" align="center">
 +                <image id="default-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="identity-notification-icon" class="notification-anchor-icon" role="button"/>
@@ -691,16 +794,19 @@ new file mode 100644
 +                <image id="webapps-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="plugins-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="web-notifications-notification-icon" class="notification-anchor-icon" role="button"/>
-+                <image id="plugin-install-notification-icon" class="notification-anchor-icon" role="button"/>
-+                <image id="mixed-content-blocked-notification-icon" class="notification-anchor-icon" role="button"/>
++                <image id="bad-content-blocked-notification-icon" class="notification-anchor-icon" role="button"/>
++                <image id="bad-content-unblocked-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="webRTC-shareDevices-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="webRTC-sharingDevices-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="webRTC-shareMicrophone-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="webRTC-sharingMicrophone-notification-icon" class="notification-anchor-icon" role="button"/>
++                <image id="webRTC-shareScreen-notification-icon" class="notification-anchor-icon" role="button"/>
++                <image id="webRTC-sharingScreen-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="pointerLock-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="servicesInstall-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="translate-notification-icon" class="notification-anchor-icon" role="button"/>
 +                <image id="translated-notification-icon" class="notification-anchor-icon" role="button"/>
++                <image id="eme-notification-icon" class="notification-anchor-icon" role="button"/>
 +              </box>
 +              <!-- Use onclick instead of normal popup= syntax since the popup
 +                   code fires onmousedown, and hence eats our favicon drag events.
@@ -712,6 +818,7 @@ new file mode 100644
 +                   onkeypress="gIdentityHandler.handleIdentityButtonEvent(event);"
 +                   ondragstart="gIdentityHandler.onDragStart(event);">
 +                <image id="page-proxy-favicon"
++                       consumeanchor="identity-box"
 +                       onclick="PageProxyClickHandler(event);"
 +                       pageproxystate="invalid"/>
 +                <hbox id="identity-icon-labels">
@@ -720,7 +827,7 @@ new file mode 100644
 +                </hbox>
 +              </box>
 +              <box id="urlbar-display-box" align="center">
-+                <label id="urlbar-display" value="&urlbar.switchToTab.label;"/>
++                <label class="urlbar-display urlbar-display-switchtab" value="&urlbar.switchToTab.label;"/>
 +              </box>
 +              <hbox id="urlbar-icons">
 +                <image id="page-report-button"
@@ -728,6 +835,14 @@ new file mode 100644
 +                       hidden="true"
 +                       tooltiptext="&pageReportIcon.tooltip;"
 +                       onclick="gPopupBlockerObserver.onReportButtonClick(event);"/>
++                <image id="readinglist-addremove-button"
++                       class="urlbar-icon"
++                       hidden="true"
++                       onclick="ReadingListUI.togglePageByBrowser(gBrowser.selectedBrowser);"/>
++                <image id="reader-mode-button"
++                       class="urlbar-icon"
++                       hidden="true"
++                       onclick="ReaderParent.buttonClick(event);"/>
 +              </hbox>
 +              <toolbarbutton id="urlbar-go-button"
 +                             class="chromeclass-toolbar-additional"
@@ -752,20 +867,6 @@ new file mode 100644
 +                     flex="100" persist="width" removable="true">
 +          <searchbar id="searchbar" flex="1"/>
 +        </toolbaritem>
-+
-+        <toolbarbutton id="webrtc-status-button"
-+                       class="toolbarbutton-1 chromeclass-toolbar-additional"
-+                       type="menu"
-+                       hidden="true"
-+                       orient="horizontal"
-+                       label="&webrtcIndicatorButton.label;"
-+                       tooltiptext="&webrtcIndicatorButton.tooltip;"
-+                       cui-areatype="toolbar"
-+                       overflows="false">
-+          <menupopup onpopupshowing="WebrtcIndicator.fillPopup(this);"
-+                     onpopuphiding="WebrtcIndicator.clearPopup(this);"
-+                     oncommand="WebrtcIndicator.menuCommand(event.target);"/>
-+        </toolbarbutton>
 +
 +        <toolbarbutton id="bookmarks-menu-button"
 +                       class="toolbarbutton-1 chromeclass-toolbar-additional"
@@ -795,7 +896,7 @@ new file mode 100644
 +                      class="subviewbutton"
 +                      label="&viewBookmarksSidebar2.label;"
 +                      type="checkbox"
-+                      oncommand="toggleSidebar('viewBookmarksSidebar');">
++                      oncommand="SidebarUI.toggle('viewBookmarksSidebar');">
 +              <observes element="viewBookmarksSidebar" attribute="checked"/>
 +            </menuitem>
 +            <!-- NB: temporary solution for bug 985024, this should go away soon. -->
@@ -860,6 +961,22 @@ new file mode 100644
 +                                           new PlacesMenu(event, 'place:folder=UNFILED_BOOKMARKS',
 +                                                          PlacesUIUtils.getViewForNode(this.parentNode.parentNode).options);"/>
 +            </menu>
++            <menuseparator>
++              <observes element="readingListSidebar" attribute="hidden"/>
++            </menuseparator>
++            <menu id="BMB_readingList"
++                  class="menu-iconic bookmark-item subviewbutton"
++                  label="&readingList.label;"
++                  container="true">
++              <observes element="readingListSidebar" attribute="hidden"/>
++              <menupopup id="BMB_readingListPopup"
++                         placespopup="true"
++                         onpopupshowing="ReadingListUI.onReadingListPopupShowing(this);">
++                <menuitem id="BMB_viewReadingListSidebar" class="subviewbutton"
++                          oncommand="SidebarUI.show('readingListSidebar');"
++                          label="&readingList.showSidebar.label;"/>
++              </menupopup>
++            </menu>
 +            <menuseparator/>
 +            <!-- Bookmarks menu items will go here -->
 +            <menuitem id="BMB_bookmarksShowAll"
@@ -874,6 +991,7 @@ new file mode 100644
 +             during the customization of the toolbar, in the palette, and before
 +             the Downloads Indicator overlay is loaded. -->
 +        <toolbarbutton id="downloads-button" class="toolbarbutton-1 chromeclass-toolbar-additional"
++                       key="key_openDownloads"
 +                       oncommand="DownloadsIndicatorView.onCommand(event);"
 +                       ondrop="DownloadsIndicatorView.onDrop(event);"
 +                       ondragover="DownloadsIndicatorView.onDragOver(event);"
@@ -881,7 +999,7 @@ new file mode 100644
 +                       label="&downloads.label;"
 +                       removable="true"
 +                       cui-areatype="toolbar"
-+                       tooltiptext="&downloads.tooltip;"/>
++                       tooltip="dynamic-shortcut-tooltip"/>
 +
 +        <toolbarbutton id="home-button" class="toolbarbutton-1 chromeclass-toolbar-additional"
 +                       persist="class" removable="true"
@@ -890,34 +1008,23 @@ new file mode 100644
 +                       ondragenter="homeButtonObserver.onDragOver(event)"
 +                       ondrop="homeButtonObserver.onDrop(event)"
 +                       ondragexit="homeButtonObserver.onDragExit(event)"
++                       key="goHome"
 +                       onclick="BrowserGoHome(event);"
 +                       cui-areatype="toolbar"
 +                       aboutHomeOverrideTooltip="&abouthome.pageTitle;"/>
-+
-+
-+        <toolbarbutton id="social-share-button"
-+                       class="toolbarbutton-1 chromeclass-toolbar-additional"
-+                       hidden="true"
-+                       overflows="false"
-+                       label="&sharePageCmd.label;"
-+                       tooltiptext="&sharePageCmd.label;"
-+                       cui-areatype="toolbar"
-+                       command="Social:SharePage"/>
 +      </hbox>
 +
 +      <toolbarbutton id="nav-bar-overflow-button"
 +                     class="toolbarbutton-1 chromeclass-toolbar-additional overflow-button"
-+                     cui-areatype="toolbar"
 +                     skipintoolbarset="true"
 +                     tooltiptext="&navbarOverflow.label;"/>
 +
 +      <toolbaritem id="PanelUI-button"
 +                   class="chromeclass-toolbar-additional"
-+                   cui-areatype="toolbar"
 +                   removable="false">
 +        <toolbarbutton id="PanelUI-menu-button"
 +                       class="toolbarbutton-1"
-+                       cui-areatype="toolbar"
++                       consumeanchor="PanelUI-button"
 +                       label="&brandShortName;"
 +                       tooltiptext="&appmenu.tooltip;"/>
 +      </toolbaritem>
@@ -933,7 +1040,6 @@ new file mode 100644
 +# Prior to 10.7 there wasn't a native fullscreen button so we use #restore-button
 +# to exit fullscreen and want it to behave like other toolbar buttons.
 +                       class="toolbarbutton-1"
-+                       cui-areatype="toolbar"
 +#endif
 +                       tooltiptext="&fullScreenRestore.tooltip;"
 +                       oncommand="BrowserFullScreen();"/>
@@ -1011,9 +1117,11 @@ new file mode 100644
 +
 +      <toolbarbutton id="print-button" class="toolbarbutton-1 chromeclass-toolbar-additional"
 +#ifdef XP_MACOSX
-+                     command="cmd_print" tooltip="dynamic-shortcut-tooltip"
++                     command="cmd_print"
++                     tooltip="dynamic-shortcut-tooltip"
 +#else
-+                     command="cmd_printPreview" tooltiptext="&printButton.tooltip;"
++                     command="cmd_printPreview"
++                     tooltiptext="&printButton.tooltip;"
 +#endif
 +                     label="&printButton.label;"/>
 +
@@ -1048,7 +1156,7 @@ new file mode 100644
 +    </toolbarpalette>
 +  </toolbox>
 +
-+  <hbox id="fullscr-toggler" collapsed="true"/>
++  <hbox id="fullscr-toggler" hidden="true"/>
 +
 +  <deck id="content-deck" flex="1">
 +    <hbox flex="1" id="browser">
@@ -1057,21 +1165,21 @@ new file mode 100644
 +        <sidebarheader id="sidebar-header" align="center">
 +          <label id="sidebar-title" persist="value" flex="1" crop="end" control="sidebar"/>
 +          <image id="sidebar-throbber"/>
-+          <toolbarbutton class="close-icon tabbable" tooltiptext="&sidebarCloseButton.tooltip;" oncommand="toggleSidebar();"/>
++          <toolbarbutton class="close-icon tabbable" tooltiptext="&sidebarCloseButton.tooltip;" oncommand="SidebarUI.hide();"/>
 +        </sidebarheader>
 +        <browser id="sidebar" flex="1" autoscroll="false" disablehistory="true"
-+                  style="min-width: 14em; width: 18em; max-width: 36em;"/>
++                  style="min-width: 14em; width: 18em; max-width: 36em;" tooltip="aHTMLTooltip"/>
 +      </vbox>
 +
 +      <splitter id="sidebar-splitter" class="chromeclass-extrachrome sidebar-splitter" hidden="true"/>
 +      <vbox id="appcontent" flex="1">
++        <notificationbox id="high-priority-global-notificationbox"/>
 +        <tabbrowser id="content"
 +                    flex="1" contenttooltip="aHTMLTooltip"
 +                    tabcontainer="tabbrowser-tabs"
 +                    contentcontextmenu="contentAreaContextMenu"
 +                    autocompletepopup="PopupAutoComplete"
-+                    selectpopup="ContentSelectDropdown"
-+                    onclick="contentAreaClick(event, false);"/>
++                    selectmenulist="ContentSelectDropdown"/>
 +        <chatbar id="pinnedchats" layer="true" mousethrough="always" hidden="true"/>
 +      </vbox>
 +      <splitter id="social-sidebar-splitter"
@@ -1133,7 +1241,7 @@ new file mode 100644
 +        <description class="full-screen-description" value="&fullscreenExitHint2.value;"/>
 +        <vbox id="full-screen-approval-pane" align="center">
 +          <hbox>
-+#ifndef XP_UNIX
++#ifdef XP_UNIX
 +            <button label="&fullscreenExitButton.label;"
 +                    oncommand="FullScreen.setFullscreenAllowed(false);"
 +                    class="full-screen-approval-button"/>
@@ -1200,13 +1308,54 @@ new file mode 100644
 +</deck>
 +
 +</window>
+diff --git a/browser/base/content/browser.xul b/browser/base/content/browser.xul
+--- a/browser/base/content/browser.xul
++++ b/browser/base/content/browser.xul
+@@ -179,17 +179,17 @@
+                     class="editBookmarkPanelHeaderButton"
+                     oncommand="StarUI.removeBookmarkButtonCommand();"
+                     accesskey="&editBookmark.removeBookmark.accessKey;"/>
+           </hbox>
+         </vbox>
+       </row>
+       <vbox id="editBookmarkPanelContent" flex="1" hidden="true"/>
+       <hbox id="editBookmarkPanelBottomButtons" pack="end">
+-#ifndef XP_UNIX
++#ifdef XP_UNIX
+         <button id="editBookmarkPanelDoneButton"
+                 class="editBookmarkPanelBottomButton"
+                 label="&editBookmark.done.label;"
+                 default="true"
+                 oncommand="StarUI.panel.hidePopup();"/>
+         <button id="editBookmarkPanelDeleteButton"
+                 class="editBookmarkPanelBottomButton"
+                 label="&editBookmark.cancel.label;"
+@@ -1228,17 +1228,17 @@
+ 
+   <hbox id="full-screen-warning-container" hidden="true" fadeout="true">
+     <hbox style="width: 100%;" pack="center"> <!-- Inner hbox needed due to bug 579776. -->
+       <vbox id="full-screen-warning-message" align="center">
+         <description id="full-screen-domain-text"/>
+         <description class="full-screen-description" value="&fullscreenExitHint2.value;"/>
+         <vbox id="full-screen-approval-pane" align="center">
+           <hbox>
+-#ifdef XP_UNIX
++#ifndef XP_UNIX
+             <button label="&fullscreenExitButton.label;"
+                     oncommand="FullScreen.setFullscreenAllowed(false);"
+                     class="full-screen-approval-button"/>
+             <button label="&fullscreenAllowButton.label;"
+                     oncommand="FullScreen.setFullscreenAllowed(true);"
+                     class="full-screen-approval-button"/>
+ #else
+             <button label="&fullscreenAllowButton.label;"
 diff --git a/browser/base/jar.mn b/browser/base/jar.mn
 --- a/browser/base/jar.mn
 +++ b/browser/base/jar.mn
-@@ -65,16 +65,18 @@ browser.jar:
-         content/browser/aboutRobots-icon.png          (content/aboutRobots-icon.png)
-         content/browser/aboutRobots-widget-left.png   (content/aboutRobots-widget-left.png)
+@@ -70,16 +70,18 @@ browser.jar:
          content/browser/aboutSocialError.xhtml        (content/aboutSocialError.xhtml)
+         content/browser/aboutProviderDirectory.xhtml  (content/aboutProviderDirectory.xhtml)
+         content/browser/aboutTabCrashed.css           (content/aboutTabCrashed.css)
          content/browser/aboutTabCrashed.js            (content/aboutTabCrashed.js)
          content/browser/aboutTabCrashed.xhtml         (content/aboutTabCrashed.xhtml)
  *       content/browser/browser.css                   (content/browser.css)
@@ -1217,11 +1366,11 @@ diff --git a/browser/base/jar.mn b/browser/base/jar.mn
  *       content/browser/browser-tabPreviews.xml       (content/browser-tabPreviews.xml)
  *       content/browser/chatWindow.xul                (content/chatWindow.xul)
          content/browser/content.js                    (content/content.js)
-         content/browser/fonts/ClearSans-Regular.woff  (content/fonts/ClearSans-Regular.woff)
-         content/browser/fonts/FiraSans-Regular.woff   (content/fonts/FiraSans-Regular.woff)
-         content/browser/fonts/FiraSans-Light.woff     (content/fonts/FiraSans-Light.woff)
-         content/browser/newtab/newTab.xul             (content/newtab/newTab.xul)
- *       content/browser/newtab/newTab.js              (content/newtab/newTab.js)
+         content/browser/defaultthemes/1.footer.jpg    (content/defaultthemes/1.footer.jpg)
+         content/browser/defaultthemes/1.header.jpg    (content/defaultthemes/1.header.jpg)
+         content/browser/defaultthemes/1.icon.jpg      (content/defaultthemes/1.icon.jpg)
+         content/browser/defaultthemes/1.preview.jpg   (content/defaultthemes/1.preview.jpg)
+         content/browser/defaultthemes/2.footer.jpg    (content/defaultthemes/2.footer.jpg)
 diff --git a/browser/components/build/nsModule.cpp b/browser/components/build/nsModule.cpp
 --- a/browser/components/build/nsModule.cpp
 +++ b/browser/components/build/nsModule.cpp
@@ -1282,17 +1431,17 @@ diff --git a/browser/components/build/nsModule.cpp b/browser/components/build/ns
  #elif defined(XP_MACOSX)
      { &kNS_SHELLSERVICE_CID, false, nullptr, nsMacShellServiceConstructor },
  #endif
-diff --git a/browser/components/preferences/advanced.js b/browser/components/preferences/advanced.js
---- a/browser/components/preferences/advanced.js
-+++ b/browser/components/preferences/advanced.js
-@@ -25,16 +25,22 @@ var gAdvancedPane = {
-     if (extraArgs && extraArgs["advancedTab"]){
-       advancedPrefs.selectedTab = document.getElementById(extraArgs["advancedTab"]);
-     } else {
-       var preference = document.getElementById("browser.preferences.advanced.selectedTabIndex");
-       if (preference.value !== null)
-         advancedPrefs.selectedIndex = preference.value;
-     }
+diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
+--- a/browser/components/preferences/main.js
++++ b/browser/components/preferences/main.js
+@@ -12,16 +12,22 @@ var gMainPane = {
+ 
+   /**
+    * Initialization of this.
+    */
+   init: function ()
+   {
+     this._pane = document.getElementById("paneMain");
  
 +    var env = Components.classes["@mozilla.org/process/environment;1"]
 +                        .getService(Components.interfaces.nsIEnvironment);
@@ -1308,52 +1457,38 @@ diff --git a/browser/components/preferences/advanced.js b/browser/components/pre
      // when the user will select the default.  We refresh here periodically
      // in case the default changes.  On other Windows OS's defaults can also
      // be set while the prefs are open.
-@@ -884,14 +890,25 @@ var gAdvancedPane = {
-    * Set browser as the operating system default browser.
+@@ -549,16 +555,27 @@ var gMainPane = {
     */
    setDefaultBrowser: function()
    {
      let shellSvc = getShellService();
      if (!shellSvc)
        return;
-     shellSvc.setDefaultBrowser(true, false);
-+    if (kde_session == 1) {
-+      var shellObj = Components.classes["@mozilla.org/file/local;1"]
-+                               .createInstance(Components.interfaces.nsILocalFile);
-+      shellObj.initWithPath("/usr/bin/kwriteconfig");
-+      var process = Components.classes["@mozilla.org/process/util;1"]
-+                              .createInstance(Components.interfaces.nsIProcess);
-+      process.init(shellObj);
-+      var args = ["--file", "kdeglobals", "--group", "General", "--key",
-+          "BrowserApplication", "firefox"];
-+      process.run(false, args, args.length);
-+    }
+     try {
+       shellSvc.setDefaultBrowser(true, false);
++      if (kde_session == 1) {
++        var shellObj = Components.classes["@mozilla.org/file/local;1"]
++                                 .createInstance(Components.interfaces.nsILocalFile);
++        shellObj.initWithPath("/usr/bin/kwriteconfig");
++        var process = Components.classes["@mozilla.org/process/util;1"]
++                                .createInstance(Components.interfaces.nsIProcess);
++        process.init(shellObj);
++        var args = ["--file", "kdeglobals", "--group", "General", "--key",
++            "BrowserApplication", "firefox"];
++        process.run(false, args, args.length);
++      }
+     } catch (ex) {
+       Components.utils.reportError(ex);
+       return;
+     }
      let selectedIndex =
        shellSvc.isDefaultBrowser(false, true) ? 1 : 0;
      document.getElementById("setDefaultPane").selectedIndex = selectedIndex;
    }
- #endif
- };
-diff --git a/browser/components/shell/src/Makefile.in b/browser/components/shell/src/Makefile.in
---- a/browser/components/shell/src/Makefile.in
-+++ b/browser/components/shell/src/Makefile.in
-@@ -2,10 +2,12 @@
- # This Source Code Form is subject to the terms of the Mozilla Public
- # License, v. 2.0. If a copy of the MPL was not distributed with this
- # file, You can obtain one at http://mozilla.org/MPL/2.0/.
- 
- include $(topsrcdir)/config/rules.mk
- 
- CXXFLAGS += $(TK_CFLAGS)
- 
-+LOCAL_INCLUDES += -I$(topsrcdir)/toolkit/xre
-+
- clobber::
- 	rm -f $(DIST)/lib/$(LIBRARY_NAME).lib
-diff --git a/browser/components/shell/src/moz.build b/browser/components/shell/src/moz.build
---- a/browser/components/shell/src/moz.build
-+++ b/browser/components/shell/src/moz.build
-@@ -10,16 +10,18 @@ if CONFIG['OS_ARCH'] == 'WINNT':
+diff --git a/browser/components/shell/moz.build b/browser/components/shell/moz.build
+--- a/browser/components/shell/moz.build
++++ b/browser/components/shell/moz.build
+@@ -30,16 +30,18 @@ if CONFIG['OS_ARCH'] == 'WINNT':
      ]
  elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
      SOURCES += [
@@ -1372,10 +1507,10 @@ diff --git a/browser/components/shell/src/moz.build b/browser/components/shell/s
  EXTRA_COMPONENTS += [
      'nsSetDefaultBrowser.js',
      'nsSetDefaultBrowser.manifest',
-diff --git a/browser/components/shell/src/nsKDEShellService.cpp b/browser/components/shell/src/nsKDEShellService.cpp
+diff --git a/browser/components/shell/nsKDEShellService.cpp b/browser/components/shell/nsKDEShellService.cpp
 new file mode 100644
 --- /dev/null
-+++ b/browser/components/shell/src/nsKDEShellService.cpp
++++ b/browser/components/shell/nsKDEShellService.cpp
 @@ -0,0 +1,238 @@
 +/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 +/* This Source Code Form is subject to the terms of the Mozilla Public
@@ -1615,10 +1750,10 @@ new file mode 100644
 +    NS_ADDREF(*_retval = defaultReader);
 +    return NS_OK;
 +}
-diff --git a/browser/components/shell/src/nsKDEShellService.h b/browser/components/shell/src/nsKDEShellService.h
+diff --git a/browser/components/shell/nsKDEShellService.h b/browser/components/shell/nsKDEShellService.h
 new file mode 100644
 --- /dev/null
-+++ b/browser/components/shell/src/nsKDEShellService.h
++++ b/browser/components/shell/nsKDEShellService.h
 @@ -0,0 +1,60 @@
 +/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 +/* ***** BEGIN LICENSE BLOCK *****
@@ -1663,7 +1798,7 @@ new file mode 100644
 +#include "nsStringAPI.h"
 +#include "mozilla/Attributes.h"
 +
-+class nsKDEShellService MOZ_FINAL : public nsIShellService
++class nsKDEShellService final : public nsIShellService
 +{
 +public:
 +  nsKDEShellService() : mCheckedThisSession(false) { }
@@ -1680,10 +1815,10 @@ new file mode 100644
 +};
 +
 +#endif // nskdeshellservice_h____
-diff --git a/browser/components/shell/src/nsUnixShellService.cpp b/browser/components/shell/src/nsUnixShellService.cpp
+diff --git a/browser/components/shell/nsUnixShellService.cpp b/browser/components/shell/nsUnixShellService.cpp
 new file mode 100644
 --- /dev/null
-+++ b/browser/components/shell/src/nsUnixShellService.cpp
++++ b/browser/components/shell/nsUnixShellService.cpp
 @@ -0,0 +1,52 @@
 +/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 +/* ***** BEGIN LICENSE BLOCK *****
@@ -1737,10 +1872,10 @@ new file mode 100644
 +        return nsKDEShellServiceConstructor( aOuter, aIID, aResult );
 +    return nsGNOMEShellServiceConstructor( aOuter, aIID, aResult );
 +}
-diff --git a/browser/components/shell/src/nsUnixShellService.h b/browser/components/shell/src/nsUnixShellService.h
+diff --git a/browser/components/shell/nsUnixShellService.h b/browser/components/shell/nsUnixShellService.h
 new file mode 100644
 --- /dev/null
-+++ b/browser/components/shell/src/nsUnixShellService.h
++++ b/browser/components/shell/nsUnixShellService.h
 @@ -0,0 +1,45 @@
 +/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 +/* ***** BEGIN LICENSE BLOCK *****
@@ -1790,25 +1925,25 @@ new file mode 100644
 diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
 --- a/browser/installer/package-manifest.in
 +++ b/browser/installer/package-manifest.in
-@@ -643,19 +643,21 @@
- @BINPATH@/defaults/autoconfig/prefcalls.js
- @BINPATH@/browser/defaults/profile/prefs.js
+@@ -698,19 +698,21 @@
+ @RESPATH@/defaults/autoconfig/prefcalls.js
+ @RESPATH@/browser/defaults/profile/prefs.js
  
  #ifndef LIBXUL_SDK
  ; Warning: changing the path to channel-prefs.js can cause bugs (Bug 756325)
  ; Technically this is an app pref file, but we are keeping it in the original
  ; gre location for now.
- @BINPATH@/defaults/pref/channel-prefs.js
+ @RESPATH@/defaults/pref/channel-prefs.js
 +@BINPATH@/defaults/pref/kde.js
  #else
  ; For Fx-on-xr, channel-prefs lives with the app preferences. (Bug 762588)
- @BINPATH@/@PREF_DIR@/channel-prefs.js
+ @RESPATH@/@PREF_DIR@/channel-prefs.js
 +@BINPATH@/@PREF_DIR@/kde.js
  #endif
  
  ; Services (gre) prefs
  #ifdef MOZ_SERVICES_NOTIFICATIONS
- @BINPATH@/defaults/pref/services-notifications.js
+ @RESPATH@/defaults/pref/services-notifications.js
  #endif
  #ifdef MOZ_SERVICES_SYNC
- @BINPATH@/defaults/pref/services-sync.js
+ @RESPATH@/defaults/pref/services-sync.js
