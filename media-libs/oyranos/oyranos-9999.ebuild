@@ -19,9 +19,9 @@ fi
 
 LICENSE="BSD"
 SLOT="0"
-IUSE="X cairo cups doc exif fltk qt4 raw test"
+IUSE="X cairo cups doc exif fltk jpeg qt4 qt5 raw test tiff"
 
-OY_LINGUAS="cs;de;eo;eu;fr;ru" #TODO
+#OY_LINGUAS="cs;de;eo;eu;fr;ru" #TODO
 
 RDEPEND="
 	|| (
@@ -42,8 +42,15 @@ RDEPEND="
 	cups? ( >=net-print/cups-1.7.1-r1[${MULTILIB_USEDEP}] )
 	exif? ( >=media-gfx/exiv2-0.23-r2[${MULTILIB_USEDEP}] )
 	fltk? ( x11-libs/fltk:1 )
-	qt4? ( dev-qt/qtcore:4 dev-qt/qtgui:4 )
+	jpeg? ( virtual/jpeg:0 )
+	qt5? (
+		dev-qt/qtwidgets:5 dev-qt/qtx11extras:5
+	)
+	!qt5? (
+		qt4? ( dev-qt/qtcore:4 dev-qt/qtgui:4 )
+	)
 	raw? ( >=media-libs/libraw-0.15.4[${MULTILIB_USEDEP}] )
+	tiff? ( media-libs/tiff:0 )
 	X? ( >=x11-libs/libXfixes-5.0.1[${MULTILIB_USEDEP}]
 		>=x11-libs/libXrandr-1.4.2[${MULTILIB_USEDEP}]
 		>=x11-libs/libXxf86vm-1.1.3[${MULTILIB_USEDEP}]
@@ -54,7 +61,7 @@ DEPEND="${RDEPEND}
 		media-gfx/graphviz
 	)"
 
-DOCS="AUTHORS.md ChangeLog.md README.md"
+DOCS=( "AUTHORS.md" "ChangeLog.md" "README.md" )
 RESTRICT="test"
 
 MULTILIB_CHOST_TOOLS=(
@@ -85,18 +92,35 @@ multilib_src_configure() {
 	local libdir=$(get_libdir)
 	local mycmakeargs=(
 		-DLIB_SUFFIX=${libdir#lib}
-
-		$(usex cairo -DWANT_CAIRO=1 "")
-		$(usex cups -DWANT_CUPS=1 "")
-		$(usex doc -DWANT_HTML=1 "")
-		$(usex exif -DWANT_EXIV2=1 "")
-		$(usex raw -DWANT_LIBRAW=1 "")
-		$(usex X -DWANT_X11=1 "")
-
-		# only used in programs
-		$(multilib_native_usex fltk -DWANT_FLTK=1 "")
-		$(multilib_native_usex qt4 -DWANT_QT4=1 "")
+		-DUSE_SYSTEM_ELEKTRA=YES
+		-DUSE_SYSTEM_YAJL=YES
+		$(cmake-utils_use_find_package cairo)
+		$(cmake-utils_use_find_package cups)
+		$(cmake-utils_use_find_package doc Doxygen)
+		$(cmake-utils_use_find_package exif Exif2)
+		$(cmake-utils_use_find_package jpeg)
+		$(cmake-utils_use_find_package raw LibRaw)
+		$(cmake-utils_use_find_package tiff)
+		$(cmake-utils_use_find_package X X11)
 	)
+
+	# prefer Qt5
+	use qt5 || use qt4 && mycmakeargs+=( $(cmake-utils_use_use qt4) )
+
+	# only used in programs
+	if ! multilib_is_native_abi ; then
+		mycmakeargs+=(
+			"CMAKE_DISABLE_FIND_PACKAGE_Fltk=ON"
+			"CMAKE_DISABLE_FIND_PACKAGE_Qt4=ON"
+			"CMAKE_DISABLE_FIND_PACKAGE_Qt5=ON"
+		)
+	else
+		mycmakeargs+=(
+			$(cmake-utils_use_find_package fltk)
+			$(cmake-utils_use_find_package qt4)
+			$(cmake-utils_use_find_package qt5)
+		)
+	fi
 
 	cmake-utils_src_configure
 }
