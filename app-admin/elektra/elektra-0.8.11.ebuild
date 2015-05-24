@@ -21,17 +21,15 @@ fi
 
 LICENSE="BSD"
 SLOT="0"
-PLUGIN_IUSE="augeas iconv ini simpleini syslog systemd tcl +uname xml yajl";
-# PLUGIN_IUSE+="java" # enable when jdk8 is unmasked
+PLUGIN_IUSE="augeas iconv ini java simpleini syslog systemd tcl +uname xml yajl";
 IUSE="dbus doc examples qt5 static-libs test ${PLUGIN_IUSE}"
 
-# enable when jdk8 is unmasked
-#	java? ( >=virtual/jdk-1.8.0:1.8 )
 RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 	>=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
 	augeas? ( app-admin/augeas )
 	dbus? ( >=sys-apps/dbus-1.6.18-r1[${MULTILIB_USEDEP}] )
 	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
+	java? ( >=virtual/jdk-1.8.0:1.8 )
 	qt5? (
 		>=dev-qt/qtdeclarative-5.3
 		>=dev-qt/qtgui-5.3
@@ -87,9 +85,7 @@ multilib_src_configure() {
 	use uname     || my_plugins+=";-uname"
 	use xml       || my_plugins+=";-xmltool"
 	use yajl      || my_plugins+=";-yajl"
-
-	# FIXME: enable when jdk8 is unmasked
-	my_plugins+=";-jni"
+	use java      || my_plugins+=";-jni"
 
 	# Disabled for good (?):
 	# counter - Only useful for debugging the plugin framework
