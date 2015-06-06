@@ -18,67 +18,45 @@ index 0a45ecf..7521271 100644
    INCLUDE_DIRECTORIES( ${CUPS_INCLUDE_DIR} )
    LINK_DIRECTORIES( ${CUPS_LIBRARYS} )
 
-commit dee2f4cf140d243367db65a9d282026f979fe57f
+commit dc862388ce9862eca24c548e8d0bb38d0e2b293b
 Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
-Date:   Sat May 23 23:30:19 2015 +0200
+Date:   Sun May 24 13:18:20 2015 +0200
 
     [build] Be able to force system-elektra and -yajl
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index e4b93fa..6086f24 100644
+index e4b93fa..c75dfb3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -48,8 +48,8 @@ ENDIF()
+@@ -48,7 +48,11 @@ ENDIF()
  FIND_PROGRAM(CMAKE_AR_TMP NAMES ar)
  
  # detect top level projects
 -FIND_PACKAGE( Yajl )
--IF( HAVE_YAJL )
 +IF(USE_SYSTEM_YAJL)
 +  FIND_PACKAGE(Yajl REQUIRED)
++ELSE()
++  FIND_PACKAGE(Yajl)
++ENDIF()
+ IF( HAVE_YAJL )
    INCLUDE_DIRECTORIES( ${YAJL_INCLUDE_DIRS} )
    LINK_DIRECTORIES( ${YAJL_LIBRARY_DIRS} )
-   INCLUDE( CheckIncludeFiles )
-@@ -58,7 +58,7 @@ IF( HAVE_YAJL )
-   IF( NOT HAVE_YAJL_VERSION_H )
-     INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/yajl/ )
-   ENDIF( NOT HAVE_YAJL_VERSION_H )
--ELSE( HAVE_YAJL )
-+ELSE(USE_SYSTEM_YAJL)
-   IF(CMAKE_VERSION VERSION_GREATER 2.8.0)
-     #include(ExternalProject)
-     #ExternalProject_Add( yajl
-@@ -73,17 +73,16 @@ ELSE( HAVE_YAJL )
+@@ -73,10 +77,13 @@ ELSE( HAVE_YAJL )
      LINK_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR}/yajl )
      SET( YAJL_LIBRARIES yajl-static )
    ENDIF()
 -  
--ENDIF( HAVE_YAJL )
-+ENDIF(USE_SYSTEM_YAJL)
+ ENDIF( HAVE_YAJL )
  
 -FIND_PACKAGE( Elektra )
--IF(HAVE_ELEKTRA)
 +IF(USE_SYSTEM_ELEKTRA)
 +  FIND_PACKAGE(Elektra REQUIRED)
++ELSE()
++  FIND_PACKAGE(Elektra)
++ENDIF()
+ IF(HAVE_ELEKTRA)
    SET( ELEKTRA_SPEC "Requires: elektra
  BuildRequires: elektra-devel" )
-   INCLUDE_DIRECTORIES( ${ELEKTRA_INCLUDE_DIRS} )
-   LINK_DIRECTORIES( ${ELEKTRA_LIBRARY_DIRS} )
-   STRING(REPLACE ";" " " ELEKTRA_PC_LDFLAGS "${ELEKTRA_STATIC_LDFLAGS}")
--ELSE(HAVE_ELEKTRA)
-+ELSE(USE_SYSTEM_ELEKTRA)
-   SET( ELEKTRA_VERSION elektra-0.7.1 )
-   MESSAGE( "-- Using internal Elektra: ${ELEKTRA_VERSION}" )
-   INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/${ELEKTRA_VERSION}/src/include
-@@ -125,7 +124,7 @@ ELSE(HAVE_ELEKTRA)
-     # skip installation
-     INSTALL_COMMAND echo )
-   ENDIF()
--ENDIF(HAVE_ELEKTRA)
-+ENDIF(USE_SYSTEM_ELEKTRA)
- 
- #now add all directories
- ADD_SUBDIRECTORY( settings )
 --- a/doc/CMakeLists.txt
 +++ b/doc/CMakeLists.txt
 @@ -43,5 +43,5 @@
