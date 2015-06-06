@@ -4,7 +4,7 @@
 
 EAPI=5
 
-inherit cmake-multilib eutils
+inherit cmake-multilib eutils java-pkg-opt-2
 
 DESCRIPTION="Universal and secure framework to store config parameters in a hierarchical key-value pair mechanism"
 HOMEPAGE="http://freedesktop.org/wiki/Software/Elektra"
@@ -29,7 +29,7 @@ RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 	augeas? ( app-admin/augeas )
 	dbus? ( >=sys-apps/dbus-1.6.18-r1[${MULTILIB_USEDEP}] )
 	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
-	java? ( >=virtual/jdk-1.8.0:1.8 )
+	java? ( >=virtual/jdk-1.8.0 )
 	qt5? (
 		>=dev-qt/qtdeclarative-5.3
 		>=dev-qt/qtgui-5.3
@@ -100,6 +100,7 @@ multilib_src_configure() {
 	use qt5 && multilib_is_native_abi && my_tools+=";qt-gui"
 
 	mycmakeargs=(
+		"-DBUILD_SHARED=ON"
 		"-DPLUGINS=${my_plugins}"
 		"-DTOOLS=${my_tools}"
 		"-DLATEX_COMPILER=OFF"
