@@ -60,6 +60,7 @@ ASM_DEPEND=">=dev-lang/yasm-1.1"
 RDEPEND="
 	>=dev-libs/nss-3.19
 	>=dev-libs/nspr-4.10.8
+	kde? ( kde-misc/kmozillahelper )
 	selinux? ( sec-policy/selinux-mozilla )"
 
 DEPEND="${RDEPEND}
