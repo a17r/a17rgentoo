@@ -24,7 +24,12 @@ fi
 MOZ_P="${PN}-${MOZ_PV}"
 
 # Enigmail version
-EMVER="1.7.2"
+EMVER="1.8.1"
+
+# Patches
+PATCH="thunderbird-31.0-patches-0.1"
+PATCHFF="firefox-31.0-patches-0.3"
+
 # Upstream ftp release URI that's used by mozlinguas.eclass
 # We don't use the http mirror because it deletes old tarballs.
 MOZ_FTP_URI="ftp://ftp.mozilla.org/pub/${PN}/releases/"
@@ -40,9 +45,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~ppc ~ppc64 ~x86 ~x86-fbsd ~amd64-linux ~x86-linux"
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
 IUSE="bindist crypt hardened kde ldap +lightning +minimal mozdom selinux"
-
-PATCH="thunderbird-31.0-patches-0.1"
-PATCHFF="firefox-31.0-patches-0.2"
+RESTRICT="!bindist? ( bindist )"
 
 SRC_URI="${SRC_URI}
 	${MOZ_FTP_URI}${MOZ_PV}/source/${MOZ_P}.source.tar.bz2
