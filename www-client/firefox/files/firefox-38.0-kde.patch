@@ -1,11 +1,11 @@
 # HG changeset patch
-# Parent  a21f91aa3ed60b4e95b47f45715dfda379dab7c8
+# Parent  14be97741eabce611c291418a4c1774cae8b29ff
 
 diff --git a/browser/base/content/browser-kde.xul b/browser/base/content/browser-kde.xul
 new file mode 100644
 --- /dev/null
 +++ b/browser/base/content/browser-kde.xul
-@@ -0,0 +1,1302 @@
+@@ -0,0 +1,1311 @@
 +#filter substitution
 +<?xml version="1.0"?>
 +# -*- Mode: HTML -*-
@@ -738,9 +738,9 @@ new file mode 100644
 +             fullscreentoolbar="true" mode="icons" customizable="true"
 +             iconsize="small"
 +#ifdef MOZ_DEV_EDITION
-+             defaultset="urlbar-container,search-container,developer-button,bookmarks-menu-button,downloads-button,home-button,loop-button"
++             defaultset="urlbar-container,search-container,developer-button,bookmarks-menu-button,pocket-button,downloads-button,home-button,loop-button"
 +#else
-+             defaultset="urlbar-container,search-container,bookmarks-menu-button,downloads-button,home-button,loop-button"
++             defaultset="urlbar-container,search-container,bookmarks-menu-button,pocket-button,downloads-button,home-button,loop-button"
 +#endif
 +             customizationtarget="nav-bar-customization-target"
 +             overflowable="true"
@@ -890,6 +890,7 @@ new file mode 100644
 +                     oncommand="BookmarksEventHandler.onCommand(event, this.parentNode._placesView);"
 +                     onclick="BookmarksEventHandler.onClick(event, this.parentNode._placesView);"
 +                     onpopupshowing="BookmarkingUI.onPopupShowing(event);
++                                     BookmarkingUI.updatePocketItemVisibility('BMB_');
 +                                     BookmarkingUI.attachPlacesView(event, this);"
 +                     tooltip="bhTooltip" popupsinherittooltip="true">
 +            <menuitem id="BMB_viewBookmarksSidebar"
@@ -906,6 +907,11 @@ new file mode 100644
 +                      command="Browser:ShowAllBookmarks"
 +                      key="manBookmarkKb"/>
 +            <menuseparator/>
++            <menuitem id="BMB_pocket"
++                      class="menuitem-iconic bookmark-item subviewbutton"
++                      label="&pocketMenuitem.label;"
++                      oncommand="openUILink(Pocket.listURL, event);"/>
++            <menuseparator id="BMB_pocketSeparator"/>
 +            <menuitem id="BMB_subscribeToPageMenuitem"
 +#ifndef XP_MACOSX
 +                      class="menuitem-iconic subviewbutton"
@@ -1307,6 +1313,9 @@ new file mode 100644
 +#     starting with an empty iframe here in browser.xul from a Ts standpoint.
 +</deck>
 +
++<script type="application/javascript" src="chrome://browser/content/pocket/pktApi.js"/>
++<script type="application/javascript" src="chrome://browser/content/pocket/main.js"/>
++
 +</window>
 diff --git a/browser/base/content/browser.xul b/browser/base/content/browser.xul
 --- a/browser/base/content/browser.xul
@@ -1330,7 +1339,7 @@ diff --git a/browser/base/content/browser.xul b/browser/base/content/browser.xul
          <button id="editBookmarkPanelDeleteButton"
                  class="editBookmarkPanelBottomButton"
                  label="&editBookmark.cancel.label;"
-@@ -1228,17 +1228,17 @@
+@@ -1234,17 +1234,17 @@
  
    <hbox id="full-screen-warning-container" hidden="true" fadeout="true">
      <hbox style="width: 100%;" pack="center"> <!-- Inner hbox needed due to bug 579776. -->
@@ -1363,14 +1372,14 @@ diff --git a/browser/base/jar.mn b/browser/base/jar.mn
  *       content/browser/browser.xul                   (content/browser.xul)
 +*       content/browser/browser-kde.xul               (content/browser-kde.xul)
 +%       override chrome://browser/content/browser.xul chrome://browser/content/browser-kde.xul desktop=kde
+         content/browser/browser-pocket-en-US.properties (content/browser-pocket-en-US.properties)
+         content/browser/browser-pocket.dtd            (content/browser-pocket.dtd)
+         content/browser/browser-pocket-de.properties  (content/browser-pocket-de.properties)
+         content/browser/browser-pocket-es-ES.properties (content/browser-pocket-es-ES.properties)
+         content/browser/browser-pocket-ja.properties  (content/browser-pocket-ja.properties)
+         content/browser/browser-pocket-ru.properties  (content/browser-pocket-ru.properties)
  *       content/browser/browser-tabPreviews.xml       (content/browser-tabPreviews.xml)
  *       content/browser/chatWindow.xul                (content/chatWindow.xul)
-         content/browser/content.js                    (content/content.js)
-         content/browser/defaultthemes/1.footer.jpg    (content/defaultthemes/1.footer.jpg)
-         content/browser/defaultthemes/1.header.jpg    (content/defaultthemes/1.header.jpg)
-         content/browser/defaultthemes/1.icon.jpg      (content/defaultthemes/1.icon.jpg)
-         content/browser/defaultthemes/1.preview.jpg   (content/defaultthemes/1.preview.jpg)
-         content/browser/defaultthemes/2.footer.jpg    (content/defaultthemes/2.footer.jpg)
 diff --git a/browser/components/build/nsModule.cpp b/browser/components/build/nsModule.cpp
 --- a/browser/components/build/nsModule.cpp
 +++ b/browser/components/build/nsModule.cpp
