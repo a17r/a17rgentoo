@@ -1,0 +1,417 @@
+From: Neal H. Walfield <neal@gnu.org>
+Date: Sat, 13 Jun 2015 19:43:33 +0000 (+0200)
+Subject: Remove internal mini-libassuan implementation and link to libassuan.
+X-Git-Url: http://git.gnupg.org/cgi-bin/gitweb.cgi?p=pinentry.git;a=commitdiff_plain;h=302903f76b8d62b1e07219a203f7219cb3aff7d8
+
+Remove internal mini-libassuan implementation and link to libassuan.
+
+* configure.ac: Check for libgpg-error and libassuan.
+(COMMON_CFLAGS): Add $GPG_ERROR_CFLAGS and $LIBASSUAN_CFLAGS.
+(COMMAND_LIBS): Add $GPG_ERROR_LIBS and $LIBASSUAN_LIBS.
+(GPG_ERR_ENABLE_GETTEXT_MACROS): Define this macro.
+(GPG_ERR_ENABLE_ERRNO_MACROS): Likewise.
+(GNUPG_LIBASSUAN_VERSION): Likewise.
+(AC_CONFIG_FILES): Don't generate assuan/Makefile.
+(config.h): Define GPG_ERR_SOURCE_DEFAULT.
+* Makefile.am (SUBDIRS): Remove assuan.
+* curses/Makefile.am (LDADD): Remove ../assuan/libassuan.a.
+* gnome3/Makefile.am (AM_CPPFLAGS): Remove -I$(top_srcdir)/assuan.
+(LDADD): Remove ../assuan/libassuan.a.
+* gtk+-2/Makefile.am (LDADD): Remove ../assuan/libassuan.a.
+* pinentry/Makefile.am: Remove -I$(top_srcdir)/assuan.
+* qt4/Makefile.am (AM_CPPFLAGS): Remove -I$(top_srcdir)/assuan.
+(pinentry_qt4_LDADD): Remove $(top_builddir)/assuan/libassuan.a.
+* tty/Makefile.am (LDADD): Remove ../assuan/libassuan.a.
+
+* gnome3/pinentry-gnome3.c: Include <assuan.h>, not "assuan.h".
+Replace ASSUAN_General_Error, etc. with gpg_error or
+gpg_error_from_syserror.
+* pinentry/pinentry-curses.c: Likewise.
+* pinentry/pinentry.c: Likewise.
+(pinentry_assuan_reset_handler): Change return type to gpg_error_t.
+Change type of argument CTX from ASSUAN_CONTEXT to assuan_context_t.
+Return 0.
+(pinentry_inq_quality): Change variable CTX's type from ASSUAN_CONTEXT
+to assuan_context_t.
+(assuan_malloc_hooks): New variable.
+(pinentry_init): Call gpgrt_check_version.  Change use of
+assuan_set_malloc_hooks to match libassuan's semantics.
+(option_handler): Return a gpg_error_t, not an int.  Replace use of
+ASSUAN_Out_Of_Core, etc. with gpg_error or gpg_error_from_syserror.
+(cmd_setdesc): Return a gpg_error_t, not an int.  Change argument
+CTX's type from ASSUAN_CONTEXT to assuan_context_t.  Replace use of
+ASSUAN_Out_Of_Core, etc. with gpg_error or gpg_error_from_syserror.
+GPG_ERR_ENOMEM), etc.
+(cmd_setprompt): Likewise.
+(cmd_setkeyinfo): Likewise.
+(cmd_setrepeat): Likewise.
+(cmd_setrepeaterror): Likewise.
+(cmd_seterror): Likewise.
+(cmd_setok): Likewise.
+(cmd_setnotok): Likewise.
+(cmd_setcancel): Likewise.
+(cmd_settimeout): Likewise.
+(cmd_settitle): Likewise.
+(cmd_setqualitybar): Likewise.
+(cmd_setqualitybar_tt): Likewise.
+(cmd_getpin): Likewise.
+(cmd_confirm): Likewise.
+(cmd_message): Likewise.
+(cmd_getinfo): Likewise.
+(cmd_clear_passphrase): Likewise.
+(register_commands): Likewise.  Change use of assuan_register_command
+to match libassuan's semantics.
+(pinentry_loop2): Change variable RC's type from int to gpg_error_t.
+Change variable CTX's type from ASSUAN_CONTEXT to assuan_context_t.
+Use assuan_new to initialize CTX.  Change use of
+assuan_init_pipe_server to match libassuan's semantics.  Replace use
+of assuan_strerror with gpg_strerror.  Call assuan_release instead of
+assuan_deinit_server.
+---
+
+diff --git a/Makefile.am b/Makefile.am
+index 177f37e..71f8541 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -64,7 +64,7 @@ else
+ pinentry_w32 =
+ endif
+ 
+-SUBDIRS = assuan secmem pinentry ${pinentry_curses} ${pinentry_tty} \
++SUBDIRS = secmem pinentry ${pinentry_curses} ${pinentry_tty} \
+ 	${pinentry_gtk_2} ${pinentry_gnome_3} ${pinentry_qt4} \
+ 	${pinentry_w32} doc
+ 
+diff --git a/configure.ac b/configure.ac
+index 084a160..e5343c0 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -229,8 +229,42 @@ COMMON_LIBS=
+ AC_SUBST(COMMON_CFLAGS)
+ AC_SUBST(COMMON_LIBS)
+ 
++dnl Checks for libgpg-error
++#
++# libgpg-error is a library with error codes shared between GnuPG
++# related projects.
++#
++NEED_GPG_ERROR_VERSION=1.16
++have_gpg_error=no
++
++AM_PATH_GPG_ERROR("$NEED_GPG_ERROR_VERSION",
++                  have_gpg_error=yes,have_gpg_error=no)
++COMMON_CFLAGS="$GPG_ERROR_CFLAGS $COMMON_CFLAGS"
++COMMON_LIBS="$GPG_ERROR_LIBS $COMMON_LIBS"
++
++AC_DEFINE_UNQUOTED(GPG_ERR_ENABLE_GETTEXT_MACROS, 1,
++                   [Under Windows we use the gettext code from libgpg-error])
++
++AC_DEFINE_UNQUOTED(GPG_ERR_ENABLE_ERRNO_MACROS, 1,
++                   [Under WindowsCE we use the strerror replacement from libgpg-error.])
++
++
+ dnl Checks for libassuan.
+-dnl -> None required because we use a stripped down version of libassuan.
++#
++# libassuan is used for IPC
++#
++NEED_LIBASSUAN_API=2
++NEED_LIBASSUAN_VERSION=2.1.0
++have_libassuan=no
++AM_PATH_LIBASSUAN("$NEED_LIBASSUAN_API:$NEED_LIBASSUAN_VERSION",
++                  have_libassuan=yes,have_libassuan=no)
++if test "$have_libassuan" = "yes"; then
++  AC_DEFINE_UNQUOTED(GNUPG_LIBASSUAN_VERSION, "$libassuan_version",
++                     [version of the libassuan library])
++fi
++
++COMMON_CFLAGS="$LIBASSUAN_CFLAGS $COMMON_CFLAGS"
++COMMON_LIBS="$LIBASSUAN_LIBS $COMMON_LIBS"
+ 
+ 
+ dnl Checks for libsecmem.
+@@ -442,8 +476,8 @@ if test "$libsecret" = "yes"; then
+   AC_DEFINE(HAVE_LIBSECRET, 1,
+     [The pinentries should optionally cache the passphrase using libsecret.])
+ 
+-  COMMON_CFLAGS="$COMMON_CFLAGS $LIBSECRET_CFLAGS"
+-  COMMON_LIBS="$COMMON_LIBS $LIBSECRET_LIBS"
++  COMMON_CFLAGS="$LIBSECRET_CFLAGS $COMMON_CFLAGS"
++  COMMON_LIBS="$LIBSECRET_LIBS $COMMON_LIBS"
+ fi
+ 
+ dnl
+@@ -561,9 +595,66 @@ else
+ fi
+ AC_SUBST(PINENTRY_DEFAULT)
+ 
++#
++# Print errors here so that they are visible all
++# together and the user can acquire them all together.
++#
++die=no
++if test "$have_gpg_error" = "no"; then
++   die=yes
++   AC_MSG_NOTICE([[
++***
++*** You need libgpg-error to build this program.
++**  This library is for example available at
++***   ftp://ftp.gnupg.org/gcrypt/libgpg-error
++*** (at least version $NEED_GPG_ERROR_VERSION is required.)
++***]])
++fi
++
++if test "$have_libassuan" = "no"; then
++   die=yes
++   AC_MSG_NOTICE([[
++***
++*** You need libassuan to build this program.
++*** This library is for example available at
++***   ftp://ftp.gnupg.org/gcrypt/libassuan/
++*** (at least version $NEED_LIBASSUAN_VERSION (API $NEED_LIBASSUAN_API) is required).
++***]])
++fi
++
++if test "$die" = "yes"; then
++    AC_MSG_ERROR([[
++***
++*** Required libraries not found. Please consult the above messages
++*** and install them before running configure again.
++***]])
++fi
++
++
++
++#
++# To avoid double inclusion of config.h which might happen at some
++# places, we add the usual double inclusion protection at the top of
++# config.h.
++#
++AH_TOP([
++#ifndef GNUPG_CONFIG_H_INCLUDED
++#define GNUPG_CONFIG_H_INCLUDED
++])
++
++#
++# Stuff which goes at the bottom of config.h.
++#
++AH_BOTTOM([
++#ifdef GPG_ERR_SOURCE_DEFAULT
++# error GPG_ERR_SOURCE_DEFAULT already defined
++#endif
++#define GPG_ERR_SOURCE_DEFAULT  GPG_ERR_SOURCE_PINENTRY
++#endif /*GNUPG_CONFIG_H_INCLUDED*/
++])
++
+ 
+ AC_CONFIG_FILES([
+-assuan/Makefile
+ secmem/Makefile
+ pinentry/Makefile
+ curses/Makefile
+diff --git a/curses/Makefile.am b/curses/Makefile.am
+index 4d764c7..915f8a8 100644
+--- a/curses/Makefile.am
++++ b/curses/Makefile.am
+@@ -23,7 +23,6 @@ bin_PROGRAMS = pinentry-curses
+ 
+ AM_CPPFLAGS = $(COMMON_CFLAGS) $(NCURSES_INCLUDE) -I$(top_srcdir)/pinentry
+ LDADD = ../pinentry/libpinentry.a ../pinentry/libpinentry-curses.a \
+-	../assuan/libassuan.a ../secmem/libsecmem.a \
+-	$(COMMON_LIBS) $(LIBCAP) $(LIBCURSES) $(LIBICONV)
++	../secmem/libsecmem.a $(COMMON_LIBS) $(LIBCAP) $(LIBCURSES) $(LIBICONV)
+ 
+ pinentry_curses_SOURCES = pinentry-curses.c
+diff --git a/gnome3/Makefile.am b/gnome3/Makefile.am
+index 46639de..71c0732 100644
+--- a/gnome3/Makefile.am
++++ b/gnome3/Makefile.am
+@@ -30,9 +30,8 @@ libcurses =
+ endif
+ 
+ AM_CPPFLAGS = $(COMMON_CFLAGS) $(GNOME3CFLAGS) \
+-	$(ncurses_include) -I$(top_srcdir)/assuan \
+-	-I$(top_srcdir)/secmem -I$(top_srcdir)/pinentry
+-LDADD = ../pinentry/libpinentry.a ../assuan/libassuan.a ../secmem/libsecmem.a \
++	$(ncurses_include) -I$(top_srcdir)/secmem -I$(top_srcdir)/pinentry
++LDADD = ../pinentry/libpinentry.a ../secmem/libsecmem.a \
+ 	$(COMMON_LIBS) $(LIBCAP) $(GNOME3LIBS) $(libcurses)
+ 
+ pinentry_gnome3_SOURCES = pinentry-gnome3.c
+diff --git a/gtk+-2/Makefile.am b/gtk+-2/Makefile.am
+index 7e37469..88f245e 100644
+--- a/gtk+-2/Makefile.am
++++ b/gtk+-2/Makefile.am
+@@ -31,7 +31,7 @@ endif
+ 
+ AM_CPPFLAGS = $(COMMON_CFLAGS) $(GTK2CFLAGS) $(ncurses_include) \
+ 	-I$(top_srcdir)/secmem -I$(top_srcdir)/pinentry
+-LDADD = ../pinentry/libpinentry.a ../assuan/libassuan.a ../secmem/libsecmem.a \
++LDADD = ../pinentry/libpinentry.a ../secmem/libsecmem.a \
+ 	$(COMMON_LIBS) $(LIBCAP) $(GTK2LIBS) $(libcurses)
+ 
+ pinentry_gtk_2_SOURCES = pinentry-gtk-2.c \
+diff --git a/pinentry/Makefile.am b/pinentry/Makefile.am
+index 7fbbab6..d24581b 100644
+--- a/pinentry/Makefile.am
++++ b/pinentry/Makefile.am
+@@ -30,7 +30,7 @@ endif
+ noinst_LIBRARIES = libpinentry.a $(pinentry_curses)
+ 
+ LDADD = $(COMMON_LIBS)
+-AM_CPPFLAGS = $(COMMON_CFLAGS) -I$(top_srcdir)/assuan -I$(top_srcdir)/secmem
++AM_CPPFLAGS = $(COMMON_CFLAGS) -I$(top_srcdir)/secmem
+ 
+ libpinentry_a_SOURCES = pinentry.h pinentry.c argparse.c argparse.h \
+ 	password-cache.h password-cache.c
+diff --git a/qt4/Makefile.am b/qt4/Makefile.am
+index 816aade..e2014e3 100644
+--- a/qt4/Makefile.am
++++ b/qt4/Makefile.am
+@@ -35,12 +35,11 @@ endif
+ 
+ 
+ AM_CPPFLAGS = $(COMMON_CFLAGS) \
+-	-I$(top_srcdir) -I$(top_srcdir)/assuan -I$(top_srcdir)/secmem \
++	-I$(top_srcdir) -I$(top_srcdir)/secmem \
+ 	$(ncurses_include) -I$(top_srcdir)/pinentry
+ AM_CXXFLAGS = $(QT4_CORE_CFLAGS) $(QT4_GUI_CFLAGS)
+ pinentry_qt4_LDADD = \
+-	../pinentry/libpinentry.a $(top_builddir)/assuan/libassuan.a \
+-	$(top_builddir)/secmem/libsecmem.a \
++	../pinentry/libpinentry.a $(top_builddir)/secmem/libsecmem.a \
+ 	$(COMMON_LIBS) $(QT4_CORE_LIBS) $(QT4_GUI_LIBS) $(libcurses) $(LIBCAP)
+ 
+ BUILT_SOURCES = \
+diff --git a/tty/Makefile.am b/tty/Makefile.am
+index ca6406f..e232473 100644
+--- a/tty/Makefile.am
++++ b/tty/Makefile.am
+@@ -21,8 +21,7 @@
+ bin_PROGRAMS = pinentry-tty
+ 
+ AM_CPPFLAGS = $(COMMON_CFLAGS) -I$(top_srcdir)/secmem -I$(top_srcdir)/pinentry
+-LDADD = ../pinentry/libpinentry.a \
+-	../assuan/libassuan.a ../secmem/libsecmem.a \
++LDADD = ../pinentry/libpinentry.a ../secmem/libsecmem.a \
+ 	$(COMMON_LIBS) $(LIBCAP) $(LIBICONV)
+ 
+ pinentry_tty_SOURCES = pinentry-tty.c
+diff --git a/gnome3/pinentry-gnome3.c b/gnome3/pinentry-gnome3.c
+index 0fea8f0..2799904 100644
+--- a/gnome3/pinentry-gnome3.c
++++ b/gnome3/pinentry-gnome3.c
+@@ -27,7 +27,7 @@
+ 
+ #include <string.h>
+ 
+-#include "assuan.h"
++#include <assuan.h>
+ 
+ #include "memory.h"
+ 
+@@ -189,7 +189,7 @@ gnome3_cmd_handler (pinentry_t pe)
+       if (error)
+ 	/* Error.  */
+ 	{
+-	  pe->specific_err = ASSUAN_General_Error;
++	  pe->specific_err = gpg_error (GPG_ERR_ASS_GENERAL);
+ 	  g_error_free (error);
+ 	  ret = -1;
+ 	}
+@@ -231,7 +231,7 @@ gnome3_cmd_handler (pinentry_t pe)
+       reply = gcr_prompt_confirm_run (prompt, NULL, &error);
+       if (error)
+ 	{
+-	  pe->specific_err = ASSUAN_General_Error;
++	  pe->specific_err = gpg_error (GPG_ERR_ASS_GENERAL);
+ 	  ret = 0;
+ 	}
+       else if (reply == GCR_PROMPT_REPLY_CONTINUE
+diff --git a/pinentry/pinentry-curses.c b/pinentry/pinentry-curses.c
+index d25ab2e..235435a 100644
+--- a/pinentry/pinentry-curses.c
++++ b/pinentry/pinentry-curses.c
+@@ -50,8 +50,9 @@
+ #include <wchar.h>
+ #endif /*HAVE_WCHAR_H*/
+ 
++#include <assuan.h>
++
+ #include "pinentry.h"
+-#include "assuan.h"
+ 
+ /* FIXME: We should allow configuration of these button labels and in
+    any case use the default_ok, default_cancel values if available.
+@@ -250,7 +251,7 @@ dialog_create (pinentry_t pinentry, dialog_t dialog)
+         if (!what)							\
+ 	  {								\
+ 	    err = 1;							\
+-            pinentry->specific_err = ASSUAN_Locale_Problem;             \
++            pinentry->specific_err = gpg_error (GPG_ERR_LOCALE_PROBLEM); \
+ 	    goto out;							\
+ 	  }								\
+       }									\
+@@ -282,7 +283,7 @@ dialog_create (pinentry_t pinentry, dialog_t dialog)
+ 	  if (!new)							\
+ 	    {								\
+ 	      err = 1;							\
+-              pinentry->specific_err = ASSUAN_Out_Of_Core;              \
++              pinentry->specific_err = gpg_error_from_syserror ();	\
+ 	      goto out;							\
+ 	    }								\
+ 									\
+@@ -307,7 +308,7 @@ dialog_create (pinentry_t pinentry, dialog_t dialog)
+       if (!dialog->which)						\
+         {								\
+ 	  err = 1;							\
+-          pinentry->specific_err = ASSUAN_Locale_Problem;               \
++          pinentry->specific_err = gpg_error (GPG_ERR_LOCALE_PROBLEM);	\
+ 	  goto out;							\
+ 	}								\
+     }									\
+@@ -373,7 +374,7 @@ dialog_create (pinentry_t pinentry, dialog_t dialog)
+   if (y > size_y)
+     {
+       err = 1;
+-      pinentry->specific_err = ASSUAN_Too_Short;
++      pinentry->specific_err = gpg_error (GPG_ERR_ASS_LINE_TOO_LONG);
+       goto out;
+     }
+ 
+@@ -428,7 +429,7 @@ dialog_create (pinentry_t pinentry, dialog_t dialog)
+   if (x > size_x)
+     {
+       err = 1;
+-      pinentry->specific_err = ASSUAN_Too_Short;
++      pinentry->specific_err = gpg_error (GPG_ERR_ASS_LINE_TOO_LONG);
+       goto out;
+     }
+ 
+@@ -833,7 +834,7 @@ dialog_run (pinentry_t pinentry, const char *tty_name, const char *tty_type)
+       ttyfi = fopen (tty_name, "r");
+       if (!ttyfi)
+         {
+-          pinentry->specific_err = ASSUAN_ENOENT;
++          pinentry->specific_err = gpg_error_from_syserror ();
+           return -1;
+         }
+       ttyfo = fopen (tty_name, "w");
+@@ -842,7 +843,7 @@ dialog_run (pinentry_t pinentry, const char *tty_name, const char *tty_type)
+ 	  int err = errno;
+ 	  fclose (ttyfi);
+ 	  errno = err;
+-          pinentry->specific_err = ASSUAN_ENOENT;
++          pinentry->specific_err = gpg_error_from_syserror ();
+ 	  return -1;
+ 	}
+       screen = newterm (tty_type, ttyfo, ttyfi);
+@@ -855,7 +856,7 @@ dialog_run (pinentry_t pinentry, const char *tty_name, const char *tty_type)
+           if (!(isatty(fileno(stdin)) && isatty(fileno(stdout))))
+             {
+               errno = ENOTTY;
+-              pinentry->specific_err = ASSUAN_ENOTTY;
++              pinentry->specific_err = gpg_error_from_syserror ();
+               return -1;
+             }
+ 	  init_screen = 1;
