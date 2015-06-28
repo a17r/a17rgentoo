@@ -32,17 +32,14 @@ RDEPEND="
 	>=dev-libs/yajl-2.0.4-r1[${MULTILIB_USEDEP}]
 	media-libs/icc-profiles-basiccolor-printing2009
 	media-libs/icc-profiles-openicc
-	|| (
-		>=media-libs/lcms-2.5:2[${MULTILIB_USEDEP}]
-		>=media-libs/lcms-1.19-r1:0[${MULTILIB_USEDEP}]
-	)
+	>=media-libs/lcms-2.5:2[${MULTILIB_USEDEP}]
 	>=media-libs/libpng-1.6.10:0[${MULTILIB_USEDEP}]
 	>=media-libs/libXcm-0.5.3[${MULTILIB_USEDEP}]
 	cairo? ( >=x11-libs/cairo-1.12.14-r4[${MULTILIB_USEDEP}] )
 	cups? ( >=net-print/cups-1.7.1-r1[${MULTILIB_USEDEP}] )
 	exif? ( >=media-gfx/exiv2-0.23-r2[${MULTILIB_USEDEP}] )
 	fltk? ( x11-libs/fltk:1 )
-	jpeg? ( virtual/jpeg:0 )
+	jpeg? ( virtual/jpeg:0[${MULTILIB_USEDEP}] )
 	qt5? (
 		dev-qt/qtwidgets:5 dev-qt/qtx11extras:5
 	)
@@ -50,7 +47,7 @@ RDEPEND="
 		qt4? ( dev-qt/qtcore:4 dev-qt/qtgui:4 )
 	)
 	raw? ( >=media-libs/libraw-0.15.4[${MULTILIB_USEDEP}] )
-	tiff? ( media-libs/tiff:0 )
+	tiff? ( media-libs/tiff:0[${MULTILIB_USEDEP}] )
 	X? ( >=x11-libs/libXfixes-5.0.1[${MULTILIB_USEDEP}]
 		>=x11-libs/libXrandr-1.4.2[${MULTILIB_USEDEP}]
 		>=x11-libs/libXxf86vm-1.1.3[${MULTILIB_USEDEP}]
@@ -105,7 +102,9 @@ multilib_src_configure() {
 	)
 
 	# prefer Qt5
-	use qt5 || use qt4 && mycmakeargs+=( $(cmake-utils_use_use qt4) )
+	if ! use qt5 ; then
+		use qt4 && mycmakeargs+=( $(cmake-utils_use_use qt4) )
+	fi
 
 	# only used in programs
 	if ! multilib_is_native_abi ; then
