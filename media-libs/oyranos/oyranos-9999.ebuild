@@ -74,8 +74,6 @@ src_prepare() {
 	einfo remove bundled libs
 	rm -rf elektra* yajl || die
 
-	epatch "${FILESDIR}/${PN}"-9999-buildsystem.patch
-
 	if use fltk ; then
 		#src/examples does not include fltk flags
 		append-cflags $(fltk-config --cflags)

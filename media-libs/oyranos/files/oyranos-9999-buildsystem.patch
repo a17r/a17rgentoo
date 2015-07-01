@@ -1,9 +1,0 @@
---- a/doc/CMakeLists.txt
-+++ b/doc/CMakeLists.txt
-@@ -43,5 +43,5 @@
-   ADD_CUSTOM_TARGET( docu ALL
-                      DEPENDS html )
- 
--  INSTALL( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc/${PACKAGE_NAME} )
-+  INSTALL( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc/${PACKAGE_NAME}-${OYRANOS_VERSION} )
- ENDIF()
