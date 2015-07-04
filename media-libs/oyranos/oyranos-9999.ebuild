@@ -107,9 +107,9 @@ multilib_src_configure() {
 	# only used in programs
 	if ! multilib_is_native_abi ; then
 		mycmakeargs+=(
-			"CMAKE_DISABLE_FIND_PACKAGE_Fltk=ON"
-			"CMAKE_DISABLE_FIND_PACKAGE_Qt4=ON"
-			"CMAKE_DISABLE_FIND_PACKAGE_Qt5=ON"
+			-DCMAKE_DISABLE_FIND_PACKAGE_Fltk=ON
+			-DCMAKE_DISABLE_FIND_PACKAGE_Qt4=ON
+			-DCMAKE_DISABLE_FIND_PACKAGE_Qt5=ON
 		)
 	else
 		mycmakeargs+=(
