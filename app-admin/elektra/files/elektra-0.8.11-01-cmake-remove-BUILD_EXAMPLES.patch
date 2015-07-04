@@ -1,0 +1,81 @@
+From 8570a6f5729f10f3885e98991d98bc8408f7205e Mon Sep 17 00:00:00 2001
+From: Markus Raab <elektra@markus-raab.org>
+Date: Sat, 23 May 2015 09:33:28 +0200
+Subject: cmake: remove BUILD_EXAMPLES + simplify ex+benchm
+
+BUILD_EXAMPLES was unused
+simplify inclusion examples+benchmarks (should work with shared, too)
+fix wrong inclusion order of GTest
+---
+ CMakeLists.txt           | 27 +++++++++++----------------
+ cmake/ElektraCache.cmake |  2 --
+ 2 files changed, 11 insertions(+), 18 deletions(-)
+---
+From 54ebb81703f5b6326dd66efe763865e5a3bb78c2 Mon Sep 17 00:00:00 2001
+From: Markus Raab <elektra@markus-raab.org>
+Date: Sat, 16 May 2015 11:53:57 +0200
+Subject: GTest needs to be included when tests are built
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -u b/CMakeLists.txt b/CMakeLists.txt
+--- b/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -29,7 +29,6 @@
+ if (ENABLE_TESTING)
+ 	enable_testing ()
+ 	include (Dart)
+-	find_package (GTest)
+ endif (ENABLE_TESTING)
+ 
+ 
+@@ -80,23 +79,19 @@
+-if (BUILD_FULL OR BUILD_STATIC OR BUILD_SHARED)
+-	add_subdirectory (src)
+-endif()
+-
+ if (BUILD_DOCUMENTATION)
+ 	add_subdirectory (doc)
+ endif (BUILD_DOCUMENTATION)
+ 
+-if (BUILD_TESTING)
+-	if (BUILD_FULL OR BUILD_STATIC)
+-		add_subdirectory (tests)
+-	else (BUILD_FULL OR BUILD_STATIC)
+-		message(WARNING "Requested to build testing, but is impossible because neither full or static build active")
+-	endif (BUILD_FULL OR BUILD_STATIC)
+-endif (BUILD_TESTING)
+-
++#is there anything to build except documentation?
+ if (BUILD_FULL OR BUILD_STATIC OR BUILD_SHARED)
++	if (BUILD_TESTING)
++		find_package (GTest)
++	endif (BUILD_TESTING)
++
++	add_subdirectory (src)
+ 	add_subdirectory (examples)
++	add_subdirectory (benchmarks)
++
++	if (BUILD_TESTING)
++		add_subdirectory (tests)
++	endif (BUILD_TESTING)
+ endif()
+ 
+-if (BUILD_FULL OR BUILD_STATIC)
+-	add_subdirectory (benchmarks)
+-endif (BUILD_FULL OR BUILD_STATIC)
+only in patch2:
+unchanged:
+--- a/cmake/ElektraCache.cmake
++++ b/cmake/ElektraCache.cmake
+@@ -343,8 +343,6 @@ option (BUILD_SHARED "Build the shared version of elektra." ON)
+ option (BUILD_FULL "Build the full version of elektra (shared with all selected backends included)." ON)
+ option (BUILD_STATIC "Build the static version of elektra (all selected backends included statically)." ON)
+ 
+-option (BUILD_EXAMPLES "Build example applications using elektra." ON)
+-
+ option (BUILD_DOCUMENTATION "Build the documentation (API, man pages)" ON)
+ if (BUILD_DOCUMENTATION)
+ 	option (INSTALL_DOCUMENTATION "Install the documentation (API, man pages)" ON)

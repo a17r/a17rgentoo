@@ -11,9 +11,8 @@ HOMEPAGE="http://freedesktop.org/wiki/Software/Elektra"
 
 if [[ ${PV} == "9999" ]] ; then
 	EGIT_REPO_URI="git://github.com/ElektraInitiative/libelektra.git"
-	inherit git-2
-	SRC_URI=""
-	#KEYWORDS=""
+	inherit git-r3
+	KEYWORDS=""
 else
 	SRC_URI="ftp://ftp.markus-raab.org/${PN}/releases/${P}.tar.gz"
 	KEYWORDS="~amd64 ~x86"
@@ -22,7 +21,7 @@ fi
 LICENSE="BSD"
 SLOT="0"
 PLUGIN_IUSE="augeas iconv ini java simpleini syslog systemd tcl +uname xml yajl";
-IUSE="dbus doc examples qt5 static-libs test ${PLUGIN_IUSE}"
+IUSE="dbus doc qt5 static-libs test ${PLUGIN_IUSE}"
 
 RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 	>=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
@@ -37,7 +36,7 @@ RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 		>=dev-qt/qtwidgets-5.3
 	)
 	uname? ( sys-apps/coreutils )
-	systemd? ( virtual/udev[systemd] )
+	systemd? ( sys-apps/systemd[${MULTILIB_USEDEP}] )
 	yajl? ( >=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}] )
 "
 DEPEND="${RDEPEND}
@@ -45,15 +44,23 @@ DEPEND="${RDEPEND}
 	test? ( >=dev-cpp/gtest-1.7.0 )
 "
 
-DOCS="README.md doc/AUTHORS doc/CODING.md doc/NEWS.md doc/todo/TODO"
+DOCS=( README.md doc/AUTHORS doc/CODING.md doc/NEWS.md doc/todo/TODO )
 # tries to write to user's home directory (and doesn't respect HOME)
 RESTRICT="test"
 
 MULTILIB_WRAPPED_HEADERS=( /usr/include/elektra/kdbconfig.h )
 
-src_prepare() {
+PATCHES=(
+	"${FILESDIR}/${PN}"-0.8.11-conditional-glob-tests.patch
+	"${FILESDIR}/${P}"-01-cmake-remove-BUILD_EXAMPLES.patch
+	"${FILESDIR}/${P}"-02-compile-without-BUILD_STATIC.patch
+	"${FILESDIR}/${P}"-03-fix-build-without-full-and-static.patch
+	"${FILESDIR}/${P}"-04-libraries-not-depend-on-BUILD_SHARED_LIBS.patch
+	"${FILESDIR}/${P}"-05-qt-gui-w-reduce-relocations.patch
+)
 
-	epatch "${FILESDIR}/${PN}-0.8.8-conditional-glob-tests.patch"
+src_prepare() {
+	cmake-utils_src_prepare
 
 	einfo remove bundled libs
 	# TODO: Remove bundled inih from src/plugins/ini (add to portage):
@@ -64,17 +71,21 @@ src_prepare() {
 	sed -e "s/elektra-api/${PF}/" \
 		-i cmake/ElektraCache.cmake || die
 
-	cmake-utils_src_prepare
+	# avoid useless build time, nothing ends up installed
+	comment_add_subdirectory benchmarks
+	comment_add_subdirectory examples
 }
 
 multilib_src_configure() {
 	local my_plugins="ALL"
 
-	if use augeas ; then
-		multilib_is_native_abi || my_plugins+=";-augeas"	# no multilib ebuild available
+	if multilib_is_native_abi ; then
+		use augeas || my_plugins+=";-augeas"
+		use java || my_plugins+=";-jni"
 	else
-		my_plugins+=";-augeas"
+		my_plugins+=";-augeas;-jni"
 	fi
+
 	use dbus      || my_plugins+=";-dbus"
 	use iconv     || my_plugins+=";-iconv"
 	use ini       || my_plugins+=";-ini"		# bundles inih
@@ -85,19 +96,21 @@ multilib_src_configure() {
 	use uname     || my_plugins+=";-uname"
 	use xml       || my_plugins+=";-xmltool"
 	use yajl      || my_plugins+=";-yajl"
-	use java      || my_plugins+=";-jni"
 
-	# Disabled for good (?):
+	# Disabling for good (?):
 	# counter - Only useful for debugging the plugin framework
-	# doc - Documentation explaining the basic makeup of a function // bug #514402;
+	# doc - Explaining basic makeup of a function //bug #514402
 	# noresolver - Does not resolve, but can act as one
 	# template - Template for new plugin written in C
 	# wresolver - Resolver for non-POSIX, e.g. w32/w64 systems
 	my_plugins+=";-counter;-doc;-noresolver;-template;-wresolver"
 
-	local my_tools="kdb"
+	local my_tools
 
-	use qt5 && multilib_is_native_abi && my_tools+=";qt-gui"
+	if multilib_is_native_abi ; then
+		my_tools="kdb"
+		use qt5 && my_tools+=";qt-gui"
+	fi
 
 	mycmakeargs=(
 		"-DBUILD_SHARED=ON"
@@ -107,8 +120,6 @@ multilib_src_configure() {
 		"-DTARGET_CMAKE_FOLDER=share/cmake/Modules"
 		$(multilib_is_native_abi && cmake-utils_use doc BUILD_DOCUMENTATION \
 			|| echo -DBUILD_DOCUMENTATION=OFF)
-		$(multilib_is_native_abi && cmake-utils_use examples BUILD_EXAMPLES \
-			|| echo -DBUILD_EXAMPLES=OFF)
 		$(cmake-utils_use static-libs BUILD_STATIC)
 		$(cmake-utils_use test BUILD_TESTING)
 		$(cmake-utils_use test ENABLE_TESTING)
@@ -117,9 +128,9 @@ multilib_src_configure() {
 	cmake-utils_src_configure
 }
 
-src_install() {
-	cmake-utils_src_install
-
+multilib_src_install_all() {
 	einfo remove test_data
 	rm -rvf "${D}/usr/share/${PN}" || die "Failed to remove test_data"
+	einfo remove tool_exec
+	rm -rvf "${D}/usr/$(get_libdir)/${PN}/tool_exec" || die "Failed to remove tool_exec"
 }

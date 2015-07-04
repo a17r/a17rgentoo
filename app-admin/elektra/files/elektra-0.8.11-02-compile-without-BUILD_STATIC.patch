@@ -1,0 +1,130 @@
+From db20051ce9ac9a892f9d0e95248a7b8b38e26e0a Mon Sep 17 00:00:00 2001
+From: Markus Raab <elektra@markus-raab.org>
+Date: Fri, 22 May 2015 11:27:39 +0200
+Subject: [PATCH 2/7] compile without BUILD_STATIC #224
+
+---
+ cmake/Modules/LibAddMacros.cmake | 47 +++++++++++++++++++++++++++++++---------
+ examples/CMakeLists.txt          | 12 +---------
+ src/tools/qt-gui/CMakeLists.txt  |  4 +++-
+ 3 files changed, 41 insertions(+), 22 deletions(-)
+
+diff --git a/cmake/Modules/LibAddMacros.cmake b/cmake/Modules/LibAddMacros.cmake
+index 93e17b5..ce7f15c 100644
+--- a/cmake/Modules/LibAddMacros.cmake
++++ b/cmake/Modules/LibAddMacros.cmake
+@@ -45,32 +45,59 @@ macro (add_testheaders HDR_FILES)
+ 	list (APPEND ${HDR_FILES} ${BIN_HDR_FILES})
+ endmacro (add_testheaders HDR_FILES)
+ 
+-function (target_link_elektra source)
++# for generic targets (not tools) use this function to link against elektra
++function (target_link_elektra TARGET)
+ 	if (BUILD_FULL)
+-		target_link_libraries (${source} elektra-full)
++		target_link_libraries (${TARGET} elektra-full)
+ 	elseif (BUILD_STATIC)
+-		target_link_libraries (${source} elektra-static)
++		target_link_libraries (${TARGET} elektra-static)
+ 	elseif (BUILD_SHARED)
+-		target_link_libraries (${source} elektra)
++		target_link_libraries (${TARGET} elektra)
+ 	else ()
+-		message(SEND_ERROR "no elektra to link for ${source}, please enable BUILD_FULL, BUILD_STATIC or BUILD_SHARED")
++		message(SEND_ERROR "no elektra to link for ${TARGET}, please enable BUILD_FULL, BUILD_STATIC or BUILD_SHARED")
+ 	endif ()
+ 
+ endfunction()
+ 
+-function (target_link_elektratools source)
++function (target_link_elektratools TARGET)
+ 	if (BUILD_FULL)
+-		target_link_libraries (${source} elektratools-full)
++		target_link_libraries (${TARGET} elektratools-full)
+ 	elseif (BUILD_STATIC)
+-		target_link_libraries (${source} elektratools-static)
++		target_link_libraries (${TARGET} elektratools-static)
+ 	elseif (BUILD_SHARED)
+-		target_link_libraries (${source} elektratools)
++		target_link_libraries (${TARGET} elektratools)
+ 	else ()
+-		message(SEND_ERROR "no elektratools to link for ${source}, please enable BUILD_FULL, BUILD_STATIC or BUILD_SHARED")
++		message(SEND_ERROR "no elektratools to link for ${TARGET}, please enable BUILD_FULL, BUILD_STATIC or BUILD_SHARED")
+ 	endif ()
+ 
+ endfunction()
+ 
++# for tools (not tests) use this function to link against elektra
++macro(tool_link_elektra TARGET)
++	if (BUILD_SHARED)
++		target_link_libraries (${TARGET} elektra)
++	elseif (BUILD_FULL)
++		target_link_libraries (${TARGET} elektra-full)
++	elseif (BUILD_STATIC)
++		target_link_libraries (${TARGET} elektra-static)
++	else ()
++		message(SEND_ERROR "no elektra to link for ${TARGET}, please enable BUILD_FULL, BUILD_STATIC or BUILD_SHARED")
++	endif ()
++endmacro()
++
++macro(tool_link_elektratools TARGET)
++	if (BUILD_SHARED)
++		target_link_libraries (${TARGET} elektratools)
++	elseif (BUILD_FULL)
++		target_link_libraries (${TARGET} elektratools-full)
++	elseif (BUILD_STATIC)
++		target_link_libraries (${TARGET} elektratools-static)
++	else ()
++		message(SEND_ERROR "no elektratools to link for ${TARGET}, please enable BUILD_FULL, BUILD_STATIC or BUILD_SHARED")
++	endif ()
++endmacro()
++
++
+ # Add a test for a plugin
+ #
+ # will include the common tests.h file + its source file
+diff --git a/examples/CMakeLists.txt b/examples/CMakeLists.txt
+index e5184cf..fe5d8d7 100644
+--- a/examples/CMakeLists.txt
++++ b/examples/CMakeLists.txt
+@@ -1,14 +1,3 @@
+-#project (examples)
+-
+-#find_package (Elektra)
+-
+-#if (ELEKTRA_FOUND)
+-#	include (${Elektra_USE_FILE})
+-#	add_executable (hello hello.c)
+-#	target_link_libraries (hello elektra)
+-#endif (ELEKTRA_FOUND)
+-
+-
+ include (LibAddMacros)
+ 
+ #don't call add_headers in a loop
+@@ -20,6 +9,7 @@ macro (do_example source)
+ 	add_executable (${source} ${SOURCES})
+ 
+ 	target_link_elektra(${source})
++
+ 	set_target_properties (${source} PROPERTIES
+ 			COMPILE_DEFINITIONS HAVE_KDBCONFIG_H)
+ endmacro (do_example)
+diff --git a/src/tools/qt-gui/CMakeLists.txt b/src/tools/qt-gui/CMakeLists.txt
+index a159c3d..270912a 100644
+--- a/src/tools/qt-gui/CMakeLists.txt
++++ b/src/tools/qt-gui/CMakeLists.txt
+@@ -52,7 +52,9 @@ target_link_libraries(qt-gui ${DISCOUNT_LIBRARIES})
+ 
+ target_link_libraries(qt-gui ${Qt5Quick_LIBRARIES} ${Qt5Gui_LIBRARIES}
+ 	${Qt5Core_LIBRARIES} ${Qt5Qml_LIBRARIES} ${Qt5Widgets_LIBRARIES}
+-	${Qt5Test_LIBRARIES} elektra elektratools markdown)
++	${Qt5Test_LIBRARIES} markdown)
++tool_link_elektra(qt-gui)
++tool_link_elektratools(qt-gui)
+ 
+ install(TARGETS qt-gui DESTINATION ${TARGET_TOOL_EXEC_FOLDER})
+ 
+-- 
+2.3.6
+
