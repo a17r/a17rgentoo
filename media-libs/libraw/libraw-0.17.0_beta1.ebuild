@@ -7,7 +7,7 @@ EAPI=5
 inherit autotools-multilib eutils toolchain-funcs
 
 MY_PN=LibRaw
-MY_PV=${PV/_a/-A}
+MY_PV=${PV/_b/-B}
 MY_P=${MY_PN}-${MY_PV}
 
 DESCRIPTION="LibRaw is a library for reading RAW files obtained from digital photo cameras"
