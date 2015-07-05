@@ -315,7 +315,6 @@ src_install() {
 		unzip "${enigmail_xpipath}"/enigmail*.xpi || die
 	fi
 
-
 	# Required in order for jit to work on hardened, for mozilla-31
 	use jit && pax-mark pm "${ED}"${MOZILLA_FIVE_HOME}/{thunderbird,thunderbird-bin}
 
