@@ -1,11 +1,11 @@
 # HG changeset patch
-# Parent  37dd974224e6c52f4bccc1ea6cef65b0e0add838
+# Parent  cd94ee18bd0cdda7f5eb5503d8d072efe02a8033
 
 diff --git a/browser/base/content/browser-kde.xul b/browser/base/content/browser-kde.xul
 new file mode 100644
 --- /dev/null
 +++ b/browser/base/content/browser-kde.xul
-@@ -0,0 +1,1311 @@
+@@ -0,0 +1,1308 @@
 +#filter substitution
 +<?xml version="1.0"?>
 +# -*- Mode: HTML -*-
@@ -669,7 +669,7 @@ new file mode 100644
 +            setfocus="false"
 +            tooltip="tabbrowser-tab-tooltip"
 +            stopwatchid="FX_TAB_CLICK_MS">
-+        <tab class="tabbrowser-tab" selected="true" fadein="true"/>
++        <tab class="tabbrowser-tab" selected="true" visuallyselected="true" fadein="true"/>
 +      </tabs>
 +
 +      <toolbarbutton id="new-tab-button"
@@ -1313,9 +1313,6 @@ new file mode 100644
 +#     starting with an empty iframe here in browser.xul from a Ts standpoint.
 +</deck>
 +
-+<script type="application/javascript" src="chrome://browser/content/pocket/pktApi.js"/>
-+<script type="application/javascript" src="chrome://browser/content/pocket/main.js"/>
-+
 +</window>
 diff --git a/browser/base/content/browser.xul b/browser/base/content/browser.xul
 --- a/browser/base/content/browser.xul
@@ -1339,7 +1336,7 @@ diff --git a/browser/base/content/browser.xul b/browser/base/content/browser.xul
          <button id="editBookmarkPanelDeleteButton"
                  class="editBookmarkPanelBottomButton"
                  label="&editBookmark.cancel.label;"
-@@ -1228,17 +1228,17 @@
+@@ -1234,17 +1234,17 @@
  
    <hbox id="full-screen-warning-container" hidden="true" fadeout="true">
      <hbox style="width: 100%;" pack="center"> <!-- Inner hbox needed due to bug 579776. -->
@@ -1372,14 +1369,14 @@ diff --git a/browser/base/jar.mn b/browser/base/jar.mn
  *       content/browser/browser.xul                   (content/browser.xul)
 +*       content/browser/browser-kde.xul               (content/browser-kde.xul)
 +%       override chrome://browser/content/browser.xul chrome://browser/content/browser-kde.xul desktop=kde
+         content/browser/browser-pocket-en-US.properties (content/browser-pocket-en-US.properties)
+         content/browser/browser-pocket.dtd            (content/browser-pocket.dtd)
+         content/browser/browser-pocket-de.properties  (content/browser-pocket-de.properties)
+         content/browser/browser-pocket-es-ES.properties (content/browser-pocket-es-ES.properties)
+         content/browser/browser-pocket-ja.properties  (content/browser-pocket-ja.properties)
+         content/browser/browser-pocket-ru.properties  (content/browser-pocket-ru.properties)
  *       content/browser/browser-tabPreviews.xml       (content/browser-tabPreviews.xml)
  *       content/browser/chatWindow.xul                (content/chatWindow.xul)
-         content/browser/content.js                    (content/content.js)
-         content/browser/defaultthemes/1.footer.jpg    (content/defaultthemes/1.footer.jpg)
-         content/browser/defaultthemes/1.header.jpg    (content/defaultthemes/1.header.jpg)
-         content/browser/defaultthemes/1.icon.jpg      (content/defaultthemes/1.icon.jpg)
-         content/browser/defaultthemes/1.preview.jpg   (content/defaultthemes/1.preview.jpg)
-         content/browser/defaultthemes/2.footer.jpg    (content/defaultthemes/2.footer.jpg)
 diff --git a/browser/components/build/nsModule.cpp b/browser/components/build/nsModule.cpp
 --- a/browser/components/build/nsModule.cpp
 +++ b/browser/components/build/nsModule.cpp

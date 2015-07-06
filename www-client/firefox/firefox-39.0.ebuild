@@ -5,7 +5,7 @@
 EAPI="5"
 VIRTUALX_REQUIRED="pgo"
 WANT_AUTOCONF="2.1"
-MOZ_ESR=1
+MOZ_ESR=""
 
 # This list can be updated with scripts/get_langs.sh from the mozilla overlay
 # No official support as of fetch time
@@ -145,6 +145,7 @@ src_prepare() {
 	# Apply our patches
 	EPATCH_SUFFIX="patch" \
 	EPATCH_FORCE="yes" \
+	EPATCH_EXCLUDE="8010_bug114311-freetype26.patch" \
 	epatch "${WORKDIR}/firefox"
 
 	# Allow user to apply any additional patches without modifing ebuild
@@ -175,8 +176,8 @@ src_prepare() {
 		install -m 644 "${FILESDIR}/kde.js" browser/app/profile/kde.js
 
 		# patches taken from http://www.rosenauer.org/hg/mozilla
-		epatch "${FILESDIR}"/${PN}-38.1-mozilla-kde.patch
-		epatch "${FILESDIR}"/${PN}-38.1-kde.patch
+		epatch "${FILESDIR}"/${PN}-39.0-mozilla-kde.patch
+		epatch "${FILESDIR}"/${PN}-39.0-kde.patch
 	fi
 
 	# Ensure that our plugins dir is enabled as default
