@@ -175,8 +175,8 @@ src_prepare() {
 		install -m 644 "${FILESDIR}/kde.js" browser/app/profile/kde.js
 
 		# patches taken from http://www.rosenauer.org/hg/mozilla
-		epatch "${FILESDIR}"/${PN}-38.0-mozilla-kde.patch
-		epatch "${FILESDIR}"/${PN}-38.0-kde.patch
+		epatch "${FILESDIR}"/${PN}-38.1-mozilla-kde.patch
+		epatch "${FILESDIR}"/${PN}-38.1-kde.patch
 	fi
 
 	# Ensure that our plugins dir is enabled as default
