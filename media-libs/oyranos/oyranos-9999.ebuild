@@ -23,15 +23,13 @@ IUSE="X cairo cups doc exif fltk jpeg qt4 qt5 raw test tiff"
 
 #OY_LINGUAS="cs;de;eo;eu;fr;ru" #TODO
 
-RDEPEND="
+COMMON_DEPEND="
 	|| (
 		=app-admin/elektra-0.7*:0[${MULTILIB_USEDEP}]
 		>=app-admin/elektra-0.8.4:0[${MULTILIB_USEDEP}]
 	)
 	>=dev-libs/libxml2-2.9.1-r4[${MULTILIB_USEDEP}]
 	>=dev-libs/yajl-2.0.4-r1[${MULTILIB_USEDEP}]
-	media-libs/icc-profiles-basiccolor-printing2009
-	media-libs/icc-profiles-openicc
 	>=media-libs/lcms-2.5:2[${MULTILIB_USEDEP}]
 	>=media-libs/libpng-1.6.10:0[${MULTILIB_USEDEP}]
 	>=media-libs/libXcm-0.5.3[${MULTILIB_USEDEP}]
@@ -52,13 +50,16 @@ RDEPEND="
 		>=x11-libs/libXrandr-1.4.2[${MULTILIB_USEDEP}]
 		>=x11-libs/libXxf86vm-1.1.3[${MULTILIB_USEDEP}]
 		>=x11-libs/libXinerama-1.1.3[${MULTILIB_USEDEP}] )"
-DEPEND="${RDEPEND}
+DEPEND="${COMMON_DEPEND}
 	doc? (
 		app-doc/doxygen
 		media-gfx/graphviz
 	)"
+RDEPEND="${COMMON_DEPEND}
+	media-libs/icc-profiles-basiccolor-printing2009
+	media-libs/icc-profiles-openicc"
 
-DOCS=( "AUTHORS.md" "ChangeLog.md" "README.md" )
+DOCS=( AUTHORS.md ChangeLog.md README.md )
 RESTRICT="test"
 
 MULTILIB_CHOST_TOOLS=(
@@ -89,35 +90,19 @@ multilib_src_configure() {
 		-DLIB_SUFFIX=${libdir#lib}
 		-DUSE_SYSTEM_ELEKTRA=YES
 		-DUSE_SYSTEM_YAJL=YES
-		$(cmake-utils_use_find_package cairo)
-		$(cmake-utils_use_find_package cups)
-		$(cmake-utils_use_find_package doc Doxygen)
-		$(cmake-utils_use_find_package exif Exif2)
-		$(cmake-utils_use_find_package jpeg)
-		$(cmake-utils_use_find_package raw LibRaw)
-		$(cmake-utils_use_find_package tiff)
-		$(cmake-utils_use_find_package X X11)
+		-DUSE_Qt4=$(usex '!qt5')
+		-DCMAKE_DISABLE_FIND_PACKAGE_Fltk=$(multilib_native_usex fltk OFF ON)
+		-DCMAKE_DISABLE_FIND_PACKAGE_Qt4=$(multilib_native_usex qt4 OFF ON)
+		-DCMAKE_DISABLE_FIND_PACKAGE_Qt5=$(multilib_native_usex qt5 OFF ON)
+		-DCMAKE_DISABLE_FIND_PACKAGE_Cairo=$(usex '!cairo')
+		-DCMAKE_DISABLE_FIND_PACKAGE_Cups=$(usex '!cups')
+		-DCMAKE_DISABLE_FIND_PACKAGE_Doxygen=$(usex '!doc')
+		-DCMAKE_DISABLE_FIND_PACKAGE_Exif2=$(usex '!exif')
+		-DCMAKE_DISABLE_FIND_PACKAGE_JPEG=$(usex '!jpeg')
+		-DCMAKE_DISABLE_FIND_PACKAGE_LibRaw=$(usex '!raw')
+		-DCMAKE_DISABLE_FIND_PACKAGE_TIFF=$(usex '!tiff')
+		-DCMAKE_DISABLE_FIND_PACKAGE_X11=$(usex '!X')
 	)
-
-	# prefer Qt5
-	if ! use qt5 ; then
-		use qt4 && mycmakeargs+=( $(cmake-utils_use_use qt4) )
-	fi
-
-	# only used in programs
-	if ! multilib_is_native_abi ; then
-		mycmakeargs+=(
-			-DCMAKE_DISABLE_FIND_PACKAGE_Fltk=ON
-			-DCMAKE_DISABLE_FIND_PACKAGE_Qt4=ON
-			-DCMAKE_DISABLE_FIND_PACKAGE_Qt5=ON
-		)
-	else
-		mycmakeargs+=(
-			$(cmake-utils_use_find_package fltk)
-			$(cmake-utils_use_find_package qt4)
-			$(cmake-utils_use_find_package qt5)
-		)
-	fi
 
 	cmake-utils_src_configure
 }
