@@ -5,14 +5,16 @@
 EAPI=5
 WANT_AUTOCONF="2.1"
 MOZ_ESR=""
+MOZ_LIGHTNING_VER="4.0.1"
+MOZ_LIGHTNING_GDATA_VER="1.9"
 
 # This list can be updated using scripts/get_langs.sh from the mozilla overlay
-MOZ_LANGS=(ar ast be bg bn-BD br ca cs da de el en en-GB en-US es-AR
-es-ES et eu fi fr fy-NL ga-IE gd gl he hr hu hy-AM id is it ja ko lt nb-NO
-nl nn-NO pa-IN pl pt-BR pt-PT rm ro ru si sk sl sq sr sv-SE ta-LK tr uk vi
-zh-CN zh-TW )
+MOZ_LANGS=(ar ast be bg bn-BD br ca cs cy da de el en en-GB en-US es-AR
+es-ES et eu fi fr fy-NL ga-IE gd gl he hr hsb hu hy-AM id is it ja ko lt
+nb-NO nl nn-NO pa-IN pl pt-BR pt-PT rm ro ru si sk sl sq sr sv-SE ta-LK tr
+uk vi zh-CN zh-TW )
 
-# Convert the ebuild version to th firefox-24.0-patches-0.4.tar.xze upstream mozilla version, used by mozlinguas
+# Convert the ebuild version to the upstream mozilla version, used by mozlinguas
 MOZ_PV="${PV/_beta/b}"
 # ESR releases have slightly version numbers
 if [[ ${MOZ_ESR} == 1 ]]; then
@@ -33,7 +35,7 @@ MOZ_FTP_URI="ftp://ftp.mozilla.org/pub/${PN}/releases/"
 MOZ_HTTP_URI="http://ftp.mozilla.org/pub/${PN}/releases/"
 
 MOZCONFIG_OPTIONAL_JIT="enabled"
-inherit flag-o-matic toolchain-funcs mozconfig-v5.38 makeedit multilib autotools pax-utils check-reqs nsplugins mozlinguas
+inherit flag-o-matic toolchain-funcs mozconfig-v6.38 makeedit multilib autotools pax-utils check-reqs nsplugins mozlinguas
 
 DESCRIPTION="Thunderbird Mail Client"
 HOMEPAGE="http://www.mozilla.com/en-US/thunderbird/"
@@ -41,23 +43,24 @@ HOMEPAGE="http://www.mozilla.com/en-US/thunderbird/"
 KEYWORDS="~alpha ~amd64 ~arm ~ppc ~ppc64 ~x86 ~x86-fbsd ~amd64-linux ~x86-linux"
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
-IUSE="bindist crypt hardened kde ldap +minimal mozdom selinux"
+IUSE="bindist crypt hardened kde ldap lightning +minimal mozdom selinux"
 RESTRICT="!bindist? ( bindist )"
 
-SRC_URI="${SRC_URI}
-	${MOZ_FTP_URI}${MOZ_PV}/source/${MOZ_P}.source.tar.bz2
-	${MOZ_HTTP_URI}${MOZ_PV}/source/${MOZ_P}.source.tar.bz2
-	crypt? ( http://www.enigmail.net/download/source/enigmail-${EMVER}.tar.gz )
-	http://dev.gentoo.org/~anarchy/mozilla/patchsets/${PATCH}.tar.xz
-	http://dev.gentoo.org/~anarchy/mozilla/patchsets/${PATCHFF}.tar.xz
-	http://dev.gentoo.org/~axs/distfiles/${PATCH}.tar.xz
-	http://dev.gentoo.org/~axs/distfiles/${PATCHFF}.tar.xz
-	http://dev.gentoo.org/~polynomial-c/mozilla/patchsets/${PATCH}.tar.xz"
+SRC_URIS=(
+	${SRC_URI}
+	{${MOZ_FTP_URI},${MOZ_HTTP_URI}}${MOZ_PV}/source/${MOZ_P}.source.tar.bz2
+	${MOZ_FTP_URI/${PN}/calendar/lightning}"${MOZ_LIGHTNING_VER}/linux/lightning.xpi -> lightning-${MOZ_LIGHTNING_VER}.xpi"
+	${MOZ_HTTP_URI/${PN}/calendar/lightning}"${MOZ_LIGHTNING_VER}/linux/lightning.xpi -> lightning-${MOZ_LIGHTNING_VER}.xpi"
+	"lightning? ( http://dev.gentoo.org/~axs/distfiles/gdata-provider-${MOZ_LIGHTNING_GDATA_VER}.tar.xz )"
+	"crypt? ( http://www.enigmail.net/download/source/enigmail-${EMVER}.tar.gz )"
+	http://dev.gentoo.org/~{anarchy,axs,polynomial-c}/mozilla/patchsets/{${PATCH},${PATCHFF}}.tar.xz
+)
+SRC_URI="${SRC_URIS[@]}"
 
 ASM_DEPEND=">=dev-lang/yasm-1.1"
 
 CDEPEND="
-	>=dev-libs/nss-3.19.1
+	>=dev-libs/nss-3.19.2
 	>=dev-libs/nspr-4.10.8
 	!x11-plugins/enigmail
 	crypt?  ( || (
@@ -122,6 +125,10 @@ src_unpack() {
 
 	# Unpack language packs
 	mozlinguas_src_unpack
+
+	xpi_unpack lightning-${MOZ_LIGHTNING_VER}.xpi
+	# this version of gdata-provider is a .tar.xz , no xpi needed
+	#use lightning && xpi_unpack gdata-provider-${MOZ_LIGHTNING_GDATA_VER}.xpi
 }
 
 src_prepare() {
@@ -185,6 +192,15 @@ src_prepare() {
 	# Allow user to apply any additional patches without modifing ebuild
 	epatch_user
 
+	# Confirm the version of lightning being grabbed for langpacks is the same
+	# as that used in thunderbird
+	local THIS_MOZ_LIGHTNING_VER=$(python "${S}"/calendar/lightning/build/makeversion.py ${PV})
+	if [[ ${MOZ_LIGHTNING_VER} != ${THIS_MOZ_LIGHTNING_VER} ]]; then
+		eqawarn "The version of lightning used for localization differs from the version"
+		eqawarn "in thunderbird.  Please update MOZ_LIGHTNING_VER in the ebuild from ${MOZ_LIGHTNING_VER}"
+		eqawarn "to ${THIS_MOZ_LIGHTNING_VER}"
+	fi
+
 	eautoreconf
 	# Ensure we run eautoreconf in mozilla to regenerate configure
 	cd "${S}"/mozilla || die
@@ -214,12 +230,15 @@ src_configure() {
 
 	mozconfig_annotate '' --enable-extensions="${MEXTENSIONS}"
 	mozconfig_annotate '' --disable-mailnews
+	mozconfig_annotate '' --enable-calendar
 
 	# Other tb-specific settings
 	mozconfig_annotate '' --with-default-mozilla-five-home=${MOZILLA_FIVE_HOME}
 	mozconfig_annotate '' --with-user-appdir=.thunderbird
 
 	mozconfig_use_enable ldap
+
+	mozlinguas_mozconfig
 
 	# Bug #72667
 	if use mozdom; then
@@ -292,6 +311,9 @@ src_install() {
 	MOZ_MAKE_FLAGS="${MAKEOPTS}" \
 	emake DESTDIR="${D}" install
 
+	# Install language packs
+	mozlinguas_src_install
+
 	if ! use bindist; then
 		newicon "${S}"/other-licenses/branding/thunderbird/content/icon48.png thunderbird-icon.png
 		domenu "${FILESDIR}"/icon/${PN}.desktop
@@ -304,6 +326,31 @@ src_install() {
 			"${ED}"/usr/share/applications/${PN}.desktop
 	fi
 
+	local emid
+	# stage extra locales for lightning and install over existing
+	mozlinguas_xpistage_langpacks "${BUILD_OBJ_DIR}"/dist/xpi-stage/lightning \
+		"${WORKDIR}"/lightning-${MOZ_LIGHTNING_VER} lightning calendar
+
+	emid='{e2fda1a4-762b-4020-b5ad-a41df1933103}'
+	mkdir -p "${T}/${emid}" || die
+	cp -RLp -t "${T}/${emid}" "${BUILD_OBJ_DIR}"/dist/xpi-stage/lightning/* || die
+	insinto ${MOZILLA_FIVE_HOME}/distribution/extensions
+	doins -r "${T}/${emid}"
+
+	if use lightning; then
+		# move lightning out of distribution/extensions and into extensions for app-global install
+		mv "${ED}"/${MOZILLA_FIVE_HOME}/{distribution,}/extensions/${emid} || die
+
+		# stage extra locales for gdata-provider and install app-global
+		mozlinguas_xpistage_langpacks "${BUILD_OBJ_DIR}"/dist/xpi-stage/gdata-provider \
+			"${WORKDIR}"/gdata-provider-${MOZ_LIGHTNING_GDATA_VER}
+		emid='{a62ef8ec-5fdc-40c2-873c-223b8a6925cc}'
+		mkdir -p "${T}/${emid}" || die
+		cp -RLp -t "${T}/${emid}" "${BUILD_OBJ_DIR}"/dist/xpi-stage/gdata-provider/* || die
+		insinto ${MOZILLA_FIVE_HOME}/extensions
+		doins -r "${T}/${emid}"
+	fi
+
 	if use crypt ; then
 		local enigmail_xpipath="${WORKDIR}/enigmail/build"
 		cd "${T}" || die
@@ -311,11 +358,11 @@ src_install() {
 		emid=$(sed -n '/<em:id>/!d; s/.*\({.*}\).*/\1/; p; q' install.rdf)
 
 		dodir ${MOZILLA_FIVE_HOME}/extensions/${emid} || die
-		cd "${D}"${MOZILLA_FIVE_HOME}/extensions/${emid} || die
+		cd "${ED}"${MOZILLA_FIVE_HOME}/extensions/${emid} || die
 		unzip "${enigmail_xpipath}"/enigmail*.xpi || die
 	fi
 
-	# Required in order for jit to work on hardened, for mozilla-31
+	# Required in order for jit to work on hardened, for mozilla-31 and above
 	use jit && pax-mark pm "${ED}"${MOZILLA_FIVE_HOME}/{thunderbird,thunderbird-bin}
 
 	# Plugin-container needs to be pax-marked for hardened to ensure plugins such as flash
@@ -343,4 +390,11 @@ pkg_postinst() {
 	elog "If you experience problems with plugins please issue the"
 	elog "following command : rm \${HOME}/.thunderbird/*/extensions.sqlite ,"
 	elog "then restart thunderbird"
+	if ! use lightning; then
+		elog
+		elog "If calendar fails to show up in extensions please open config editor"
+		elog "and set extensions.lastAppVersion to 38.0.0 to force a reload. If this"
+		elog "fails to show the calendar extension after restarting with above change"
+		elog "please file a bug report."
+	fi
 }
