@@ -3,10 +3,9 @@
 # $Header: $
 
 EAPI=5
-AUTOTOOLS_IN_SOURCE_BUILD=1
 PYTHON_COMPAT=( python{2_7,3_3,3_4} )
 
-inherit eutils toolchain-funcs python-any-r1 cmake-multilib
+inherit eutils cmake-multilib python-any-r1
 
 DESCRIPTION="EXIF, IPTC and XMP metadata C++ library and command line utility"
 HOMEPAGE="http://www.exiv2.org/"
@@ -16,7 +15,7 @@ LICENSE="GPL-2"
 SLOT="0/14"
 KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~x86-freebsd ~amd64-linux ~x86-linux ~x64-solaris ~x86-solaris"
 IUSE_LINGUAS="bs de es fi fr gl ms pl pt ru sk sv ug uk vi"
-IUSE="doc examples nls png webready xmp static-libs test $(printf 'linguas_%s ' ${IUSE_LINGUAS})"
+IUSE="doc examples nls png webready xmp static-libs $(printf 'linguas_%s ' ${IUSE_LINGUAS})"
 
 RDEPEND="
 	>=virtual/libiconv-0-r1[${MULTILIB_USEDEP}]
@@ -82,7 +81,7 @@ src_prepare() {
 multilib_src_configure() {
 	local mycmakeargs=(
 		-DEXIV2_ENABLE_BUILD_PO=YES
-		-DEXIV2_ENABLE_BUILD_SAMPLES=$(usex test)
+		-DEXIV2_ENABLE_BUILD_SAMPLES=NO
 		-DEXIV2_ENABLE_CURL=$(usex webready)
 		-DEXIV2_ENABLE_NLS=$(usex nls)
 		-DEXIV2_ENABLE_PNG=$(usex png)
