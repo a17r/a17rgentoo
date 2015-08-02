@@ -50,14 +50,7 @@ RESTRICT="test"
 
 MULTILIB_WRAPPED_HEADERS=( /usr/include/elektra/kdbconfig.h )
 
-PATCHES=(
-	"${FILESDIR}/${PN}"-0.8.11-conditional-glob-tests.patch
-	"${FILESDIR}/${P}"-01-cmake-remove-BUILD_EXAMPLES.patch
-	"${FILESDIR}/${P}"-02-compile-without-BUILD_STATIC.patch
-	"${FILESDIR}/${P}"-03-fix-build-without-full-and-static.patch
-	"${FILESDIR}/${P}"-04-libraries-not-depend-on-BUILD_SHARED_LIBS.patch
-	"${FILESDIR}/${P}"-05-qt-gui-w-reduce-relocations.patch
-)
+PATCHES=( "${FILESDIR}/${PN}"-0.8.11-conditional-glob-tests.patch )
 
 src_prepare() {
 	cmake-utils_src_prepare
