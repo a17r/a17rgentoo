@@ -1,8 +1,8 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
-EAPI=4
+EAPI=5
 
 MY_PV="${PV/_}"
 MY_P="${PN}-${MY_PV}"
@@ -18,7 +18,7 @@ IUSE=""
 
 DEPEND=">=media-libs/libsdl-1.2[joystick,opengl,X]
 	media-libs/openal
-	media-libs/libpng
+	media-libs/libpng:0=
 	dev-libs/glib:2
 	sys-libs/zlib
 	media-libs/freetype:2"
