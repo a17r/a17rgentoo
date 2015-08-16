@@ -7,8 +7,14 @@ inherit cmake-utils toolchain-funcs user
 
 DESCRIPTION="Simple Desktop Display Manager"
 HOMEPAGE="https://github.com/sddm/sddm"
-SRC_URI="http://github.com/${PN}/${PN}/archive/v${PV}.tar.gz -> ${P}.tar.gz"
-# KEYWORDS="~amd64 ~arm ~x86"
+if [[ ${PV} = 9999 ]] ; then
+	inherit git-r3
+	EGIT_REPO_URI="git://github.com/${PN}/${PN}.git"
+	KEYWORDS=""
+else
+	SRC_URI="http://github.com/${PN}/${PN}/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+	#KEYWORDS="~amd64 ~arm ~x86"
+fi
 
 LICENSE="GPL-2+ MIT CC-BY-3.0 public-domain"
 SLOT="0"
@@ -31,9 +37,8 @@ DEPEND="${RDEPEND}
 	virtual/pkgconfig"
 
 PATCHES=(
-	"${FILESDIR}/${P}-consolekit2.patch"
-	"${FILESDIR}/${P}-consolekit2-optional.patch"
-	"${FILESDIR}/${P}-dbus-config.patch"
+	"${FILESDIR}/${PN}-0.11.0-consolekit2.patch"
+	"${FILESDIR}/${PN}-0.11.0-consolekit2-optional.patch"
 )
 
 pkg_pretend() {
