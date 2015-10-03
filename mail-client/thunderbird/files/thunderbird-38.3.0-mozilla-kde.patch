@@ -25,7 +25,6 @@ diff --git a/mozilla/modules/libpref/Makefile.in b/mozilla/modules/libpref/Makef
  
  libs:: greprefs.js
  	$(INSTALL) $^ $(DIST)/bin/
-diff --git a/mozilla/modules/libpref/Preferences.cpp b/mozilla/modules/libpref/Preferences.cpp
 --- a/mozilla/modules/libpref/Preferences.cpp
 +++ b/mozilla/modules/libpref/Preferences.cpp
 @@ -27,16 +27,17 @@
@@ -139,7 +138,6 @@ diff --git a/mozilla/modules/libpref/Preferences.cpp b/mozilla/modules/libpref/P
    // or jar:$gre/omni.jar!/defaults/preferences/*.js.
    nsRefPtr<nsZipArchive> appJarReader = mozilla::Omnijar::GetReader(mozilla::Omnijar::APP);
    // GetReader(mozilla::Omnijar::APP) returns null when $app == $gre, in which
-diff --git a/mozilla/python/mozbuild/mozpack/chrome/flags.py b/mozilla/python/mozbuild/mozpack/chrome/flags.py
 --- a/mozilla/python/mozbuild/mozpack/chrome/flags.py
 +++ b/mozilla/python/mozbuild/mozpack/chrome/flags.py
 @@ -209,16 +209,17 @@ class Flags(OrderedDict):
@@ -160,7 +158,6 @@ diff --git a/mozilla/python/mozbuild/mozpack/chrome/flags.py b/mozilla/python/mo
          Initialize a set of flags given in string form.
             flags = Flags('contentaccessible=yes', 'appversion>=3.5')
          '''
-diff --git a/mozilla/python/mozbuild/mozpack/chrome/manifest.py b/mozilla/python/mozbuild/mozpack/chrome/manifest.py
 --- a/mozilla/python/mozbuild/mozpack/chrome/manifest.py
 +++ b/mozilla/python/mozbuild/mozpack/chrome/manifest.py
 @@ -31,16 +31,17 @@ class ManifestEntry(object):
@@ -181,7 +178,6 @@ diff --git a/mozilla/python/mozbuild/mozpack/chrome/manifest.py b/mozilla/python
          '''
          self.base = base
          self.flags = Flags(*flags)
-diff --git a/mozilla/toolkit/components/downloads/moz.build b/mozilla/toolkit/components/downloads/moz.build
 --- a/mozilla/toolkit/components/downloads/moz.build
 +++ b/mozilla/toolkit/components/downloads/moz.build
 @@ -52,14 +52,15 @@ if not CONFIG['MOZ_SUITE']:
@@ -201,7 +197,6 @@ diff --git a/mozilla/toolkit/components/downloads/moz.build b/mozilla/toolkit/co
  DEFINES['GOOGLE_PROTOBUF_NO_RTTI'] = True
  
  CXXFLAGS += CONFIG['TK_CFLAGS']
-diff --git a/mozilla/toolkit/components/downloads/nsDownloadManager.cpp b/mozilla/toolkit/components/downloads/nsDownloadManager.cpp
 --- a/mozilla/toolkit/components/downloads/nsDownloadManager.cpp
 +++ b/mozilla/toolkit/components/downloads/nsDownloadManager.cpp
 @@ -46,16 +46,20 @@
@@ -269,7 +264,6 @@ diff --git a/mozilla/toolkit/components/downloads/nsDownloadManager.cpp b/mozill
  
        if (fileURL &&
            NS_SUCCEEDED(fileURL->GetFile(getter_AddRefs(file))) &&
-diff --git a/mozilla/toolkit/content/jar.mn b/mozilla/toolkit/content/jar.mn
 --- a/mozilla/toolkit/content/jar.mn
 +++ b/mozilla/toolkit/content/jar.mn
 @@ -57,29 +57,33 @@ toolkit.jar:
@@ -306,8 +300,6 @@ diff --git a/mozilla/toolkit/content/jar.mn b/mozilla/toolkit/content/jar.mn
     content/global/bindings/scale.xml           (widgets/scale.xml)
     content/global/bindings/scrollbar.xml       (widgets/scrollbar.xml)
     content/global/bindings/scrollbox.xml       (widgets/scrollbox.xml)
-diff --git a/mozilla/toolkit/content/widgets/dialog-kde.xml b/mozilla/toolkit/content/widgets/dialog-kde.xml
-new file mode 100644
 --- /dev/null
 +++ b/mozilla/toolkit/content/widgets/dialog-kde.xml
 @@ -0,0 +1,455 @@
@@ -766,8 +758,6 @@ new file mode 100644
 +  </binding>
 +
 +</bindings>
-diff --git a/mozilla/toolkit/content/widgets/preferences-kde.xml b/mozilla/toolkit/content/widgets/preferences-kde.xml
-new file mode 100644
 --- /dev/null
 +++ b/mozilla/toolkit/content/widgets/preferences-kde.xml
 @@ -0,0 +1,1350 @@
@@ -2121,7 +2111,6 @@ new file mode 100644
 +#    PrefWindow II  (???)
 +#    PrefWindow I   (June 4, 1999)
 +#
-diff --git a/mozilla/toolkit/system/unixproxy/nsUnixSystemProxySettings.cpp b/mozilla/toolkit/system/unixproxy/nsUnixSystemProxySettings.cpp
 --- a/mozilla/toolkit/system/unixproxy/nsUnixSystemProxySettings.cpp
 +++ b/mozilla/toolkit/system/unixproxy/nsUnixSystemProxySettings.cpp
 @@ -14,16 +14,18 @@
@@ -2216,7 +2205,6 @@ diff --git a/mozilla/toolkit/system/unixproxy/nsUnixSystemProxySettings.cpp b/mo
 +  return NS_OK;
 +}
 +
-diff --git a/mozilla/toolkit/xre/moz.build b/mozilla/toolkit/xre/moz.build
 --- a/mozilla/toolkit/xre/moz.build
 +++ b/mozilla/toolkit/xre/moz.build
 @@ -45,17 +45,19 @@ elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'qt
@@ -2239,8 +2227,6 @@ diff --git a/mozilla/toolkit/xre/moz.build b/mozilla/toolkit/xre/moz.build
      ]
  
  if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gtk3':
-diff --git a/mozilla/toolkit/xre/nsKDEUtils.cpp b/mozilla/toolkit/xre/nsKDEUtils.cpp
-new file mode 100644
 --- /dev/null
 +++ b/mozilla/toolkit/xre/nsKDEUtils.cpp
 @@ -0,0 +1,339 @@
@@ -2583,8 +2569,6 @@ new file mode 100644
 +    fputs( "\\E\n", commandFile ); // done as \E, so it cannot happen in normal data
 +    fflush( commandFile );
 +    }
-diff --git a/mozilla/toolkit/xre/nsKDEUtils.h b/mozilla/toolkit/xre/nsKDEUtils.h
-new file mode 100644
 --- /dev/null
 +++ b/mozilla/toolkit/xre/nsKDEUtils.h
 @@ -0,0 +1,48 @@
@@ -2636,7 +2620,6 @@ new file mode 100644
 +    };
 +
 +#endif // nsKDEUtils
-diff --git a/mozilla/uriloader/exthandler/moz.build b/mozilla/uriloader/exthandler/moz.build
 --- a/mozilla/uriloader/exthandler/moz.build
 +++ b/mozilla/uriloader/exthandler/moz.build
 @@ -68,17 +68,19 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'coco
@@ -2677,8 +2660,6 @@ diff --git a/mozilla/uriloader/exthandler/moz.build b/mozilla/uriloader/exthandl
  
  if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('qt', 'gtk2', 'gtk3'):
      CXXFLAGS += CONFIG['TK_CFLAGS']
-diff --git a/mozilla/uriloader/exthandler/unix/nsCommonRegistry.cpp b/mozilla/uriloader/exthandler/unix/nsCommonRegistry.cpp
-new file mode 100644
 --- /dev/null
 +++ b/mozilla/uriloader/exthandler/unix/nsCommonRegistry.cpp
 @@ -0,0 +1,54 @@
@@ -2736,8 +2717,6 @@ new file mode 100644
 +        return nsKDERegistry::GetFromType( aMIMEType );
 +    return nsGNOMERegistry::GetFromType( aMIMEType );
 +}
-diff --git a/mozilla/uriloader/exthandler/unix/nsCommonRegistry.h b/mozilla/uriloader/exthandler/unix/nsCommonRegistry.h
-new file mode 100644
 --- /dev/null
 +++ b/mozilla/uriloader/exthandler/unix/nsCommonRegistry.h
 @@ -0,0 +1,28 @@
@@ -2769,8 +2748,6 @@ new file mode 100644
 +};
 +
 +#endif
-diff --git a/mozilla/uriloader/exthandler/unix/nsKDERegistry.cpp b/mozilla/uriloader/exthandler/unix/nsKDERegistry.cpp
-new file mode 100644
 --- /dev/null
 +++ b/mozilla/uriloader/exthandler/unix/nsKDERegistry.cpp
 @@ -0,0 +1,88 @@
@@ -2862,8 +2839,6 @@ new file mode 100644
 +        }
 +    return nullptr;
 +}
-diff --git a/mozilla/uriloader/exthandler/unix/nsKDERegistry.h b/mozilla/uriloader/exthandler/unix/nsKDERegistry.h
-new file mode 100644
 --- /dev/null
 +++ b/mozilla/uriloader/exthandler/unix/nsKDERegistry.h
 @@ -0,0 +1,34 @@
@@ -2901,7 +2876,6 @@ new file mode 100644
 +};
 +
 +#endif //nsKDERegistry_h__
-diff --git a/mozilla/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/mozilla/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp
 --- a/mozilla/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp
 +++ b/mozilla/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp
 @@ -7,32 +7,35 @@
@@ -3004,7 +2978,6 @@ diff --git a/mozilla/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/mozilla/uril
    // nsGIOMimeApp->Launch wants a URI string instead of local file
    nsresult rv;
    nsCOMPtr<nsIIOService> ioservice = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-diff --git a/mozilla/uriloader/exthandler/unix/nsOSHelperAppService.cpp b/mozilla/uriloader/exthandler/unix/nsOSHelperAppService.cpp
 --- a/mozilla/uriloader/exthandler/unix/nsOSHelperAppService.cpp
 +++ b/mozilla/uriloader/exthandler/unix/nsOSHelperAppService.cpp
 @@ -10,17 +10,17 @@
@@ -3093,7 +3066,6 @@ diff --git a/mozilla/uriloader/exthandler/unix/nsOSHelperAppService.cpp b/mozill
        gnomeInfo->SetFileExtensions(NS_ConvertUTF16toUTF8(extensions));
        return gnomeInfo.forget();
      }
-diff --git a/mozilla/widget/gtk/moz.build b/mozilla/widget/gtk/moz.build
 --- a/mozilla/widget/gtk/moz.build
 +++ b/mozilla/widget/gtk/moz.build
 @@ -79,16 +79,17 @@ else:
@@ -3114,15 +3086,9 @@ diff --git a/mozilla/widget/gtk/moz.build b/mozilla/widget/gtk/moz.build
          '/widget/x11',
      ]
  
-diff --git a/mozilla/widget/gtk/nsFilePicker.cpp b/mozilla/widget/gtk/nsFilePicker.cpp
 --- a/mozilla/widget/gtk/nsFilePicker.cpp
 +++ b/mozilla/widget/gtk/nsFilePicker.cpp
-@@ -4,32 +4,34 @@
-  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
- 
- #include "mozilla/Types.h"
- #include <sys/types.h>
- #include <sys/stat.h>
+@@ -9,22 +9,24 @@
  #include <unistd.h>
  
  #include <gtk/gtk.h>
@@ -3147,11 +3113,6 @@ diff --git a/mozilla/widget/gtk/nsFilePicker.cpp b/mozilla/widget/gtk/nsFilePick
  
  using namespace mozilla;
  
- #define MAX_PREVIEW_SIZE 180
- 
- nsIFile *nsFilePicker::mPrevDisplayDirectory = nullptr;
- 
- void
 @@ -238,17 +240,19 @@ nsFilePicker::AppendFilters(int32_t aFil
    return nsBaseFilePicker::AppendFilters(aFilterMask);
  }
@@ -3442,7 +3403,6 @@ diff --git a/mozilla/widget/gtk/nsFilePicker.cpp b/mozilla/widget/gtk/nsFilePick
 +    return NS_OK;
 +    }
 +
-diff --git a/mozilla/widget/gtk/nsFilePicker.h b/mozilla/widget/gtk/nsFilePicker.h
 --- a/mozilla/widget/gtk/nsFilePicker.h
 +++ b/mozilla/widget/gtk/nsFilePicker.h
 @@ -68,11 +68,17 @@ protected:
@@ -3463,7 +3423,6 @@ diff --git a/mozilla/widget/gtk/nsFilePicker.h b/mozilla/widget/gtk/nsFilePicker
  };
  
  #endif
-diff --git a/mozilla/xpcom/components/ManifestParser.cpp b/mozilla/xpcom/components/ManifestParser.cpp
 --- a/mozilla/xpcom/components/ManifestParser.cpp
 +++ b/mozilla/xpcom/components/ManifestParser.cpp
 @@ -34,16 +34,17 @@
@@ -3598,7 +3557,6 @@ diff --git a/mozilla/xpcom/components/ManifestParser.cpp b/mozilla/xpcom/compone
        continue;
      }
  
-diff --git a/mozilla/xpcom/components/moz.build b/mozilla/xpcom/components/moz.build
 --- a/mozilla/xpcom/components/moz.build
 +++ b/mozilla/xpcom/components/moz.build
 @@ -48,12 +48,13 @@ FINAL_LIBRARY = 'xul'
@@ -3615,7 +3573,6 @@ diff --git a/mozilla/xpcom/components/moz.build b/mozilla/xpcom/components/moz.b
  
  if CONFIG['MOZ_WIDGET_GTK']:
      CXXFLAGS += CONFIG['TK_CFLAGS']
-diff --git a/mozilla/xpcom/io/nsLocalFileUnix.cpp b/mozilla/xpcom/io/nsLocalFileUnix.cpp
 --- a/mozilla/xpcom/io/nsLocalFileUnix.cpp
 +++ b/mozilla/xpcom/io/nsLocalFileUnix.cpp
 @@ -44,16 +44,17 @@
