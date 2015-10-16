@@ -25,5 +25,5 @@ src_configure() {
 		-DENABLE_OPENCV3=ON
 	)
 
-	kde5_src_configure
+	kde4-base_src_configure
 }
