@@ -407,3 +407,32 @@ dc62c0e0ea55d189d918501cce4d92f4198a1a0c use same OpenCV logic than digiKam and 
  
      for (int i = m_histogramMetadata.size() ; i < currentLabels.rows ; i++)
      {
+--- a/libkface/recognition-opencv-lbph/facerec_borrowed.cpp
++++ b/libkface/recognition-opencv-lbph/facerec_borrowed.cpp
+@@ -531,15 +531,17 @@
+     return ptr;
+ }
+ 
+-CV_INIT_ALGORITHM(LBPHFaceRecognizer, "FaceRecognizer.LBPH-KFaceIface",
+-                  obj.info()->addParam(obj, "radius",     obj.m_radius);
+-                  obj.info()->addParam(obj, "neighbors",  obj.m_neighbors);
+-                  obj.info()->addParam(obj, "grid_x",     obj.m_grid_x);
+-                  obj.info()->addParam(obj, "grid_y",     obj.m_grid_y);
+-                  obj.info()->addParam(obj, "threshold",  obj.m_threshold);
+-                  obj.info()->addParam(obj, "histograms", obj.m_histograms);         // modification: Make Read/Write
+-                  obj.info()->addParam(obj, "labels",     obj.m_labels);             // modification: Make Read/Write
+-                  obj.info()->addParam(obj, "statistic",  obj.m_statisticsMode));    // modification: Add parameter
++#if OPENCV_VERSION <= OPENCV_MAKE_VERSION(2,4,11)
++    CV_INIT_ALGORITHM(LBPHFaceRecognizer, "FaceRecognizer.LBPH-KFaceIface",
++                      obj.info()->addParam(obj, "radius",     obj.m_radius);
++                      obj.info()->addParam(obj, "neighbors",  obj.m_neighbors);
++                      obj.info()->addParam(obj, "grid_x",     obj.m_grid_x);
++                      obj.info()->addParam(obj, "grid_y",     obj.m_grid_y);
++                      obj.info()->addParam(obj, "threshold",  obj.m_threshold);
++                      obj.info()->addParam(obj, "histograms", obj.m_histograms);         // modification: Make Read/Write
++                      obj.info()->addParam(obj, "labels",     obj.m_labels);             // modification: Make Read/Write
++                      obj.info()->addParam(obj, "statistic",  obj.m_statisticsMode));    // modification: Add parameter
++#endif
+ 
+ } // namespace KFaceIface
+ 
