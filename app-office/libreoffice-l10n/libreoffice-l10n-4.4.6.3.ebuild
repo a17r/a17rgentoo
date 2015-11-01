@@ -48,8 +48,7 @@ S="${WORKDIR}"
 src_unpack() {
 	default
 
-	local lang dir rpmdir i
-	local ooextused=()
+	local lang dir rpmdir
 
 	for lang in ${LANGUAGES}; do
 		# break away if not enabled; paludis support
@@ -88,6 +87,6 @@ src_install() {
 		doins -r "${dir}"/*
 	fi
 	# remove extensions that are in the l10n for some weird reason
-	rm -rf "${ED}"/usr/$(get_libdir)/${PN/-l10n/}/share/extensions/ || \
+	rm -rf "${ED}"usr/$(get_libdir)/${PN/-l10n/}/share/extensions/ || \
 		die "Failed to remove extensions"
 }
