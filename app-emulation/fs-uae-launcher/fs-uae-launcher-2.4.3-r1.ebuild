@@ -24,10 +24,11 @@ IUSE=""
 DEPEND="|| ( dev-python/PyQt4
 	dev-python/pyside )
 	dev-python/pygame
-	dev-python/python-lhafile"
+	dev-python/python-lhafile
+	>=dev-python/six-1.4.1"
 RDEPEND="${DEPEND}"
 
-PATCHES=("${FILESDIR}/${PN}-drop-bundled-lhafile.patch")
+PATCHES=("${FILESDIR}/${PN}-drop-bundled-lhafile-and-six.patch")
 
 S="${WORKDIR}/${MY_P}"
 
