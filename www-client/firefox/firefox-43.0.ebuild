@@ -43,7 +43,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-linu
 
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
-IUSE="bindist egl hardened kde +minimal neon pgo selinux +gmp-autoupdate test"
+IUSE="bindist egl hardened +hwaccel kde +minimal pgo selinux +gmp-autoupdate test"
 RESTRICT="!bindist? ( bindist )"
 
 # More URIs appended below...
@@ -80,10 +80,10 @@ else
 	SRC_URI="${SRC_URI}
 		${MOZ_HTTP_URI}/${MOZ_PV}/source/firefox-${MOZ_PV}.source.tar.xz"
 fi
-# elif [[ ${PV} =~ beta ]]; then
-# 	S="${WORKDIR}/mozilla-beta"
-# 	SRC_URI="${SRC_URI}
-# 		${MOZ_HTTP_URI}/${MOZ_PV}/source/firefox-${MOZ_PV}.source.tar.xz"
+#elif [[ ${PV} =~ beta ]]; then
+#	S="${WORKDIR}/mozilla-beta"
+#	SRC_URI="${SRC_URI}
+#		${MOZ_HTTP_URI}/${MOZ_PV}/source/firefox-${MOZ_PV}.source.tar.xz"
 
 QA_PRESTRIPPED="usr/$(get_libdir)/${PN}/firefox"
 
@@ -137,6 +137,8 @@ src_prepare() {
 	# Apply our patches
 	EPATCH_SUFFIX="patch" \
 	EPATCH_FORCE="yes" \
+	EPATCH_EXCLUDE="8002_jemalloc_configure_unbashify.patch
+			8011_bug1194520-freetype261_until_moz43.patch" \
 	epatch "${WORKDIR}/firefox"
 
 	# Allow user to apply any additional patches without modifing ebuild
@@ -167,8 +169,8 @@ src_prepare() {
 		install -m 644 "${FILESDIR}/kde.js" browser/app/profile/kde.js
 
 		# patches taken from http://www.rosenauer.org/hg/mozilla
-		epatch "${FILESDIR}"/${PN}-42.0-mozilla-kde.patch
-		epatch "${FILESDIR}"/${PN}-42.0-kde.patch
+		epatch "${FILESDIR}"/${PN}-43.0-mozilla-kde.patch
+		epatch "${FILESDIR}"/${PN}-43.0-kde.patch
 	fi
 
 	# Ensure that our plugins dir is enabled as default
@@ -232,22 +234,6 @@ src_configure() {
 
 	# Add full relro support for hardened
 	use hardened && append-ldflags "-Wl,-z,relro,-z,now"
-
-	if use neon ; then
-		mozconfig_annotate '' --with-fpu=neon
-		mozconfig_annotate '' --with-thumb=yes
-		mozconfig_annotate '' --with-thumb-interwork=no
-	fi
-
-	if [[ ${CHOST} == armv* ]] ; then
-		mozconfig_annotate '' --with-float-abi=hard
-		mozconfig_annotate '' --enable-skia
-
-		if ! use system-libvpx ; then
-			sed -i -e "s|softfp|hard|" \
-				"${S}"/media/libvpx/moz.build
-		fi
-	fi
 
 	use egl && mozconfig_annotate 'Enable EGL as GL provider' --with-gl-provider=EGL
 
@@ -322,9 +308,16 @@ src_install() {
 	pax-mark m "${BUILD_OBJ_DIR}"/dist/bin/xpcshell
 
 	# Add our default prefs for firefox
-	cp "${FILESDIR}"/gentoo-default-prefs.js-2 \
+	cp "${FILESDIR}"/gentoo-default-prefs.js-1 \
 		"${BUILD_OBJ_DIR}/dist/bin/browser/defaults/preferences/all-gentoo.js" \
 		|| die
+
+	# Augment this with hwaccel prefs
+	if use hwaccel ; then
+		cat "${FILESDIR}"/gentoo-hwaccel-prefs.js-1 >> \
+		"${BUILD_OBJ_DIR}/dist/bin/browser/defaults/preferences/all-gentoo.js" \
+		|| die
+	fi
 
 	# Set default path to search for dictionaries.
 	echo "pref(\"spellchecker.dictionary_path\", ${DICTPATH});" \

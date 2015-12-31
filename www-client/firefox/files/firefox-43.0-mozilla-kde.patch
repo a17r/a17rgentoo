@@ -1,5 +1,5 @@
 # HG changeset patch
-# Parent  21f164ba2522a31ab9cfb4766acff17526183f8e
+# Parent  1e6ab61ae64f601da61197f34ad145f54a400b1f
 Description: Add KDE integration to Firefox (toolkit parts)
 Author: Wolfgang Rosenauer <wolfgang@rosenauer.org>
 Author: Lubos Lunak <lunak@suse.com>
@@ -40,7 +40,7 @@ diff --git a/modules/libpref/Preferences.cpp b/modules/libpref/Preferences.cpp
 +#include "nsKDEUtils.h"
  
  #include "nsQuickSort.h"
- #include "pldhash.h"
+ #include "PLDHashTable.h"
  
  #include "prefapi.h"
  #include "prefread.h"
@@ -184,10 +184,10 @@ diff --git a/python/mozbuild/mozpack/chrome/manifest.py b/python/mozbuild/mozpac
 diff --git a/toolkit/components/downloads/moz.build b/toolkit/components/downloads/moz.build
 --- a/toolkit/components/downloads/moz.build
 +++ b/toolkit/components/downloads/moz.build
-@@ -67,15 +67,16 @@ if not CONFIG['MOZ_SUITE']:
+@@ -65,15 +65,16 @@ if not CONFIG['MOZ_SUITE']:
+         'nsDownloadManagerUI.js',
+         'nsDownloadManagerUI.manifest',
      ]
- 
- FAIL_ON_WARNINGS = True
  
  FINAL_LIBRARY = 'xul'
  
@@ -273,8 +273,8 @@ diff --git a/toolkit/components/downloads/nsDownloadManager.cpp b/toolkit/compon
 diff --git a/toolkit/content/jar.mn b/toolkit/content/jar.mn
 --- a/toolkit/content/jar.mn
 +++ b/toolkit/content/jar.mn
-@@ -60,29 +60,33 @@ toolkit.jar:
-    content/global/viewZoomOverlay.js          (viewZoomOverlay.js)
+@@ -63,29 +63,33 @@ toolkit.jar:
+    content/global/viewZoomOverlay.js
  *+ content/global/bindings/autocomplete.xml    (widgets/autocomplete.xml)
     content/global/bindings/browser.xml         (widgets/browser.xml)
     content/global/bindings/button.xml          (widgets/button.xml)
@@ -2717,7 +2717,7 @@ diff --git a/uriloader/exthandler/moz.build b/uriloader/exthandler/moz.build
          'android/nsExternalSharingAppService.cpp',
          'android/nsExternalURLHandlerService.cpp',
          'android/nsMIMEInfoAndroid.cpp',
-@@ -123,16 +125,17 @@ include('/ipc/chromium/chromium-config.m
+@@ -121,16 +123,17 @@ include('/ipc/chromium/chromium-config.m
  
  FINAL_LIBRARY = 'xul'
  
@@ -3153,7 +3153,7 @@ diff --git a/uriloader/exthandler/unix/nsOSHelperAppService.cpp b/uriloader/exth
 diff --git a/widget/gtk/moz.build b/widget/gtk/moz.build
 --- a/widget/gtk/moz.build
 +++ b/widget/gtk/moz.build
-@@ -80,16 +80,17 @@ else:
+@@ -81,16 +81,17 @@ else:
  include('/ipc/chromium/chromium-config.mozbuild')
  
  FINAL_LIBRARY = 'xul'
@@ -3661,7 +3661,7 @@ diff --git a/xpcom/components/ManifestParser.cpp b/xpcom/components/ManifestPars
 diff --git a/xpcom/components/moz.build b/xpcom/components/moz.build
 --- a/xpcom/components/moz.build
 +++ b/xpcom/components/moz.build
-@@ -46,12 +46,13 @@ FINAL_LIBRARY = 'xul'
+@@ -47,12 +47,13 @@ FINAL_LIBRARY = 'xul'
  GENERATED_INCLUDES += ['..']
  LOCAL_INCLUDES += [
      '../base',
