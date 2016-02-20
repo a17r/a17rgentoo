@@ -1,8 +1,8 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
-EAPI="5"
+EAPI=6
 
 inherit eutils
 
@@ -26,6 +26,8 @@ RESTRICT="mirror"
 
 DEPEND="app-arch/unzip"
 
+S="${WORKDIR}"
+
 src_unpack() {
 	for profile in ${ICC_PROFILES}; do
 		use_if_iuse icc_profiles_${profile} || continue
@@ -34,8 +36,6 @@ src_unpack() {
 			|| die "failed to unpack ${profile}.zip"
 	done
 }
-
-S="${WORKDIR}"
 
 src_install() {
 	dodir /usr/share/color/icc/Eizo
