@@ -1,4 +1,4 @@
-# Copyright 1999-2015 Gentoo Foundation
+# Copyright 1999-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -6,7 +6,7 @@ EAPI=5
 
 inherit cmake-multilib eutils java-pkg-opt-2
 
-DESCRIPTION="Universal and secure framework to store config parameters in a hierarchical key-value pair mechanism"
+DESCRIPTION="Universal framework to store config params in a hierarchical key-value mechanism"
 HOMEPAGE="http://freedesktop.org/wiki/Software/Elektra"
 
 if [[ ${PV} == "9999" ]] ; then
@@ -30,10 +30,10 @@ RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
 	java? ( >=virtual/jdk-1.8.0 )
 	qt5? (
-		>=dev-qt/qtdeclarative-5.3
-		>=dev-qt/qtgui-5.3
-		>=dev-qt/qttest-5.3
-		>=dev-qt/qtwidgets-5.3
+		>=dev-qt/qtdeclarative-5.3:5
+		>=dev-qt/qtgui-5.3:5
+		>=dev-qt/qttest-5.3:5
+		>=dev-qt/qtwidgets-5.3:5
 	)
 	uname? ( sys-apps/coreutils )
 	systemd? ( sys-apps/systemd[${MULTILIB_USEDEP}] )
@@ -105,7 +105,7 @@ multilib_src_configure() {
 		use qt5 && my_tools+=";qt-gui"
 	fi
 
-	mycmakeargs=(
+	local mycmakeargs=(
 		"-DBUILD_SHARED=ON"
 		"-DPLUGINS=${my_plugins}"
 		"-DTOOLS=${my_tools}"
