@@ -24,9 +24,9 @@ RDEPEND="${DEPEND}
 	net-misc/socat
 "
 
-PATCHES=( "${FILESDIR}/${P}-usable-outside-plasma.patch" )
-
 S="${WORKDIR}/${MY_PN}-${PV}"
+
+PATCHES=( "${FILESDIR}/${P}-coverity.patch" )
 
 src_configure() {
 	local mycmakeargs=(
