@@ -24,6 +24,8 @@ RDEPEND="${DEPEND}
 	net-misc/socat
 "
 
+PATCHES=( "${FILESDIR}/${P}-usable-outside-plasma.patch" )
+
 S="${WORKDIR}/${MY_PN}-${PV}"
 
 src_configure() {
