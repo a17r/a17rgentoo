@@ -42,9 +42,9 @@ if [[ ${PV} != *9999* ]]; then
 	for i in ${DEV_URI}; do
 		for mod in ${MODULES}; do
 			if [[ ${mod} == core ]]; then
-				SRC_URI+=" ${i}/${P/_/.}.tar.xz"
+				SRC_URI+=" ${i}/${P}.tar.xz"
 			else
-				SRC_URI+=" ${i}/${PN}-${mod}-${PV/_/.}.tar.xz"
+				SRC_URI+=" ${i}/${PN}-${mod}-${PV}.tar.xz"
 			fi
 		done
 		unset mod
@@ -78,14 +78,14 @@ unset ADDONS_SRC
 LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 
 IUSE="bluetooth +branding coinmp collada +cups dbus debug eds firebird gltf gnome google
-gstreamer +gtk gtk3 jemalloc kde libressl mysql odk postgres telepathy test vlc
+gstreamer +gtk gtk3 jemalloc kde libressl mysql odk postgres quickstarter telepathy test vlc
 $(printf 'libreoffice_extensions_%s ' ${LO_EXTS})"
 
 LICENSE="|| ( LGPL-3 MPL-1.1 )"
 SLOT="0"
 [[ ${PV} == *9999* ]] || \
 KEYWORDS=""
-# KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
+#KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
 
 COMMON_DEPEND="${PYTHON_DEPS}
 	app-arch/unzip
@@ -152,6 +152,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	)
 	firebird? ( >=dev-db/firebird-2.5 )
 	gltf? ( media-libs/libgltf )
+	gnome? ( gnome-base/dconf )
 	gstreamer? (
 		media-libs/gstreamer:1.0
 		media-libs/gst-plugins-base:1.0
@@ -185,8 +186,9 @@ RDEPEND="${COMMON_DEPEND}
 	vlc? ( media-video/vlc )
 "
 
-if [[ ${PV} != *9999* ]] && [[ ${PV} != *_beta* ]]; then
-	PDEPEND="=app-office/libreoffice-l10n-$(get_version_component_range 1-2)*"
+if [[ ${PV} != *9999* ]]; then
+	PDEPEND="!app-office/libreoffice-l10n"
+	#PDEPEND="=app-office/libreoffice-l10n-$(get_version_component_range 1-2)*"
 else
 	# Translations are not reliable on live ebuilds
 	# rather force people to use english only.
@@ -252,8 +254,6 @@ elif [[ ${MERGE_TYPE} != binary ]] ; then
 	CHECKREQS_DISK_BUILD="6G"
 fi
 
-S="${WORKDIR}/${P/_/.}"
-
 pkg_pretend() {
 	use java || \
 		ewarn "If you plan to use lbase application you should enable java or you will get various crashes."
@@ -297,10 +297,10 @@ src_unpack() {
 	use branding && unpack "${BRANDING}"
 
 	if [[ ${PV} != *9999* ]]; then
-		unpack "${P/_/.}.tar.xz"
+		unpack "${P}.tar.xz"
 		for mod in ${MODULES}; do
 			[[ ${mod} == core ]] && continue
-			unpack "${PN}-${mod}-${PV/_/.}.tar.xz"
+			unpack "${PN}-${mod}-${PV}.tar.xz"
 		done
 	else
 		local base_uri branch checkout mypv
@@ -400,8 +400,6 @@ src_configure() {
 	# --enable-*-link: link to the library rather than just dlopen on runtime
 	# --enable-release-build: build the libreoffice as release
 	# --disable-fetch-external: prevent dowloading during compile phase
-	# --disable-systray: quickstarter does not actually work at all so do not
-	#   promote it
 	# --enable-extension-integration: enable any extension integration support
 	# --without-{fonts,myspell-dicts,ppsd}: prevent install of sys pkgs
 	# --disable-report-builder: too much java packages pulled in without pkgs
@@ -409,10 +407,10 @@ src_configure() {
 	#   not linked or anything else, worthless to depend on
 	econf \
 		--docdir="${EPREFIX}/usr/share/doc/${PF}/" \
-		--with-system-headers \
-		--with-system-libs \
-		--with-system-jars \
 		--with-system-dicts \
+		--with-system-headers \
+		--with-system-jars \
+		--with-system-libs \
 		--enable-cairo-canvas \
 		--enable-graphite \
 		--enable-largefile \
@@ -421,16 +419,15 @@ src_configure() {
 		--enable-python=system \
 		--enable-randr \
 		--enable-release-build \
-		--disable-hardlink-deliver \
 		--disable-ccache \
 		--disable-crashdump \
 		--disable-dependency-tracking \
 		--disable-epm \
 		--disable-fetch-external \
 		--disable-gstreamer-0-10 \
-		--disable-report-builder \
+		--disable-hardlink-deliver \
 		--disable-online-update \
-		--disable-systray \
+		--disable-report-builder \
 		--with-alloc=$(use jemalloc && echo "jemalloc" || echo "system") \
 		--with-build-version="Gentoo official package" \
 		--enable-extension-integration \
@@ -459,6 +456,7 @@ src_configure() {
 		$(use_enable firebird firebird-sdbc) \
 		$(use_enable gltf) \
 		$(use_enable gnome gio) \
+		$(use_enable gnome dconf) \
 		$(use_enable gstreamer gstreamer-1-0) \
 		$(use_enable gtk) \
 		$(use_enable gtk3) \
@@ -466,6 +464,7 @@ src_configure() {
 		$(use_enable mysql ext-mariadb-connector) \
 		$(use_enable odk) \
 		$(use_enable postgres postgresql-sdbc) \
+		$(use_enable quickstarter systray) \
 		$(use_enable telepathy) \
 		$(use_enable vlc) \
 		$(use_with coinmp system-coinmp) \
