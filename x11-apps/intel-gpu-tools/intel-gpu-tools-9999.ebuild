@@ -1,8 +1,9 @@
-# Copyright 1999-2015 Gentoo Foundation
+# Copyright 1999-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
 EAPI=5
+
 inherit xorg-2
 
 DESCRIPTION="Intel GPU userland tools"
@@ -14,10 +15,11 @@ CDEPEND="dev-libs/glib:2
 	>=x11-libs/cairo-1.12.0
 	>=x11-libs/libdrm-2.4.47[video_cards_intel,video_cards_nouveau?]
 	>=x11-libs/libpciaccess-0.10
-	test? ( sys-libs/libunwind )
 "
 DEPEND="${CDEPEND}
-	doc? ( dev-util/gtk-doc )"
+	doc? ( dev-util/gtk-doc )
+	test? ( sys-libs/libunwind )
+"
 RDEPEND="${CDEPEND}"
 
 src_prepare() {
