@@ -2,24 +2,19 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
-EAPI=5
+EAPI=6
 
 inherit cmake-multilib eutils java-pkg-opt-2
+[[ ${PV} == "9999" ]] && inherit git-r3
 
-DESCRIPTION="Universal framework to store config params in a hierarchical key-value mechanism"
-HOMEPAGE="http://freedesktop.org/wiki/Software/Elektra"
-
-if [[ ${PV} == "9999" ]] ; then
-	EGIT_REPO_URI="git://github.com/ElektraInitiative/libelektra.git"
-	inherit git-r3
-	KEYWORDS=""
-else
-	SRC_URI="ftp://ftp.markus-raab.org/${PN}/releases/${P}.tar.gz"
-	KEYWORDS="~amd64 ~x86"
-fi
+DESCRIPTION="Framework to store config parameters in hierarchical key-value pairs"
+HOMEPAGE="https://freedesktop.org/wiki/Software/Elektra"
+[[ ${PV} == "9999" ]] && EGIT_REPO_URI="git://github.com/ElektraInitiative/libelektra.git"
+[[ ${PV} == "9999" ]] || SRC_URI="ftp://ftp.markus-raab.org/${PN}/releases/${P}.tar.gz"
 
 LICENSE="BSD"
-SLOT="0"
+SLOT="0/${PV}"
+[[ ${PV} == "9999" ]] || KEYWORDS="~amd64 ~x86"
 PLUGIN_IUSE="augeas iconv ini java simpleini syslog systemd tcl +uname xml yajl";
 IUSE="dbus doc qt5 static-libs test ${PLUGIN_IUSE}"
 
@@ -30,19 +25,17 @@ RDEPEND="dev-libs/libltdl:0[${MULTILIB_USEDEP}]
 	iconv? ( >=virtual/libiconv-0-r1[${MULTILIB_USEDEP}] )
 	java? ( >=virtual/jdk-1.8.0 )
 	qt5? (
-		>=dev-qt/qtdeclarative-5.3:5
-		>=dev-qt/qtgui-5.3:5
-		>=dev-qt/qttest-5.3:5
-		>=dev-qt/qtwidgets-5.3:5
+		dev-qt/qtdeclarative:5
+		dev-qt/qtgui:5
+		dev-qt/qttest:5
+		dev-qt/qtwidgets:5
 	)
 	uname? ( sys-apps/coreutils )
 	systemd? ( sys-apps/systemd[${MULTILIB_USEDEP}] )
-	yajl? ( >=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}] )
-"
+	yajl? ( >=dev-libs/yajl-1.0.11-r1[${MULTILIB_USEDEP}] )"
 DEPEND="${RDEPEND}
 	doc? ( app-doc/doxygen )
-	test? ( >=dev-cpp/gtest-1.7.0 )
-"
+	test? ( >=dev-cpp/gtest-1.7.0 )"
 
 DOCS=( README.md doc/AUTHORS doc/CODING.md doc/NEWS.md doc/todo/TODO )
 # tries to write to user's home directory (and doesn't respect HOME)
@@ -50,7 +43,7 @@ RESTRICT="test"
 
 MULTILIB_WRAPPED_HEADERS=( /usr/include/elektra/kdbconfig.h )
 
-PATCHES=( "${FILESDIR}/${PN}"-0.8.11-conditional-glob-tests.patch )
+PATCHES=( "${FILESDIR}/${PN}"-0.8.15-conditional-glob-tests.patch )
 
 src_prepare() {
 	cmake-utils_src_prepare
@@ -65,8 +58,8 @@ src_prepare() {
 		-i cmake/ElektraCache.cmake || die
 
 	# avoid useless build time, nothing ends up installed
-	comment_add_subdirectory benchmarks
-	comment_add_subdirectory examples
+	cmake_comment_add_subdirectory benchmarks
+	cmake_comment_add_subdirectory examples
 }
 
 multilib_src_configure() {
@@ -106,16 +99,16 @@ multilib_src_configure() {
 	fi
 
 	local mycmakeargs=(
-		"-DBUILD_SHARED=ON"
-		"-DPLUGINS=${my_plugins}"
-		"-DTOOLS=${my_tools}"
-		"-DLATEX_COMPILER=OFF"
-		"-DTARGET_CMAKE_FOLDER=share/cmake/Modules"
-		$(multilib_is_native_abi && cmake-utils_use doc BUILD_DOCUMENTATION \
+		-DBUILD_PDF=OFF
+		-DBUILD_SHARED=ON
+		-DBUILD_STATIC=$(usex static-libs)
+		-DBUILD_TESTING=$(usex test)
+		-DENABLE_TESTING=$(usex test)
+		-DPLUGINS=${my_plugins}
+		-DTOOLS=${my_tools}
+		$(multilib_is_native_abi && echo -DBUILD_DOCUMENTATION=$(usex doc) \
 			|| echo -DBUILD_DOCUMENTATION=OFF)
-		$(cmake-utils_use static-libs BUILD_STATIC)
-		$(cmake-utils_use test BUILD_TESTING)
-		$(cmake-utils_use test ENABLE_TESTING)
+		-DTARGET_CMAKE_FOLDER=share/cmake/Modules
 	)
 
 	cmake-utils_src_configure
