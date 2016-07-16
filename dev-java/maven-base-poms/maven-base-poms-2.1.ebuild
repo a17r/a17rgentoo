@@ -1,4 +1,4 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -12,8 +12,8 @@ SLOT="0"
 KEYWORDS="~x86 ~amd64"
 IUSE="source"
 
-DEPEND=">virtual/jdk-1.4"
-RDEPEND=">virtual/jre-1.4"
+DEPEND=">virtual/jdk-1.7"
+RDEPEND=">virtual/jre-1.7"
 
 S="${WORKDIR}"
 src_unpack() {

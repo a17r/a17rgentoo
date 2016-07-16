@@ -1,4 +1,4 @@
-# Copyright 1999-2015 Gentoo Foundation
+# Copyright 1999-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -17,13 +17,13 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 
 DEPEND="
-	>=virtual/jdk-1.6
+	>=virtual/jdk-1.7
 	test? (
 		dev-java/junit:4
 		dev-java/ant-junit:0
 		dev-java/hamcrest-core:1.3
 	)"
-RDEPEND=">=virtual/jre-1.6"
+RDEPEND=">=virtual/jre-1.7"
 
 JAVA_ANT_REWRITE_CLASSPATH="true"
 EANT_TEST_GENTOO_CLASSPATH="junit-4,hamcrest-core-1.3"
