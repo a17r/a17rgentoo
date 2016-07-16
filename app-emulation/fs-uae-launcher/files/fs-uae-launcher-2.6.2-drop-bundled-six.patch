@@ -1,0 +1,10 @@
+--- a/setup.py	2015-10-27 21:54:58.000000000 +0100
++++ b/setup.py	2016-07-16 16:35:29.857413170 +0200
+@@ -33,7 +33,6 @@
+     "game_center": ".",
+     "OpenGL": ".",
+     "oyoyo": ".",
+-    "six": ".",
+ }
+ packages = sorted(package_map.keys())
+ scripts = ["fs-uae-launcher"]
