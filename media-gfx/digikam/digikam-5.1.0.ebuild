@@ -16,7 +16,7 @@ DESCRIPTION="Digital photo management application"
 HOMEPAGE="https://www.digikam.org/"
 
 LICENSE="GPL-2"
-KEYWORDS=""
+KEYWORDS="~amd64 ~x86"
 IUSE="addressbook gphoto2 kipi lensfun marble semantic-desktop mysql scanner video X"
 
 if [[ ${KDE_BUILD_TYPE} != live ]]; then
