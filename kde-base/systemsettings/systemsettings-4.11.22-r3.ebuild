@@ -14,7 +14,7 @@ inherit kde4-meta
 DESCRIPTION="System settings utility"
 HOMEPAGE+=" https://userbase.kde.org/System_Settings"
 IUSE="debug gtk +kscreen +usb"
-KEYWORDS="amd64 ~arm x86 ~amd64-linux ~x86-linux"
+KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
 
 COMMONDEPEND="
 	dev-libs/glib:2
@@ -48,10 +48,12 @@ RDEPEND="${COMMONDEPEND}
 	!<kde-base/legacy-icons-4.11.22-r2
 	!=kde-frameworks/oxygen-icons-5.19.0:5
 	!=kde-frameworks/oxygen-icons-5.20.0:5
+	!kde-base/kstyles:4
 "
 
 KMEXTRA="
 	kcontrol/
+	kstyles/
 "
 KMEXTRACTONLY="
 	krunner/dbus/org.kde.krunner.App.xml
@@ -85,6 +87,19 @@ src_prepare() {
 	sed -i -e 's/systemsettingsrc DESTINATION ${SYSCONF_INSTALL_DIR}/systemsettingsrc DESTINATION ${CONFIG_INSTALL_DIR}/' \
 		systemsettings/CMakeLists.txt \
 		|| die "Failed to fix systemsettingsrc install location"
+
+	cat <<-EOF > kstyles/oxygen/config/CMakeLists.txt || die
+include_directories( \${KDE4_KDEUI_INCLUDES} )
+set( oxygen_settings_SOURCES oxygenconfigdialog.cpp main.cpp)
+kde4_add_executable( oxygen-settings \${oxygen_settings_SOURCES} )
+target_link_libraries( oxygen-settings \${KDE4_KDEUI_LIBS} \${QT_QTCORE_LIBRARY} \${QT_QTGUI_LIBRARY})
+install (TARGETS oxygen-settings \${INSTALL_TARGETS_DEFAULT_ARGS} )
+EOF
+
+	cat <<-EOF > kstyles/oxygen/CMakeLists.txt
+project(kstyle-oxygen)
+add_subdirectory( config )
+EOF
 
 	kde4-meta_src_prepare
 }
