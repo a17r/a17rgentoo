@@ -59,6 +59,7 @@ RDEPEND="${COMMONDEPEND}
 KMEXTRACTONLY="
 	ksmserver/
 	libs/kephal/
+	libs/oxygen/
 "
 
 # you need one of these
@@ -73,7 +74,9 @@ src_unpack() {
 }
 
 src_prepare() {
-	mv ../oxygen-5.7.3/liboxygen libs/oxygen || die "Failed to prepare liboxygen directory"
+	mv ../oxygen-5.7.3/liboxygen/* libs/oxygen/ || die "Failed to prepare liboxygen directory"
+	mv "${FILESDIR}"/config-liboxygen.h libs/oxygen/ || die "Failed to prepare liboxygen directory"
+	mv "${FILESDIR}"/oxygen_config_export.h libs/oxygen/ || die "Failed to prepare liboxygen directory"
 
 	kde4-meta_src_prepare
 }
