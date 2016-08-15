@@ -74,9 +74,10 @@ src_unpack() {
 }
 
 src_prepare() {
+	rm -r libs/oxygen/ui || die "Failed to prepare liboxygen directory"
 	mv ../oxygen-5.7.3/liboxygen/* libs/oxygen/ || die "Failed to prepare liboxygen directory"
-	mv "${FILESDIR}"/config-liboxygen.h libs/oxygen/ || die "Failed to prepare liboxygen directory"
-	mv "${FILESDIR}"/oxygen_config_export.h libs/oxygen/ || die "Failed to prepare liboxygen directory"
+	cp "${FILESDIR}"/config-liboxygen.h libs/oxygen/ || die "Failed to prepare liboxygen directory"
+	cp "${FILESDIR}"/oxygen_config_export.h libs/oxygen/ || die "Failed to prepare liboxygen directory"
 
 	kde4-meta_src_prepare
 }
