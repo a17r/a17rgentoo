@@ -16,6 +16,7 @@ inherit flag-o-matic kde4-meta
 
 DESCRIPTION="KDE window manager"
 HOMEPAGE+=" https://userbase.kde.org/KWin"
+SRC_URI+=" mirror://kde/stable/plasma/5.7.3/oxygen-5.7.3.tar.xz"
 KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
 IUSE="debug gles opengl wayland"
 
@@ -58,11 +59,24 @@ RDEPEND="${COMMONDEPEND}
 KMEXTRACTONLY="
 	ksmserver/
 	libs/kephal/
-	libs/oxygen/
 "
 
 # you need one of these
 REQUIRED_USE="!opengl? ( gles ) !gles? ( opengl ) wayland? ( gles )"
+
+src_unpack() {
+	kde4-meta_src_unpack
+
+	tar -xpf "${DISTDIR}/oxygen-5.7.3.tar.xz" --xz \
+		"oxygen-5.7.3/liboxygen" 2> /dev/null ||
+		elog "oxygen-5.7.3.tar.xz: tar extract command failed at least partially - continuing"
+}
+
+src_prepare() {
+	mv ../oxygen-5.7.3/liboxygen libs/oxygen || die "Failed to prepare liboxygen directory"
+
+	kde4-meta_src_prepare
+}
 
 src_configure() {
 	# FIXME Remove when activity API moved away from libkworkspace
