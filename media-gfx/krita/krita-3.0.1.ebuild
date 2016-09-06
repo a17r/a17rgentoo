@@ -80,6 +80,7 @@ src_prepare() {
 
 src_configure() {
 	local mycmakeargs=(
+		-DPACKAGERS_BUILD=ON
 		-DWITH_FFTW3=$(usex fftw)
 		-DWITH_GSL=$(usex gsl)
 		-DWITH_JPEG=$(usex jpeg)
