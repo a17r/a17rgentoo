@@ -71,6 +71,13 @@ RDEPEND="${COMMON_DEPEND}
 	!app-office/calligra:4[calligra_features_krita]
 "
 
+src_prepare() {
+	kde5_src_prepare
+
+	sed -i -e "/BreezeDark/d" -e "/BreezeHighContrast/d" \
+		krita/data/themes/CMakeLists.txt || die
+}
+
 src_configure() {
 	local mycmakeargs=(
 		-DWITH_FFTW3=$(usex fftw)
