@@ -17,12 +17,12 @@ KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 DEPEND="
+	dev-libs/glib:2
+	media-libs/freetype:2
+	media-libs/libpng:0=
 	media-libs/libsdl2[joystick,opengl,X]
 	media-libs/openal
-	media-libs/libpng:0=
-	dev-libs/glib:2
 	sys-libs/zlib
-	media-libs/freetype:2
 "
 RDEPEND="${DEPEND}"
 
