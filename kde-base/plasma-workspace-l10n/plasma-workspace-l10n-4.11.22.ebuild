@@ -9,9 +9,9 @@ KDE_HANDBOOK="optional"
 KDE_L10N=(
 	ar ast bg bs ca ca-valencia cs da de el en-GB eo es et eu fa fi fr ga gl he
 	hi hr hu ia id is it ja kk km ko lt lv mr nb nds nl nn pa pl pt pt-BR ro ru
-	sk sl sr sr-ijekavsk sr-Latn sr-Latn-ijekavsk sv tr ug uk wa zh-CN zh-TW
+	sk sl sv tr ug uk wa zh-CN zh-TW
 )
-inherit kde5
+inherit kde4-base
 
 DESCRIPTION="KDE Plasma 4 internationalization package"
 
@@ -31,6 +31,20 @@ REMOVE_MSGS="${FILESDIR}/${PN}-4.11.22-remove-messages"
 
 IUSE="aqua test $(printf 'l10n_%s ' ${KDE_L10N[@]})" # TODO: Drop aqua as soon as possible
 
+_kde_l10n2lingua() {
+	local l
+	for l; do
+		case ${l} in
+			ca-valencia) echo ca@valencia;;
+			sr-ijekavsk) echo sr@ijekavian;;
+			sr-Latn-ijekavsk) echo sr@ijekavianlatin;;
+			sr-Latn) echo sr@latin;;
+			uz-Cyrl) echo uz@cyrillic;;
+			*) echo "${l/-/_}";;
+		esac
+	done
+}
+
 URI_BASE="mirror://kde/unstable/kde-workspace/${PV}/kde-l10n/${PN/plasma/kde}"
 SRC_URI=""
 for my_l10n in ${KDE_L10N[@]} ; do
@@ -39,7 +53,7 @@ for my_l10n in ${KDE_L10N[@]} ; do
 			SRC_URI="${SRC_URI} l10n_${my_l10n}? ( ${URI_BASE}-sr-${PV}.tar.xz )"
 			;;
 		*)
-			SRC_URI="${SRC_URI} l10n_${my_l10n}? ( ${URI_BASE}-$(kde_l10n2lingua ${my_l10n})-${PV}.tar.xz )"
+			SRC_URI="${SRC_URI} l10n_${my_l10n}? ( ${URI_BASE}-$(_kde_l10n2lingua ${my_l10n})-${PV}.tar.xz )"
 			;;
 	esac
 done
@@ -54,7 +68,7 @@ pkg_setup() {
 		elog "${KDE_L10N[@]}"
 		elog
 	fi
-	[[ -n ${A} ]] && kde5_pkg_setup
+	[[ -n ${A} ]] && kde4-base_pkg_setup
 }
 
 src_unpack() {
@@ -69,18 +83,6 @@ src_unpack() {
 src_prepare() {
 	default
 	[[ -n ${A} ]] || return
-
-	# move known variant subdirs to root dir, currently sr@*
-	use_if_iuse l10n_sr-ijekavsk && _l10n_variant_subdir2root sr-ijekavsk sr
-	use_if_iuse l10n_sr-Latn-ijekavsk && _l10n_variant_subdir2root sr-Latn-ijekavsk sr
-	use_if_iuse l10n_sr-Latn && _l10n_variant_subdir2root sr-Latn sr
-	if use_if_iuse l10n_sr; then
-		rm -rf kde-l10n-sr-${PV}/4/sr/sr@* || die "Failed to cleanup L10N=sr"
-		_l10n_variant_subdir_buster sr
-	elif [[ -d kde-l10n-sr-${PV} ]]; then
-		# having any variant selected means parent lingua will be unpacked as well
-		rm -r kde-l10n-sr-${PV} || die "Failed to remove sr parent lingua"
-	fi
 
 	# add all l10n directories to cmake
 	cat <<-EOF > CMakeLists.txt || die
@@ -108,7 +110,7 @@ _l10n_conflict_removal() {
 	while read path; do
 		if use test ; then	# build a report w/ L10N="*" to submit @upstream
 			local lngs
-			for lng in $(kde_l10n2lingua ${KDE_L10N[@]}); do
+			for lng in $(_kde_l10n2lingua ${KDE_L10N[@]}); do
 				SDIR="${S}/${PN/plasma/kde}-${lng}-${PV}/4/${lng}"
 				if [[ -d "${SDIR}"/${path%\ *}/${path#*\ } ]] ; then
 					lngs+=" ${lng}"
@@ -130,7 +132,7 @@ _l10n_conflict_removal() {
 	while read path; do
 		if use test ; then	# build a report w/ L10N="*" to submit @upstream
 			local lngs
-			for lng in $(kde_l10n2lingua ${KDE_L10N[@]}); do
+			for lng in $(_kde_l10n2lingua ${KDE_L10N[@]}); do
 				SDIR="${S}/${PN/plasma/kde}-${lng}-${PV}/4/${lng}"
 				if [[ -e "${SDIR}"/messages/${path} ]] ; then
 					lngs+=" ${lng}"
@@ -151,15 +153,15 @@ src_configure() {
 	local mycmakeargs=(
 		-DBUILD_docs=$(usex handbook)
 	)
-	[[ -n ${A} ]] && kde5_src_configure
+	[[ -n ${A} ]] && kde4-base_src_configure
 }
 
 src_compile() {
-	[[ -n ${A} ]] && kde5_src_compile
+	[[ -n ${A} ]] && kde4-base_src_compile
 }
 
 src_test() { :; }
 
 src_install() {
-	[[ -n ${A} ]] && kde5_src_install
+	[[ -n ${A} ]] && kde4-base_src_install
 }
