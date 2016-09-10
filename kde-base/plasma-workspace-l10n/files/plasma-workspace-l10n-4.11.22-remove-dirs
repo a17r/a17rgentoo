@@ -1,0 +1,5 @@
+# Disable any subdirectories listed here. Comments are ignored
+# First argument: parent directory
+# Second argument: which subdirectory to disable in CMakeLists.txt
+# kde-l10n 4
+docs common
