@@ -4,6 +4,12 @@
 
 EAPI=6
 
+# TODO
+# !!! existing preserved libs:
+# >>> package: dev-lang/python-3.4.3-r1
+#  *  - /usr/lib64/libpython3.4.so.1.0
+#  *      used by /usr/lib64/elektra/libelektra-python.so (app-admin/elektra-9999)
+
 inherit cmake-multilib eutils java-pkg-opt-2
 [[ ${PV} == "9999" ]] && inherit git-r3
 

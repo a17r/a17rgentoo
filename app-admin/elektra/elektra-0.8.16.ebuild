@@ -43,7 +43,7 @@ MULTILIB_WRAPPED_HEADERS=( /usr/include/elektra/kdbconfig.h )
 
 PATCHES=(
 	"${FILESDIR}/${PN}"-0.8.15-conditional-glob-tests.patch
-	"${FILESDIR}/${P}"-gcc-5.4.0.patch
+	"${FILESDIR}/${PN}"-0.8.15-gcc-5.4.0.patch
 )
 
 src_prepare() {
