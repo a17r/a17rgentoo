@@ -45,7 +45,7 @@ _kde_l10n2lingua() {
 	done
 }
 
-URI_BASE="mirror://kde/unstable/kde-workspace/${PV}/kde-l10n/${PN/plasma/kde}"
+URI_BASE="mirror://kde/unstable/kde-workspace/${PV}-a/kde-l10n/${PN/plasma/kde}"
 SRC_URI=""
 for my_l10n in ${KDE_L10N[@]} ; do
 	case ${my_l10n} in
