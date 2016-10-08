@@ -6,7 +6,7 @@ EAPI=6
 
 MY_PN="${PN/-toolkit}"
 MY_PV="${PV/_beta/b}"
-PYTHON_COMPAT=( python3_{4,5} )
+PYTHON_COMPAT=( python2_7 python3_{4,5} )
 PYTHON_REQ_USE="sqlite"
 
 inherit distutils-r1
@@ -20,22 +20,31 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-linux"
 IUSE="doc +html +ical +ini +subtitles"
 
-RDEPEND="
+COMMON_DEPEND="
+	>=dev-python/six-1.10.0[${PYTHON_USEDEP}]
+"
+DEPEND="${COMMON_DEPEND}
+	dev-python/setuptools[${PYTHON_USEDEP}]
+	doc? (
+		dev-python/sphinx[${PYTHON_USEDEP}]
+		dev-python/sphinx-bootstrap-theme[${PYTHON_USEDEP}]
+	)
+"
+RDEPEND="${COMMON_DEPEND}
 	app-text/iso-codes
 	>=dev-python/chardet-2.3.0[${PYTHON_USEDEP}]
 	dev-python/diff-match-patch[${PYTHON_USEDEP}]
 	>=dev-python/lxml-3.5[${PYTHON_USEDEP}]
 	>=dev-python/python-levenshtein-0.12.0[${PYTHON_USEDEP}]
-	>=dev-python/six-1.10.0[${PYTHON_USEDEP}]
-	dev-python/sphinx[${PYTHON_USEDEP}]
 	sys-devel/gettext
 	html? ( dev-python/utidylib[${PYTHON_USEDEP}] )
 	ical? ( dev-python/vobject[${PYTHON_USEDEP}] )
 	ini? ( dev-python/iniparse[${PYTHON_USEDEP}] )
-	subtitles? ( media-video/gaupol[${PYTHON_USEDEP}] )
+	subtitles? ( $(python_gen_cond_dep 'media-video/gaupol[${PYTHON_USEDEP}]' python3_{4,5}) )
 "
-DEPEND="${RDEPEND}
-	dev-python/setuptools[${PYTHON_USEDEP}]
+
+REQUIRED_USE="
+	subtitles? ( || ( $(python_gen_useflags 'python3*') ) )
 "
 
 S="${WORKDIR}/${MY_PN}-${MY_PV}"
