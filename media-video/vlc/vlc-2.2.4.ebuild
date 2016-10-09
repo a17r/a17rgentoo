@@ -238,6 +238,7 @@ PATCHES=(
 
 	# Bug 589396
 	"${FILESDIR}"/${PN}-2.2.4-qt57.patch
+	"${FILESDIR}"/${PN}-2.2.4-cxx11.patch
 )
 
 S="${WORKDIR}/${MY_P}"
