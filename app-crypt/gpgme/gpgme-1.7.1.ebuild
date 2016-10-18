@@ -11,8 +11,7 @@ inherit autotools distutils-r1 eutils qmake-utils
 
 DESCRIPTION="GnuPG Made Easy is a library for making GnuPG easier to use"
 HOMEPAGE="http://www.gnupg.org/related_software/gpgme"
-SRC_URI="mirror://gnupg/gpgme/${P}.tar.bz2
-	https://git.gnupg.org/cgi-bin/gitweb.cgi?p=gpgme.git;a=patch;h=a142f187b7ddb2728ec3e1743da4a0c4538ab40a -> gpgme-1.7.0-build-32bit.patch"
+SRC_URI="mirror://gnupg/gpgme/${P}.tar.bz2"
 
 LICENSE="GPL-2 LGPL-2.1"
 SLOT="1/11" # subslot = soname major version
@@ -48,10 +47,6 @@ do_python() {
 }
 
 src_prepare() {
-	sed -e '/a\/lang\/cpp\/src\/context_glib.cpp/,+30d' "${DISTDIR}/gpgme-1.7.0-build-32bit.patch" > "${T}/gpgme-1.7.0-build-32bit.patch"
-	PATCHES+=(
-		"${T}"/${P}-build-32bit.patch
-	)
 	default
 	eautoreconf
 	do_python
