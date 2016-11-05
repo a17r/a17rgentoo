@@ -4,7 +4,7 @@
 
 EAPI=6
 
-inherit autotools flag-o-matic toolchain-funcs
+inherit autotools flag-o-matic qmake-utils toolchain-funcs
 
 DESCRIPTION="Simple passphrase entry dialogs which utilize the Assuan protocol"
 HOMEPAGE="http://gnupg.org/aegypten2/index.html"
@@ -59,6 +59,8 @@ src_configure() {
 	use static && append-ldflags -static
 	[[ "$(gcc-major-version)" -ge 5 ]] && append-cxxflags -std=gnu++11
 
+	export QTLIB="$(qt5_get_libdir)"
+
 	econf \
 		--enable-pinentry-tty \
 		$(use_with caps libcap) \
@@ -68,7 +70,8 @@ src_configure() {
 		$(use_enable gtk pinentry-gtk2) \
 		$(use_enable ncurses pinentry-curses) \
 		$(use_enable ncurses fallback-curses) \
-		$(use_enable qt5 pinentry-qt)
+		$(use_enable qt5 pinentry-qt) \
+		MOC="$(qt5_get_bindir)"/moc
 }
 
 src_install() {
