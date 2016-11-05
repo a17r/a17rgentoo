@@ -32,7 +32,10 @@ DEPEND="${RDEPEND}
 	man? ( $(add_frameworks_dep kdoctools) )
 "
 
-PATCHES=( "${FILESDIR}/${P}-gpgme.patch" )
+PATCHES=(
+	"${FILESDIR}/${P}-gpgme.patch"
+	"${FILESDIR}/${P}-nomoreboost.patch"
+)
 
 src_configure() {
 	local mycmakeargs=(
