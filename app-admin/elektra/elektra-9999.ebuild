@@ -112,8 +112,7 @@ multilib_src_configure() {
 		-DENABLE_TESTING=$(usex test)
 		-DPLUGINS=${my_plugins}
 		-DTOOLS=${my_tools}
-		$(multilib_is_native_abi && echo -DBUILD_DOCUMENTATION=$(usex doc) \
-			|| echo -DBUILD_DOCUMENTATION=OFF)
+		-DBUILD_DOCUMENTATION=$(multilib_is_native_abi && usex doc || echo no)
 		-DTARGET_CMAKE_FOLDER=share/cmake/Modules
 	)
 
@@ -122,7 +121,7 @@ multilib_src_configure() {
 
 multilib_src_install_all() {
 	einfo remove test_data
-	rm -rvf "${D}/usr/share/${PN}" || die "Failed to remove test_data"
+	rm -rvf "${ED%/}/usr/share/${PN}" || die "Failed to remove test_data"
 	einfo remove tool_exec
-	rm -rvf "${D}/usr/$(get_libdir)/${PN}/tool_exec" || die "Failed to remove tool_exec"
+	rm -rvf "${ED%/}/usr/$(get_libdir)/${PN}/tool_exec" || die "Failed to remove tool_exec"
 }
