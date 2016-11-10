@@ -20,13 +20,12 @@ fi
 LICENSE="GPL-2"
 SLOT="4"
 KEYWORDS="~amd64 ~x86"
-IUSE="debug calendar doc hbci ofx quotes weboob"
+IUSE="debug calendar doc hbci ofx pim quotes weboob"
 
 COMMON_DEPEND="
-	$(add_kdeapps_dep kdepimlibs)
 	app-crypt/gpgme
 	<app-office/libalkimia-6.0.0
-	dev-libs/gmp:0
+	dev-libs/gmp:0=
 	dev-libs/libgpg-error
 	x11-misc/shared-mime-info
 	calendar? ( dev-libs/libical:= )
@@ -35,6 +34,8 @@ COMMON_DEPEND="
 		>=sys-libs/gwenhywfar-4.15.3[qt4]
 	)
 	ofx? ( >=dev-libs/libofx-0.9.4 )
+	pim? ( $(add_kdeapps_dep kdepimlibs) )
+	!pim? ( app-crypt/gpgme[cxx] )
 	weboob? ( www-client/weboob )
 "
 RDEPEND="${COMMON_DEPEND}
@@ -51,6 +52,8 @@ PATCHES=(
 	"${FILESDIR}/${P}-alkimia-detect.patch"
 	"${FILESDIR}/${P}-fix-csvdialog.patch"
 	"${FILESDIR}/${P}-soversion.patch"
+	"${FILESDIR}/${P}-gpgmepp.patch"
+	"${FILESDIR}/${P}-kdepimlibs-optional.patch"
 )
 
 src_prepare() {
@@ -68,6 +71,8 @@ src_configure() {
 		-DUSE_DEVELOPER_DOC=$(usex doc)
 		-DENABLE_KBANKING=$(usex hbci)
 		-DENABLE_LIBOFX=$(usex ofx)
+		$(cmake-utils_use_find_package pim KdepimLibs)
+		$(cmake-utils_use_find_package '!pim' Gpgmepp)
 		-DENABLE_WEBOOB=$(usex weboob)
 	)
 	kde4-base_src_configure
