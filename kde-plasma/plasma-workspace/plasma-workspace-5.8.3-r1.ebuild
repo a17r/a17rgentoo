@@ -121,9 +121,12 @@ DEPEND="${COMMON_DEPEND}
 
 PATCHES=(
 	"${FILESDIR}/${PN}-5.4-startkde-script.patch"
-	"${FILESDIR}/${PN}-5.7.90-baloo-optional.patch"
-	"${FILESDIR}/${PN}-5.8.3-all-outputs.patch"
+	"${FILESDIR}/${PN}-5.8.3-all-outputs-known.patch"
 	"${FILESDIR}/${PN}-5.8.3-sync-app-w-applets-config.patch"
+	"${FILESDIR}/${PN}-5.8.3-dont-connect-twice.patch"
+	"${FILESDIR}/${PN}-5.8.3-screenpool-screenchange.patch"
+	# master
+	"${FILESDIR}/${PN}-5.7.90-baloo-optional.patch"
 	"${FILESDIR}/${PN}-5.8.3-systray-cpuload.patch"
 )
 
