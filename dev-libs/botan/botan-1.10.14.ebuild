@@ -5,7 +5,7 @@
 EAPI="6"
 PYTHON_COMPAT=( python2_7 python3_{4,5} )
 
-inherit eutils multilib python-r1 toolchain-funcs
+inherit eutils flag-o-matic multilib python-r1 toolchain-funcs
 
 MY_PN="Botan"
 MY_P="${MY_PN}-${PV}"
@@ -30,6 +30,8 @@ DEPEND="${RDEPEND}
 
 src_prepare() {
 	default
+
+	append-cxxflags -std=c++0x
 
 	sed -e "s/-Wl,-soname,\$@ //" -i src/build-data/makefile/python.in || die "sed failed"
 	sed \
