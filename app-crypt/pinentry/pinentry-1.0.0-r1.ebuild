@@ -47,7 +47,7 @@ REQUIRED_USE="
 
 PATCHES=(
 	"${FILESDIR}/${PN}-0.8.2-ncurses.patch"
-	"${FILESDIR}/${P}-require-CPP11-for-qt-5-7.patches"
+	"${FILESDIR}/${P}-build.patch"
 )
 
 src_prepare() {
