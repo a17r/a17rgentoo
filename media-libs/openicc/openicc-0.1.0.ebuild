@@ -19,8 +19,6 @@ RDEPEND="
 	dev-libs/yajl
 "
 DEPEND="${RDEPEND}
-	dev-libs/libiconv
-	dev-libs/libintl
 	sys-devel/gettext
 	doc? ( app-doc/doxygen )
 "
