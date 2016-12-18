@@ -22,8 +22,8 @@ IUSE="common-lisp static-libs cxx python qt5"
 COMMON_DEPEND="app-crypt/gnupg
 	>=dev-libs/libassuan-2.0.2
 	>=dev-libs/libgpg-error-1.11
-	qt5? ( dev-qt/qtcore:5 )
 	python? ( ${PYTHON_DEPS} )
+	qt5? ( dev-qt/qtcore:5 )
 "
 DEPEND="${COMMON_DEPEND}
 	python? ( dev-lang/swig )
@@ -32,7 +32,7 @@ DEPEND="${COMMON_DEPEND}
 	#doc? ( app-doc/doxygen[dot] )
 RDEPEND="${COMMON_DEPEND}
 	cxx? (
-		!kde-apps/gpgmepp:4
+		!kde-apps/gpgmepp
 		!kde-apps/kdepimlibs:4
 	)
 "
