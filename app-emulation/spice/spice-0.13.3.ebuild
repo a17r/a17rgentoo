@@ -6,7 +6,7 @@ EAPI=6
 
 PYTHON_COMPAT=( python{2_7,3_4,3_5} )
 
-inherit eutils python-any-r1 readme.gentoo-r1
+inherit eutils python-any-r1 readme.gentoo-r1 xdg-utils
 
 DESCRIPTION="SPICE server"
 HOMEPAGE="http://spice-space.org/"
@@ -33,7 +33,7 @@ RDEPEND="
 	smartcard? ( >=app-emulation/libcacard-0.1.2 )
 "
 DEPEND="${RDEPEND}
-	~app-emulation/spice-protocol-0.12.12
+	>=app-emulation/spice-protocol-0.12.12
 	virtual/pkgconfig
 	$(python_gen_any_dep '
 		>=dev-python/pyparsing-1.5.6-r2[${PYTHON_USEDEP}]
@@ -41,10 +41,6 @@ DEPEND="${RDEPEND}
 	')
 	smartcard? ( app-emulation/qemu[smartcard] )
 "
-
-# Prevent sandbox violations, bug #586560
-# https://bugzilla.gnome.org/show_bug.cgi?id=581836
-addpredict /dev
 
 python_check_deps() {
 	has_version ">=dev-python/pyparsing-1.5.6-r2[${PYTHON_USEDEP}]"
@@ -58,16 +54,30 @@ pkg_setup() {
 # maintainer notes:
 # * opengl support is currently broken
 src_configure() {
-	local myconf="
-		$(use_enable static-libs static)
-		$(use_enable lz4)
-		$(use_with sasl)
-		$(use_enable smartcard)
-		$(usex gstreamer "1.0" "no")
-		--enable-celt051
+	# Prevent sandbox violations, bug #586560
+	# https://bugzilla.gnome.org/show_bug.cgi?id=744134
+	# https://bugzilla.gnome.org/show_bug.cgi?id=744135
+	addpredict /dev
+
+	xdg_environment_reset
+
+	econf \
+		$(use_enable static-libs static) \
+		$(use_enable lz4) \
+		$(use_with sasl) \
+		$(use_enable smartcard) \
+		$(usex gstreamer 1.0 no) \
+		--enable-celt051 \
 		--disable-gui
-		"
-	econf ${myconf}
+}
+
+src_compile() {
+	# Prevent sandbox violations, bug #586560
+	# https://bugzilla.gnome.org/show_bug.cgi?id=744134
+	# https://bugzilla.gnome.org/show_bug.cgi?id=744135
+	addpredict /dev
+
+	default
 }
 
 src_install() {
