@@ -4,29 +4,41 @@
 
 EAPI=6
 
-inherit cmake-utils
+inherit cmake-multilib
 
-DESCRIPTION="xcalib is a tiny monitor calibration loader for X.org"
+DESCRIPTION="Config database to store, share and manipulate colour management informations"
 HOMEPAGE="https://github.com/OpenICC/config"
 SRC_URI="https://github.com/OpenICC/config/archive/${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="doc"
+IUSE="doc static-libs test"
 
 RDEPEND="
-	dev-libs/yajl
+	dev-libs/yajl[${MULTILIB_USEDEP}]
 "
 DEPEND="${RDEPEND}
 	sys-devel/gettext
 	doc? ( app-doc/doxygen )
 "
 
+REQUIRED_USE="test? ( static-libs )"
+
+PATCHES=( "${FILESDIR}/${P}"-buildsystem.patch )
+
+MULTILIB_WRAPPED_HEADERS=(
+	/usr/include/openicc/openicc_version.h
+)
+
 S="${WORKDIR}/config-${PV}"
 
-src_configure() {
+multilib_src_configure() {
 	local mycmakeargs=(
+		-DENABLE_STATIC_LIBS=$(usex static-libs)
+		-DENABLE_TESTS=$(usex test)
+		$(multilib_is_native_abi || echo -DENABLE_TOOLS=OFF )
+		-DCMAKE_INSTALL_DOCDIR=/usr/share/doc/${PF}
 		-DCMAKE_DISABLE_FIND_PACKAGE_Doxygen=$(usex !doc)
 	)
 

@@ -30,7 +30,7 @@ COMMON_DEPEND="
 	media-libs/lcms:2[${MULTILIB_USEDEP}]
 	media-libs/libpng:0=[${MULTILIB_USEDEP}]
 	>=media-libs/libXcm-0.5.3[${MULTILIB_USEDEP}]
-	media-libs/openicc
+	media-libs/openicc[${MULTILIB_USEDEP}]
 	cairo? ( x11-libs/cairo[${MULTILIB_USEDEP}] )
 	cups? ( net-print/cups[${MULTILIB_USEDEP}] )
 	exif? ( media-gfx/exiv2:=[${MULTILIB_USEDEP}] )
