@@ -1,2 +1,0 @@
-# Depends on masked app-crypt/gpgme[cxx]
-=app-office/kmymoney-4.8.0
