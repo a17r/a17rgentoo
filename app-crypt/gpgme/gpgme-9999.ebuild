@@ -1,4 +1,4 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -16,6 +16,7 @@ HOMEPAGE="http://www.gnupg.org/related_software/gpgme"
 
 LICENSE="GPL-2 LGPL-2.1"
 SLOT="1/11" # subslot = soname major version
+[[ ${PV} = 9999 ]] || \
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd ~x64-freebsd ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~sparc64-solaris ~x64-solaris ~x86-solaris"
 IUSE="common-lisp static-libs cxx python qt5"
 
