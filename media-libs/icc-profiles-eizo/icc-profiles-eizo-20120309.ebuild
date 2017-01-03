@@ -1,4 +1,4 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -38,6 +38,7 @@ src_unpack() {
 }
 
 src_install() {
+	[[ -n ${A} ]] || return
 	dodir /usr/share/color/icc/Eizo
 	insinto /usr/share/color/icc/Eizo
 	doins *.icm
