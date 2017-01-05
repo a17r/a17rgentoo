@@ -6,7 +6,7 @@ EAPI=6
 
 CHECKREQS_DISK_BUILD="4G"
 KDE_HANDBOOK="forceoptional"
-KDE_TEST="forceoptional"
+KDE_TEST="forceoptional-recursive"
 inherit check-reqs kde5 versionator
 
 DESCRIPTION="KDE Office Suite"
@@ -141,6 +141,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}"-3.0.0-no-arch-detection.patch
 	"${FILESDIR}/${P}"-reenable-akonadi.patch
 	"${FILESDIR}/${P}"-deps{1,2,3}.patch
+	"${FILESDIR}/${P}"-tests.patch
 )
 
 pkg_pretend() {
@@ -154,6 +155,11 @@ pkg_setup() {
 
 src_prepare() {
 	kde5_src_prepare
+
+	if ! use test; then
+		sed -e "/add_subdirectory( *benchmarks *)/s/^/#DONT/" \
+			-i libs/pigment/CMakeLists.txt || die
+	fi
 
 	# Unconditionally disable deprecated deps (required by QtQuick1)
 	punt_bogus_dep Qt5 Declarative
