@@ -1,0 +1,61 @@
+From 89aff64b9e7fbfd74e586ef61c0804b646004e80 Mon Sep 17 00:00:00 2001
+From: Virgil Dupras <hsoft@hardcoded.net>
+Date: Sat, 16 Jan 2016 16:05:54 -0500
+Subject: [PATCH 2/2] Fix problem with merging translations under py3
+
+This fixes three problems at once:
+
+1. When fiddling with credits nodes, we would get an error about libxml2
+expecting `str` rather than `bytes`. We could fix this by encoding the
+value only when uner py2.
+
+2. When writing the merged XML, our serlialized data would be `str`
+under py3, which would cause implicit encoding problems when writing
+that contents to the file.
+
+3. `fout` would not be closed after writing, which would sometimes cause
+the target file to end up with no contents at all (at least on my
+machine.
+---
+ itstool.in | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/itstool.in b/itstool.in
+index 1a59a5a..45ff0c0 100755
+--- a/itstool.in
++++ b/itstool.in
+@@ -839,7 +839,8 @@ class Document (object):
+             elif select == 'year' and len(trdata) == 4:
+                 val = trdata[3]
+             if val is not None:
+-                val = val.encode('utf-8')
++                if not PY3:
++                    val = val.encode('utf-8')
+                 parent.addContent(val)
+         else:
+             newnode = node.copyNode(2)
+@@ -1546,10 +1547,18 @@ if __name__ == '__main__':
+             except Exception as e:
+                 sys.stderr.write('Error: Could not merge translations:\n%s\n' % ustr(e))
+                 sys.exit(1)
++            serialized = doc._doc.serialize('utf-8')
++            if PY3:
++                # For some reason, under py3, our serialized data is returns as a str.
++                # Let's encode it to bytes
++                serialized = serialized.encode('utf-8')
+             fout = out
+-            if isinstance(fout, string_types):
+-                fout = open(os.path.join(fout, os.path.basename(filename)), 'w')
+-            fout.write(doc._doc.serialize('utf-8'))
++            fout_is_str = isinstance(fout, string_types)
++            if fout_is_str:
++                fout = open(os.path.join(fout, os.path.basename(filename)), 'wb')
++            fout.write(serialized)
++            if fout_is_str:
++                fout.close()
+     elif opts.join is not None:
+         translations = {}
+         for filename in args[1:]:
+-- 
+2.10.2
+

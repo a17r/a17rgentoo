@@ -1,0 +1,19 @@
+commit d75f68cbc58075b57aee53d57b9156655a2fc99a
+Author: Shaun McCance <shaunm@gnome.org>
+Date:   Mon Mar 17 14:40:42 2014 -0400
+
+    Fix UTF-8 handling for translated attributes
+
+diff --git a/itstool.in b/itstool.in
+index 96fb913..d0e76a1 100755
+--- a/itstool.in
++++ b/itstool.in
+@@ -966,7 +966,7 @@ class Document (object):
+         for attr in trans_attrs:
+             newcontent = translations.ugettext(attr.get_content())
+             if newcontent:
+-                newnode.setProp(attr.name, translations.ugettext(attr.get_content()))
++                newnode.setProp(attr.name, newcontent.encode('utf-8'))
+ 
+     def get_translated (self, node, translations, strict=False, lang=None):
+         msg = self._msgs.get_message_by_node(node)
