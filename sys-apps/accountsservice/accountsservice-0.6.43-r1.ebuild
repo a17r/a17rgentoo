@@ -16,15 +16,15 @@ KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~sparc ~x86"
 
 IUSE="doc elogind +introspection selinux systemd"
 
+REQUIRED_USE="?? ( elogind systemd )"
+
 CDEPEND="
 	>=dev-libs/glib-2.37.3:2
 	sys-auth/polkit
 	introspection? ( >=dev-libs/gobject-introspection-0.9.12:= )
 	systemd? ( >=sys-apps/systemd-186:0= )
-	!systemd? (
-		elogind? ( sys-auth/elogind )
-		!elogind? ( sys-auth/consolekit )
-	)
+	elogind? ( sys-auth/elogind )
+	!systemd? ( !elogind? ( sys-auth/consolekit ) )
 "
 DEPEND="${CDEPEND}
 	dev-libs/libxslt
