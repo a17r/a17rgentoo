@@ -4,16 +4,17 @@
 
 EAPI=6
 
+COMMIT="6d224ff665195f47c942599b21e0d959bc07ca8f"
 inherit autotools linux-info pam udev
 
 DESCRIPTION="The systemd project's logind, extracted to a standalone package"
 HOMEPAGE="https://github.com/wingo/elogind"
-SRC_URI="https://github.com/wingo/elogind/archive/v${PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/wingo/elogind/archive/${COMMIT}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="CC0-1.0 LGPL-2.1+ public-domain"
 SLOT="0"
 KEYWORDS="~amd64 ~arm ~x86"
-IUSE="acl apparmor pam policykit selinux +seccomp"
+IUSE="acl apparmor pam policykit +seccomp selinux"
 
 COMMON_DEPEND="
 	sys-libs/libcap
@@ -31,7 +32,7 @@ RDEPEND="${COMMON_DEPEND}
 	!sys-auth/systemd
 "
 DEPEND="${COMMON_DEPEND}
-	dev-util/gperf
+	=dev-util/gperf-3.0*
 	dev-util/intltool
 	sys-devel/libtool
 	virtual/pkgconfig
@@ -40,8 +41,7 @@ DEPEND="${COMMON_DEPEND}
 PATCHES=(
 	"${FILESDIR}/${PN}-docs.patch"
 	"${FILESDIR}/${PN}-lrt.patch"
-	"${FILESDIR}/${P}-session.patch"
-	"${FILESDIR}/${P}-login1-perms.patch"
+	"${FILESDIR}/${PN}-219.12-login1-perms.patch"
 )
 
 pkg_setup() {
@@ -55,6 +55,11 @@ pkg_setup() {
 	fi
 }
 
+src_unpack() {
+	default
+	mv "${WORKDIR}/${PN}-${COMMIT}" "${S}" || die "Failed to rename source dir"
+}
+
 src_prepare() {
 	default
 	eautoreconf # Makefile.am patched by "${FILESDIR}/${PN}-{docs,lrt}.patch"
@@ -64,7 +69,7 @@ src_configure() {
 	econf \
 		--with-pamlibdir=$(getpam_mod_dir) \
 		--with-udevrulesdir="$(get_udevdir)"/rules.d \
-		--libdir="${EPREFIX}"/usr/$(get_libdir) \
+		--libdir="${EPREFIX}"/$(get_libdir) \
 		--enable-smack \
 		$(use_enable acl) \
 		$(use_enable apparmor) \
@@ -76,6 +81,11 @@ src_configure() {
 src_install() {
 	default
 	find "${D}" -name '*.la' -delete || die
+
+	# Build system ignores --with-rootlibdir and puts pkgconfig below
+	# /$(libdir) - Move it to /usr/$(libdir)/pkgconfig
+	mkdir -p "${ED%/}"/usr/$(get_libdir) || die
+	mv "${ED%/}"/$(get_libdir)/pkgconfig "${ED%/}"/usr/$(get_libdir)/ || die
 
 	newinitd "${FILESDIR}"/${PN}.init ${PN}
 	newconfd "${FILESDIR}"/${PN}.conf ${PN}
