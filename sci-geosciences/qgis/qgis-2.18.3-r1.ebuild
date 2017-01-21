@@ -26,10 +26,11 @@ SLOT="0"
 IUSE="examples georeferencer grass mapserver oracle postgres python touch webkit"
 
 REQUIRED_USE="
-	python? ( ${PYTHON_REQUIRED_USE} )
-	mapserver? ( python )"
+	grass? ( python )
+	mapserver? ( python )
+	python? ( ${PYTHON_REQUIRED_USE} )"
 
-RDEPEND="
+COMMON_DEPEND="
 	app-crypt/qca:2[qt5,ssl]
 	>=dev-db/spatialite-4.1.0
 	dev-db/sqlite:3
@@ -46,7 +47,6 @@ RDEPEND="
 	dev-qt/qtsql:5
 	dev-qt/qtwidgets:5
 	dev-qt/qtxml:5
-	sci-geosciences/gpsbabel
 	sci-libs/gdal:=[geos,oracle?,python?,${PYTHON_USEDEP}]
 	sci-libs/geos
 	sci-libs/libspatialindex:=
@@ -77,11 +77,14 @@ RDEPEND="
 	)
 	webkit? ( dev-qt/qtwebkit:5 )
 "
-
-DEPEND="${RDEPEND}
+DEPEND="${COMMON_DEPEND}
 	dev-qt/qttest:5
 	sys-devel/bison
-	sys-devel/flex"
+	sys-devel/flex
+"
+RDEPEND="${COMMON_DEPEND}
+	sci-geosciences/gpsbabel
+"
 
 # Disabling test suite because upstream disallow running from install path
 RESTRICT="test"

@@ -25,7 +25,7 @@ REQUIRED_USE="
 	mapserver? ( python )
 	python? ( ${PYTHON_REQUIRED_USE} )"
 
-RDEPEND="
+COMMON_DEPEND="
 	app-crypt/qca:2[qt4,ssl]
 	>=dev-db/spatialite-4.1.0
 	dev-db/sqlite:3
@@ -37,7 +37,6 @@ RDEPEND="
 	dev-qt/qtscript:4
 	dev-qt/qtsvg:4
 	dev-qt/qtsql:4
-	sci-geosciences/gpsbabel
 	>=sci-libs/gdal-1.6.1:=[geos,oracle?,python?,${PYTHON_USEDEP}]
 	sci-libs/geos
 	sci-libs/libspatialindex:=
@@ -52,29 +51,31 @@ RDEPEND="
 	mapserver? ( dev-libs/fcgi )
 	oracle? ( dev-db/oracle-instantclient:= )
 	postgres? ( dev-db/postgresql:= )
-	python? (
-		dev-python/PyQt4[X,sql,svg,webkit?,${PYTHON_USEDEP}]
-		<dev-python/sip-4.19:=[${PYTHON_USEDEP}]
-		dev-python/qscintilla-python[${PYTHON_USEDEP}]
-		dev-python/python-dateutil[${PYTHON_USEDEP}]
+	python? ( ${PYTHON_DEPS}
 		dev-python/future[${PYTHON_USEDEP}]
 		dev-python/httplib2[${PYTHON_USEDEP}]
 		dev-python/jinja[${PYTHON_USEDEP}]
 		dev-python/markupsafe[${PYTHON_USEDEP}]
 		dev-python/pygments[${PYTHON_USEDEP}]
+		dev-python/PyQt4[X,sql,svg,webkit?,${PYTHON_USEDEP}]
+		dev-python/python-dateutil[${PYTHON_USEDEP}]
 		dev-python/pytz[${PYTHON_USEDEP}]
 		dev-python/pyyaml[${PYTHON_USEDEP}]
+		dev-python/qscintilla-python[${PYTHON_USEDEP}]
 		dev-python/requests[${PYTHON_USEDEP}]
+		<dev-python/sip-4.19:=[${PYTHON_USEDEP}]
 		dev-python/six[${PYTHON_USEDEP}]
 		postgres? ( dev-python/psycopg:2[${PYTHON_USEDEP}] )
-		${PYTHON_DEPS}
 	)
 	webkit? ( dev-qt/qtwebkit:4 )
 "
-
-DEPEND="${RDEPEND}
+DEPEND="${COMMON_DEPEND}
 	sys-devel/bison
-	sys-devel/flex"
+	sys-devel/flex
+"
+RDEPEND="${COMMON_DEPEND}
+	sci-geosciences/gpsbabel
+"
 
 # Disabling test suite because upstream disallow running from install path
 RESTRICT="test"
