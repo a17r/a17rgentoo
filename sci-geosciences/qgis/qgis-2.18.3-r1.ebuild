@@ -89,7 +89,7 @@ RESTRICT="test"
 PATCHES=( "${FILESDIR}"/${PN}-2.18.3-app-icon.patch )
 
 pkg_setup() {
-	python-single-r1_pkg_setup
+	use python && python-single-r1_pkg_setup
 }
 
 src_prepare() {
@@ -159,10 +159,12 @@ src_install() {
 		docompress -x /usr/share/doc/${PF}/examples
 	fi
 
-	python_optimize "${ED%/}"/usr/share/qgis/python
+	if use python; then
+		python_optimize "${ED%/}"/usr/share/qgis/python
 
-	if use grass; then
-		python_fix_shebang "${ED%/}"/usr/share/qgis/grass/scripts
+		if use grass; then
+			python_fix_shebang "${ED%/}"/usr/share/qgis/grass/scripts
+		fi
 	fi
 }
 
