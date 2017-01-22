@@ -69,7 +69,7 @@ COMMON_DEPEND="
 		dev-python/python-dateutil[${PYTHON_USEDEP}]
 		dev-python/pytz[${PYTHON_USEDEP}]
 		dev-python/pyyaml[${PYTHON_USEDEP}]
-		dev-python/qscintilla-python[${PYTHON_USEDEP}]
+		dev-python/qscintilla-python[qt5,${PYTHON_USEDEP}]
 		dev-python/requests[${PYTHON_USEDEP}]
 		dev-python/sip:=[${PYTHON_USEDEP}]
 		dev-python/six[${PYTHON_USEDEP}]
