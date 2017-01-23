@@ -53,7 +53,7 @@ COMMON_DEPEND="
 	sci-libs/proj
 	x11-libs/qscintilla:=[qt5]
 	>=x11-libs/qwt-6.1.2:6[qt5,svg]
-	>=x11-libs/qwtpolar-1
+	>=x11-libs/qwtpolar-1.1.1-r1[qt5]
 	georeferencer? ( sci-libs/gsl:= )
 	grass? ( sci-geosciences/grass:= )
 	mapserver? ( dev-libs/fcgi )
