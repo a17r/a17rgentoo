@@ -1,4 +1,4 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -152,6 +152,9 @@ src_prepare() {
 		# patches taken from http://www.rosenauer.org/hg/mozilla
 		eapply "${FILESDIR}"/${PN}-50.0-mozilla-kde.patch
 		eapply "${FILESDIR}"/${PN}-50.0-kde.patch
+		# fix the path for us
+		sed -i -e "/define KMOZILLAHELPER/s:lib/mozilla:$(get_libdir)/libexec:" \
+			"${S}"/toolkit/xre/nsKDEUtils.cpp || die
 	fi
 
 	# Drop -Wl,--as-needed related manipulation for ia64 as it causes ld sefgaults, bug #582432
@@ -280,7 +283,7 @@ src_compile() {
 			fi
 		fi
 		shopt -u nullglob
-		addpredict "${cards}"
+		[[ -n "${cards}" ]] && addpredict "${cards}"
 
 		MOZ_MAKE_FLAGS="${MAKEOPTS}" SHELL="${SHELL:-${EPREFIX%/}/bin/bash}" \
 		virtx emake -f client.mk profiledbuild || die "virtx emake failed"
