@@ -1,0 +1,29 @@
+commit bf4f955946ea544c6b8ffe30bc498ce0fd19bca6
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Tue Jan 24 23:44:22 2017 +0100
+
+    Install kmozillahelper to ${CMAKE_INSTALL_LIBEXECDIR}
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6b42387..c052208 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -10,13 +10,14 @@ include_directories( ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${KDE4_INCLUDES} )
+ 
+ ########### next target ###############
+ 
+-set( kmozillahelper_SRCS
+-     main.cpp )
++set(
++    kmozillahelper_SRCS
++    main.cpp
++)
+ 
+ kde4_add_executable( kmozillahelper ${kmozillahelper_SRCS} )
+ target_link_libraries( kmozillahelper ${KDE4_KFILE_LIBS} )
+ 
+-# TODO hardcoded path?
+-install( TARGETS kmozillahelper DESTINATION /usr/lib/mozilla/ )
++install( TARGETS kmozillahelper DESTINATION ${LIB_INSTALL_DIR}/libexec/ )
+ 
+ install( FILES kmozillahelper.notifyrc  DESTINATION  ${DATA_INSTALL_DIR}/kmozillahelper )
