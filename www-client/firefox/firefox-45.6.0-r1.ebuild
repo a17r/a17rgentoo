@@ -1,4 +1,4 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -130,7 +130,9 @@ src_unpack() {
 
 src_prepare() {
 	# Apply our patches
-	eapply "${WORKDIR}/firefox"
+	eapply "${WORKDIR}/firefox" \
+		"${FILESDIR}"/mozilla_configure_regexp_esr.patch \
+		"${FILESDIR}"/update_h2_curve.patch
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
@@ -162,6 +164,9 @@ src_prepare() {
 		# patches taken from http://www.rosenauer.org/hg/mozilla
 		eapply "${FILESDIR}"/${PN}-45.0-mozilla-kde.patch
 		eapply "${FILESDIR}"/${PN}-45.0-kde.patch
+		# fix the path for us
+		sed -i -e "/define KMOZILLAHELPER/s:lib/mozilla:$(get_libdir)/libexec:" \
+			"${S}"/toolkit/xre/nsKDEUtils.cpp || die
 	fi
 
 	# Ensure that our plugins dir is enabled as default
