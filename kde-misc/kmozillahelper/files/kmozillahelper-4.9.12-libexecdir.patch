@@ -1,0 +1,17 @@
+commit 865bd51a8c4049ddfa1db4164965f3ae3bfa578c
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Tue Jan 24 23:13:27 2017 +0100
+
+    Install kmozillahelper to KDE_INSTALL_LIBEXECDIR
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fc6d1af..8c7f05b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -19,5 +19,5 @@ add_executable(kmozillahelper main.cpp)
+ 
+ target_link_libraries(kmozillahelper KF5::I18n KF5::KIOWidgets KF5::Notifications KF5::WindowSystem)
+ 
+-install(TARGETS kmozillahelper DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/mozilla/)
++install(TARGETS kmozillahelper DESTINATION ${KDE_INSTALL_LIBEXECDIR})
+ install(FILES kmozillahelper.notifyrc DESTINATION ${KNOTIFYRC_INSTALL_DIR})

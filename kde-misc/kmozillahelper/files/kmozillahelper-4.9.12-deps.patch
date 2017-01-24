@@ -1,0 +1,21 @@
+commit 35b07393b279cd6a5604e64291b1d98bd3f853a7
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Tue Jan 24 23:22:38 2017 +0100
+
+    Add all used dependencies
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8c7f05b..c01f2cc 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -13,7 +13,9 @@ include(KDECMakeSettings)
+ include(KDECompilerSettings)
+ include(FeatureSummary)
+ 
+-find_package(KF5 REQUIRED COMPONENTS Notifications KIO WindowSystem I18n)
++find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
++
++find_package(KF5 REQUIRED COMPONENTS Config CoreAddons I18n KIO Notifications Service WindowSystem)
+ 
+ add_executable(kmozillahelper main.cpp)
+ 
