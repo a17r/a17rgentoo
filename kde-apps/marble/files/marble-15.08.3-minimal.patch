@@ -1,0 +1,88 @@
+commit 4e915e58d1210b2c60369642606b1580e3d87a5f
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Sat Jan 28 22:57:41 2017 +0100
+
+    MARBLE_MINIMAL
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 52fd4f0..8fc15dd 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -46,6 +46,7 @@ include( MarbleMacros )
+ # if this option is set, srtm.jpg will not be installed but the generated tiles instead
+ option(MOBILE "Create a Marble version optimized for handheld devices")
+ option(MARBLE_NO_WEBKIT "Create Marble version without Qt4WebKit dependencies" OFF)
++option(MARBLE_MINIMAL "Only install a minimal set of headers and libs for legacy rdeps" OFF)
+ 
+ ####################################################
+ # Specific options for building with Qt 4 vs 5
+@@ -83,29 +84,8 @@ if(ANDROID)
+    
+    include_directories(SYSTEM "$ENV{ANDROID_NDK}/platforms/$ENV{ANDROID_PLATFORM}/arch-arm/usr/include")
+    message(STATUS "Include directories: " "$ENV{ANDROID_NDK}/platforms/$ENV{ANDROID_PLATFORM}/arch-arm/usr/include")
+-else()
+-   find_package(Qt5WebKit)
+-   find_package(Qt5WebKitWidgets)
+-   find_package(Qt5DBus)
+-
+-   if ( NOT Qt5WebKit_FOUND )
+-     set ( MARBLE_NO_WEBKIT TRUE )
+-   endif()
+ endif()
+ 
+-find_package(Qt5Core)
+-find_package(Qt5Xml)
+-find_package(Qt5Network)
+-find_package(Qt5Test)
+-find_package(Qt5Script)
+-find_package(Qt5Widgets)
+-find_package(Qt5Svg)
+-find_package(Qt5Sql)
+-find_package(Qt5Concurrent)
+-find_package(Qt5Quick)
+-find_package(Qt5OpenGL)
+-find_package(Qt5PrintSupport)
+-
+ if(QTONLY)
+   # Forward the old QTONLY=TRUE option to the new WITH_KDE=FALSE
+   set(WITH_KF5 FALSE)
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 9dd39ff..8dd98f6 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -42,11 +42,13 @@ if( QT_QTDECLARATIVE_FOUND OR Qt5Quick_FOUND )
+ ENDIF()
+ 
+ add_subdirectory( lib/marble )
++if(NOT MARBLE_MINIMAL)
+ add_subdirectory( lib/astro )
++endif()
+ 
+ #FIXME: Port to Android
+-if(NOT ANDROID)
+-add_subdirectory( plugins )
++if(NOT ANDROID AND NOT MARBLE_MINIMAL)
++  add_subdirectory( plugins )
+ endif()
+ 
+ option(BUILD_MARBLE_APPS "Build Marble Desktop/Mobile applications" ON)
+@@ -55,8 +57,6 @@ if(BUILD_MARBLE_APPS)
+   add_subdirectory( apps )
+ endif()
+ 
+-add_subdirectory( bindings )
+-
+ configure_file(
+   ${CMAKE_CURRENT_SOURCE_DIR}/config-marble.h.cmake
+   ${CMAKE_CURRENT_BINARY_DIR}/config-marble.h
+@@ -69,5 +69,8 @@ endif(APPLE)
+ # FIXME ktimezonewidget.h is gone
+ #add_subdirectory( plasmoid )
+ 
+-add_subdirectory( plasmarunner )
+-add_subdirectory( thumbnailer )
++if(MARBLE_MINIMAL)
++  add_subdirectory( bindings )
++  add_subdirectory( plasmarunner )
++  add_subdirectory( thumbnailer )
++endif()
