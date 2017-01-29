@@ -1,0 +1,21 @@
+commit ce28aa7266bba9c2e6fa33648d630b0a21c48728
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Sun Jan 29 15:35:19 2017 +0100
+
+    Find path to marblemini
+
+diff --git a/cmake/modules/FindCalligraMarble.cmake b/cmake/modules/FindCalligraMarble.cmake
+index 5c2ca42..14c6655 100644
+--- a/cmake/modules/FindCalligraMarble.cmake
++++ b/cmake/modules/FindCalligraMarble.cmake
+@@ -62,8 +62,8 @@ if ( MARBLE_INCLUDE_DIR AND MARBLE_GLOBAL_HEADER AND MARBLE_LIBRARIES )
+    set( MARBLE_FIND_QUIETLY TRUE )
+ endif ()
+ 
+-find_path( MARBLE_INCLUDE_DIR NAMES marble/MarbleMap.h PATH_SUFFIXES marble)
+-find_file( MARBLE_GLOBAL_HEADER NAMES marble/MarbleGlobal.h PATH_SUFFIXES marble)
++find_path( MARBLE_INCLUDE_DIR NAMES marble4/MarbleMap.h PATH_SUFFIXES marble4)
++find_file( MARBLE_GLOBAL_HEADER NAMES marble4/MarbleGlobal.h PATH_SUFFIXES marble4)
+ find_library( MARBLE_LIBRARIES NAMES marblewidget )
+ 
+ if(MARBLE_GLOBAL_HEADER)
