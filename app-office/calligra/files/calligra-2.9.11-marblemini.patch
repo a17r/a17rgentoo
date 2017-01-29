@@ -1,9 +1,22 @@
-commit ce28aa7266bba9c2e6fa33648d630b0a21c48728
+commit 948c115c8dbc2d273973f7bf39240cfe93418845
 Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
 Date:   Sun Jan 29 15:35:19 2017 +0100
 
     Find path to marblemini
 
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fa5501b..986ec9d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -354,7 +354,7 @@ else()
+     ## Marble changed addMarbleWidget to setMarbleWidget in MarbleControlBox.h
+     ## with commit ea177ca. This is for compatibility with older versions.
+     ##
+-    find_file(MARBLECONTROLBOX_H MarbleControlBox.h ${MARBLE_INCLUDE_DIR} PATH_SUFFIXES marble)
++    find_file(MARBLECONTROLBOX_H MarbleControlBox.h ${MARBLE_INCLUDE_DIR} PATH_SUFFIXES marble4)
+     if( MARBLECONTROLBOX_H )
+     file(READ ${MARBLECONTROLBOX_H} MARBLECONTROLBOX_H_CONTENT)
+     string(REGEX MATCH "setMarbleWidget" SETMARBLEWIDGET ${MARBLECONTROLBOX_H_CONTENT})
 diff --git a/cmake/modules/FindCalligraMarble.cmake b/cmake/modules/FindCalligraMarble.cmake
 index 5c2ca42..14c6655 100644
 --- a/cmake/modules/FindCalligraMarble.cmake
