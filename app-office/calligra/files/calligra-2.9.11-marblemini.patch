@@ -1,8 +1,8 @@
-commit 40ad98ff0c1665a59c040ff56e773e7f9c1bcfc9
+commit 07f7407fc3fc6e67ed84b05bb0582142355c7494
 Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
 Date:   Sun Jan 29 15:35:19 2017 +0100
 
-    Find path to marblemini
+    Find path to marblemini in cmake, headers
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index fa5501b..fae2143 100644
@@ -44,3 +44,169 @@ index 5c2ca42..14c6655 100644
  find_library( MARBLE_LIBRARIES NAMES marblewidget )
  
  if(MARBLE_GLOBAL_HEADER)
+diff --git a/kexi/plugins/forms/widgets/mapbrowser/MapBrowserFactory.cpp b/kexi/plugins/forms/widgets/mapbrowser/MapBrowserFactory.cpp
+index de4cb70..1820a55 100644
+--- a/kexi/plugins/forms/widgets/mapbrowser/MapBrowserFactory.cpp
++++ b/kexi/plugins/forms/widgets/mapbrowser/MapBrowserFactory.cpp
+@@ -35,7 +35,7 @@
+ #include <QVariant>
+ #include <QVariantList>
+ 
+-#include <marble/MapThemeManager.h>
++#include <marble4/MapThemeManager.h>
+ 
+ MapBrowserFactory::MapBrowserFactory(QObject* parent, const QVariantList& args)
+   : KexiDBFactoryBase(parent, "mapbrowser")
+diff --git a/kexi/plugins/forms/widgets/mapbrowser/MapBrowserWidget.h b/kexi/plugins/forms/widgets/mapbrowser/MapBrowserWidget.h
+index 908a1c5..45b8c30 100644
+--- a/kexi/plugins/forms/widgets/mapbrowser/MapBrowserWidget.h
++++ b/kexi/plugins/forms/widgets/mapbrowser/MapBrowserWidget.h
+@@ -21,7 +21,7 @@
+ #ifndef MAPBROWSERWIDGET_H
+ #define MAPBROWSERWIDGET_H
+ 
+-#include <marble/MarbleWidget.h>
++#include <marble4/MarbleWidget.h>
+ 
+ #include "widgetfactory.h"
+ #include "container.h"
+diff --git a/plugins/reporting/maps/KoReportItemMaps.h b/plugins/reporting/maps/KoReportItemMaps.h
+index 39a5b7f..be15710 100644
+--- a/plugins/reporting/maps/KoReportItemMaps.h
++++ b/plugins/reporting/maps/KoReportItemMaps.h
+@@ -27,10 +27,10 @@
+ #include <koproperty/Set.h>
+ #include <kdebug.h>
+ #include <klocalizedstring.h>
+-#include <marble/MarbleWidget.h>
++#include <marble4/MarbleWidget.h>
+ #include <QMap>
+ #include "MapRenderer.h"
+-#include <marble/MapThemeManager.h>
++#include <marble4/MapThemeManager.h>
+ 
+ class OROImage;
+ class OROPicture;
+diff --git a/plugins/reporting/maps/MapRenderer.cpp b/plugins/reporting/maps/MapRenderer.cpp
+index 5c58ebc..5ee1138 100644
+--- a/plugins/reporting/maps/MapRenderer.cpp
++++ b/plugins/reporting/maps/MapRenderer.cpp
+@@ -18,11 +18,11 @@
+ #include <QObject>
+ #include <QPainter>
+ 
+-#include <marble/MarbleWidget.h>
+-#include <marble/MarbleGlobal.h>
+-#include <marble/MarbleModel.h>
+-#include "marble/HttpDownloadManager.h"
+-#include <marble/AbstractFloatItem.h>
++#include <marble4/MarbleWidget.h>
++#include <marble4/MarbleGlobal.h>
++#include <marble4/MarbleModel.h>
++#include "marble4/HttpDownloadManager.h"
++#include <marble4/AbstractFloatItem.h>
+ #include <libs/koreport/common/renderobjects.h>
+ 
+ #include "MapRenderer.h"
+diff --git a/plugins/reporting/maps/MapRenderer.h b/plugins/reporting/maps/MapRenderer.h
+index ba1346b..59e25b5 100644
+--- a/plugins/reporting/maps/MapRenderer.h
++++ b/plugins/reporting/maps/MapRenderer.h
+@@ -21,9 +21,9 @@
+ 
+ #include <QObject>
+ 
+-#include <marble/MarbleGlobal.h>
+-#include <marble/MarbleWidget.h>
+-#include <marble/RenderState.h>
++#include <marble4/MarbleGlobal.h>
++#include <marble4/MarbleWidget.h>
++#include <marble4/RenderState.h>
+ #include <kdebug.h>
+ 
+ //#include "KoReportItemMaps.h"
+diff --git a/plugins/reporting/maps/marble/HttpDownloadManager.h b/plugins/reporting/maps/marble/HttpDownloadManager.h
+index 88eaa06..d128f74 100644
+--- a/plugins/reporting/maps/marble/HttpDownloadManager.h
++++ b/plugins/reporting/maps/marble/HttpDownloadManager.h
+@@ -19,8 +19,8 @@
+ 
+ #include <QObject>
+ 
+-#include <marble/MarbleGlobal.h>
+-#include <marble/marble_export.h>
++#include <marble4/MarbleGlobal.h>
++#include <marble4/marble_export.h>
+ 
+ class QUrl;
+ 
+diff --git a/plugins/semanticitems/location/KoRdfLocation.cpp b/plugins/semanticitems/location/KoRdfLocation.cpp
+index 5f88ab7..55ec4ef 100644
+--- a/plugins/semanticitems/location/KoRdfLocation.cpp
++++ b/plugins/semanticitems/location/KoRdfLocation.cpp
+@@ -26,9 +26,9 @@
+ #include "KoRdfLocationTreeWidgetItem.h"
+ // marble for geolocation
+ #ifdef CAN_USE_MARBLE
+-#include <marble/LatLonEdit.h>
+-#include <marble/MarbleWidget.h>
+-#include <marble/MarbleWidgetInputHandler.h>
++#include <marble4/LatLonEdit.h>
++#include <marble4/MarbleWidget.h>
++#include <marble4/MarbleWidgetInputHandler.h>
+ #endif
+ // KDE
+ #include <kdebug.h>
+diff --git a/plugins/semanticitems/location/KoRdfLocationEditWidget.cpp b/plugins/semanticitems/location/KoRdfLocationEditWidget.cpp
+index 5656a0f..eac09b4 100644
+--- a/plugins/semanticitems/location/KoRdfLocationEditWidget.cpp
++++ b/plugins/semanticitems/location/KoRdfLocationEditWidget.cpp
+@@ -22,8 +22,8 @@
+ #include "KoDocumentRdf.h"
+ // marble for geolocation
+ #ifdef CAN_USE_MARBLE
+-#include <marble/LatLonEdit.h>
+-#include <marble/MarbleWidget.h>
++#include <marble4/LatLonEdit.h>
++#include <marble4/MarbleWidget.h>
+ #endif
+ // KDE
+ #include <kdebug.h>
+diff --git a/plugins/semanticitems/location/KoRdfLocationEditWidgetMarble.ui b/plugins/semanticitems/location/KoRdfLocationEditWidgetMarble.ui
+index 49dc790..28fb184 100644
+--- a/plugins/semanticitems/location/KoRdfLocationEditWidgetMarble.ui
++++ b/plugins/semanticitems/location/KoRdfLocationEditWidgetMarble.ui
+@@ -67,17 +67,17 @@
+   <customwidget>
+    <class>Marble::LatLonEdit</class>
+    <extends>QWidget</extends>
+-   <header>marble/LatLonEdit.h</header>
++   <header>marble4/LatLonEdit.h</header>
+   </customwidget>
+   <customwidget>
+    <class>Marble::MarbleNavigator</class>
+    <extends>QWidget</extends>
+-   <header>marble/MarbleNavigator.h</header>
++   <header>marble4/MarbleNavigator.h</header>
+   </customwidget>
+   <customwidget>
+    <class>Marble::MarbleWidget</class>
+    <extends>QWidget</extends>
+-   <header>marble/MarbleWidget.h</header>
++   <header>marble4/MarbleWidget.h</header>
+   </customwidget>
+  </customwidgets>
+  <resources/>
+diff --git a/plugins/semanticitems/location/KoRdfLocationViewWidgetMarble.ui b/plugins/semanticitems/location/KoRdfLocationViewWidgetMarble.ui
+index 9323e4a..6f37d6a 100644
+--- a/plugins/semanticitems/location/KoRdfLocationViewWidgetMarble.ui
++++ b/plugins/semanticitems/location/KoRdfLocationViewWidgetMarble.ui
+@@ -41,7 +41,7 @@
+   <customwidget>
+    <class>Marble::MarbleWidget</class>
+    <extends>QWidget</extends>
+-   <header>marble/MarbleWidget.h</header>
++   <header>marble4/MarbleWidget.h</header>
+   </customwidget>
+  </customwidgets>
+  <resources/>
