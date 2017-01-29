@@ -1,4 +1,4 @@
-# Copyright 1999-2015 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -10,17 +10,15 @@ MY_PV=$(replace_version_separator 3 '-')
 DESCRIPTION="This tool enables you to scan documents using the Scan key on the Brother MFC through the network"
 HOMEPAGE="http://welcome.solutions.brother.com/bsc/public_s/id/linux/en/download_scn.html"
 SRC_URI="
-	x86?   ( http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.i386.deb )
 	amd64? ( http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.amd64.deb )
+	x86?   ( http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.i386.deb )
 "
 
 LICENSE="Brother"
 SLOT="0"
-KEYWORDS="x86 amd64"
+KEYWORDS="amd64 x86"
 IUSE=""
 RESTRICT="fetch strip"
-use x86   && DOWNLOAD_URL="http://www.brother.com/cgi-bin/agreement/agreement.cgi?dlfile=http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.i386.deb&lang=English_lpr"
-use amd64 && DOWNLOAD_URL="http://www.brother.com/cgi-bin/agreement/agreement.cgi?dlfile=http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.amd64.deb&lang=English_lpr"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
@@ -28,6 +26,8 @@ RDEPEND="${DEPEND}"
 S="$WORKDIR"
 
 pkg_nofetch() {
+	use x86   && DOWNLOAD_URL="http://www.brother.com/cgi-bin/agreement/agreement.cgi?dlfile=http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.i386.deb&lang=English_lpr"
+	use amd64 && DOWNLOAD_URL="http://www.brother.com/cgi-bin/agreement/agreement.cgi?dlfile=http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.amd64.deb&lang=English_lpr"
 	einfo "Please download ${A} from:"
 	einfo "  ${DOWNLOAD_URL}"
 	einfo "Select 'I Accept' and move the file to ${DISTDIR}."
