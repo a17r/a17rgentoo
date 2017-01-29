@@ -1,22 +1,34 @@
-commit 948c115c8dbc2d273973f7bf39240cfe93418845
+commit 40ad98ff0c1665a59c040ff56e773e7f9c1bcfc9
 Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
 Date:   Sun Jan 29 15:35:19 2017 +0100
 
     Find path to marblemini
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index fa5501b..986ec9d 100644
+index fa5501b..fae2143 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -354,7 +354,7 @@ else()
-     ## Marble changed addMarbleWidget to setMarbleWidget in MarbleControlBox.h
-     ## with commit ea177ca. This is for compatibility with older versions.
-     ##
+@@ -350,20 +350,6 @@ if(NOT MARBLE_FOUND)
+ else()
+     set(CAN_USE_MARBLE TRUE)
+     add_definitions( -DCAN_USE_MARBLE )
+-    ##
+-    ## Marble changed addMarbleWidget to setMarbleWidget in MarbleControlBox.h
+-    ## with commit ea177ca. This is for compatibility with older versions.
+-    ##
 -    find_file(MARBLECONTROLBOX_H MarbleControlBox.h ${MARBLE_INCLUDE_DIR} PATH_SUFFIXES marble)
-+    find_file(MARBLECONTROLBOX_H MarbleControlBox.h ${MARBLE_INCLUDE_DIR} PATH_SUFFIXES marble4)
-     if( MARBLECONTROLBOX_H )
-     file(READ ${MARBLECONTROLBOX_H} MARBLECONTROLBOX_H_CONTENT)
-     string(REGEX MATCH "setMarbleWidget" SETMARBLEWIDGET ${MARBLECONTROLBOX_H_CONTENT})
+-    if( MARBLECONTROLBOX_H )
+-    file(READ ${MARBLECONTROLBOX_H} MARBLECONTROLBOX_H_CONTENT)
+-    string(REGEX MATCH "setMarbleWidget" SETMARBLEWIDGET ${MARBLECONTROLBOX_H_CONTENT})
+-        if( SETMARBLEWIDGET )
+-            add_definitions(-DHAVE_SETMARBLEWIDGET)
+-        endif()
+-    else()
+-        message( WARNING "MarbleControlBox.h not found, could not properly set the SETMARBLEWIDGET define." )
+-    endif()
+ endif()
+ macro_log_feature(MARBLE_FOUND "Marble" "KDE4 World Globe Widget library" "http://techbase.kde.org/Projects/Marble/" FALSE "${MARBLE_MIN_VERSION}" "Required by RDF, Kexi Forms and Reports to show locations on a map")
+ ##
 diff --git a/cmake/modules/FindCalligraMarble.cmake b/cmake/modules/FindCalligraMarble.cmake
 index 5c2ca42..14c6655 100644
 --- a/cmake/modules/FindCalligraMarble.cmake
