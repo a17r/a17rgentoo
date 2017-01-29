@@ -38,6 +38,7 @@ PATCHES=(
 	"${FILESDIR}/${P}-webkit-optional.patch"
 	"${FILESDIR}/${P}-minimal.patch"
 	"${FILESDIR}/${P}-marble4.patch"
+	"${FILESDIR}/${P}-marbleui.patch"
 )
 
 src_prepare() {
