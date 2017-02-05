@@ -1,0 +1,118 @@
+commit 186b4b55f49d2b7d7a72a3bf7e479a10f847e098
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Sat Jan 21 18:26:46 2017 +0100
+
+    Add option to disable Qt4WebKit even if present
+    
+    - Link against Qt4WebKit only if(HAVE_WEBKIT)
+    - Remove Qt4WebKit linking from tests
+    
+    REVIEW: 129863
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ee3d810..1acbf8a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -48,6 +48,12 @@ set(
+ )
+ 
+ option(
++    WITH_QTWEBKIT
++    "Enable QtWebkit support"
++    ON
++)
++
++option(
+     UNITY_BUILD
+     "Compile multiple C++ files in one big, merged file (\"Unity build\")\nSee also http://t-fischer.dreamwidth.org/3054.html"
+ )
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 04222a7..3670336 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -37,24 +37,37 @@ include(
+ # check if QtWebKit is available, which seems to be not available
+ # on e.g. RedHat Enterprise Linux 6 or Scientific Linux 6
+ if(
+-    QT_QTWEBKIT_FOUND
++    WITH_QTWEBKIT
+ )
+-    message(
+-        STATUS
+-        "Found QtWebKit, enabling WebKit support"
++    if(
++        QT_QTWEBKIT_FOUND
++    )
++        message(
++            STATUS
++            "Found QtWebKit, enabling WebKit support"
++        )
++        add_definitions(
++            -DHAVE_QTWEBKIT
++        )
++    else(
++        QT_QTWEBKIT_FOUND
+     )
+-    add_definitions(
+-        -DHAVE_QTWEBKIT
++        message(
++            STATUS
++            "QtWebKit not found, disabling WebKit support"
++        )
++    endif(
++        QT_QTWEBKIT_FOUND
+     )
+ else(
+-    QT_QTWEBKIT_FOUND
++    WITH_QTWEBKIT
+ )
+     message(
+         STATUS
+-        "QtWebKit not found, disabling WebKit support"
++        "QtWebKit support disabled by configure"
+     )
+ endif(
+-    QT_QTWEBKIT_FOUND
++    WITH_QTWEBKIT
+ )
+ 
+ add_definitions(
+diff --git a/src/program/CMakeLists.txt b/src/program/CMakeLists.txt
+index a9fe213..a2cf5dc 100644
+--- a/src/program/CMakeLists.txt
++++ b/src/program/CMakeLists.txt
+@@ -62,10 +62,21 @@ kde4_add_executable(
+     ${CMAKE_CURRENT_BINARY_DIR}/version.h
+ )
+ 
++if(
++    HAVE_QTWEBKIT
++)
++    target_link_libraries(
++        kbibtex
++        LINK_PRIVATE
++        ${QT_QTWEBKIT_LIBRARIES}
++    )
++endif(
++    HAVE_QTWEBKIT
++)
++
+ target_link_libraries(
+     kbibtex
+     LINK_PRIVATE
+-    ${QT_QTWEBKIT_LIBRARIES}
+     ${KDE4_KIO_LIBS}
+     ${KDE4_KPARTS_LIBS}
+     ${KDE4_KFILE_LIBS}
+diff --git a/src/test/CMakeLists.txt b/src/test/CMakeLists.txt
+index eef0eed..4e74d75 100644
+--- a/src/test/CMakeLists.txt
++++ b/src/test/CMakeLists.txt
+@@ -67,7 +67,6 @@ kde4_add_unit_test(
+ target_link_libraries(
+     kbibtextest
+     LINK_PRIVATE
+-    ${QT_QTWEBKIT_LIBRARIES}
+     ${KDE4_KIO_LIBS}
+     ${KDE4_KPARTS_LIBS}
+     ${KDE4_KFILE_LIBS}
