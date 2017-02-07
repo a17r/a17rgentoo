@@ -1,4 +1,4 @@
-commit 2cd09d41ed559461a0f0a346ebec3dea82c06947
+commit bb21b93b5599596cf5901b60cbf28cfbc7a54421
 Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
 Date:   Sat Jan 21 18:26:46 2017 +0100
 
@@ -27,12 +27,16 @@ index ee3d810..1acbf8a 100644
      "Compile multiple C++ files in one big, merged file (\"Unity build\")\nSee also http://t-fischer.dreamwidth.org/3054.html"
  )
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 04222a7..0b7be01 100644
+index 04222a7..675e009 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -37,24 +37,41 @@ include(
- # check if QtWebKit is available, which seems to be not available
- # on e.g. RedHat Enterprise Linux 6 or Scientific Linux 6
+@@ -34,27 +34,43 @@ include(
+ ##SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -pg")
+ ##SET(CMAKE_CXX_FLAGS_DISTRIBUTION "${CMAKE_CXX_FLAGS_DISTRIBUTION} -pg")
+ 
+-# check if QtWebKit is available, which seems to be not available
+-# on e.g. RedHat Enterprise Linux 6 or Scientific Linux 6
++# check if QtWebKit support is desired and/or available
  if(
 -    QT_QTWEBKIT_FOUND
 +    WITH_QTWEBKIT
@@ -73,7 +77,7 @@ index 04222a7..0b7be01 100644
      message(
          STATUS
 -        "QtWebKit not found, disabling WebKit support"
-+        "QtWebKit support disabled by configure"
++        "QtWebKit support has been disabled by configuration option"
      )
  endif(
 -    QT_QTWEBKIT_FOUND
@@ -82,15 +86,14 @@ index 04222a7..0b7be01 100644
  
  add_definitions(
 diff --git a/src/networking/CMakeLists.txt b/src/networking/CMakeLists.txt
-index efa14f4..f7ade08 100644
+index efa14f4..fd9543f 100644
 --- a/src/networking/CMakeLists.txt
 +++ b/src/networking/CMakeLists.txt
-@@ -131,7 +131,7 @@ target_link_libraries(
+@@ -131,7 +131,6 @@ target_link_libraries(
      kbibtexnetworking
      LINK_PRIVATE
      ${QT_QTCORE_LIBRARY}
 -    ${QT_QTWEBKIT_LIBRARY}
-+    ${OPTIONAL_QTWEBKIT_LIBRARIES}
      ${KDE4_KDECORE_LIBS}
      ${KDE4_KIO_LIBS}
      ${POPPLER_QT4_LIBRARIES}
