@@ -28,6 +28,6 @@ DEPEND="
 RDEPEND="${DEPEND}"
 
 PATCHES=(
-	"${FILESDIR}/${P}-libexecdir.patch"
-	"${FILESDIR}/${P}-deps.patch"
+	"${FILESDIR}/${PN}-4.9.12-libexecdir.patch"
+	"${FILESDIR}/${PN}-4.9.12-deps.patch"
 )
