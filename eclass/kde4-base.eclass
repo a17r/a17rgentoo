@@ -131,6 +131,12 @@ OPENGL_REQUIRED="${OPENGL_REQUIRED:-never}"
 # This variable must be set before inheriting any eclasses. Defaults to 'never'.
 MULTIMEDIA_REQUIRED="${MULTIMEDIA_REQUIRED:-never}"
 
+# @ECLASS-VARIABLE: QT3SUPPORT_REQUIRED
+# @DESCRIPTION:
+# Is qt3support required? Possible values are 'always', 'optional' and 'never'.
+# This variable must be set before inheriting any eclasses. Defaults to 'never'.
+QT3SUPPORT_REQUIRED="${QT3SUPPORT_REQUIRED:-never}"
+
 # @ECLASS-VARIABLE: WEBKIT_REQUIRED
 # @DESCRIPTION:
 # Is qtwebkit required? Possible values are 'always', 'optional' and 'never'.
@@ -264,6 +270,24 @@ case ${MULTIMEDIA_REQUIRED} in
 esac
 unset qtmultimediadepend
 
+# Qt3Support dependencies
+qt3supportdepend="
+	>=dev-qt/qt3support-${QT_MINIMAL}:4
+"
+case ${QT3SUPPORT_REQUIRED} in
+	always)
+		COMMONDEPEND+=" ${qt3supportdepend}"
+		qt3supportuse="qt3support"
+		;;
+	optional)
+		IUSE+=" +qt3support"
+		COMMONDEPEND+=" qt3support? ( ${qt3supportdepend} )"
+		qt3supportuse="qt3support?"
+		;;
+	*) ;;
+esac
+unset qt3supportdepend
+
 # WebKit dependencies
 qtwebkitdepend="
 	>=dev-qt/qtwebkit-${QT_MINIMAL}:4
@@ -300,24 +324,37 @@ unset cppuintdepend
 # Qt accessibility classes are needed in various places, bug 325461
 kdecommondepend="
 	dev-lang/perl
-	>=dev-qt/qt3support-${QT_MINIMAL}:4[accessibility]
-	>=dev-qt/qtcore-${QT_MINIMAL}:4[qt3support,ssl]
 	>=dev-qt/qtdbus-${QT_MINIMAL}:4
 	>=dev-qt/designer-${QT_MINIMAL}:4
 	>=dev-qt/qtgui-${QT_MINIMAL}:4[accessibility,dbus(+)]
 	>=dev-qt/qtscript-${QT_MINIMAL}:4
-	>=dev-qt/qtsql-${QT_MINIMAL}:4[qt3support]
 	>=dev-qt/qtsvg-${QT_MINIMAL}:4
 	>=dev-qt/qttest-${QT_MINIMAL}:4
 "
+if [[ -n ${qt3supportuse} ]]; then
+	kdecommondepend+="
+		>=dev-qt/qtcore-${QT_MINIMAL}:4[${qt3supportuse},ssl]
+		>=dev-qt/qtsql-${QT_MINIMAL}:4[${qt3supportuse}]
+	"
+else
+	kdecommondepend+="
+		>=dev-qt/qtcore-${QT_MINIMAL}:4[ssl]
+		>=dev-qt/qtsql-${QT_MINIMAL}:4
+	"
+fi
 
 if [[ ${PN} != kdelibs ]]; then
 	local _kdelibsuse
 	case ${WEBKIT_REQUIRED} in
-		always) _kdelibsuse="[webkit]" ;;
-		optional) _kdelibsuse="[webkit?]" ;;
+		always) _kdelibsuse="webkit" ;;
+		optional) _kdelibsuse="webkit?" ;;
 		*) ;;
 	esac
+	if [[ -n ${qt3supportuse} ]]; then
+		[[ -n ${_kdelibsuse} ]] && _kdelibsuse="${_kdelibsuse},${qt3supportuse}" \
+			|| _kdelibsuse="${qt3supportuse}"
+	fi
+	[[ -n ${_kdelibsuse} ]] && _kdelibsuse="[${_kdelibsuse}]"
 	kdecommondepend+=" >=kde-frameworks/kdelibs-4.14.22:4${_kdelibsuse}"
 	unset _kdelibsuse
 	if [[ ${KDEBASE} = kdevelop ]]; then
@@ -338,6 +375,7 @@ if [[ ${PN} != kdelibs ]]; then
 		fi
 	fi
 fi
+unset qt3supportuse
 
 kdedepend="
 	dev-util/automoc
