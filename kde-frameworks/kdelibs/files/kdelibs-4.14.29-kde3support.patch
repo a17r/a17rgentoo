@@ -1,0 +1,32 @@
+commit 1fc1f2540bb3f4a099f2fd0d5bd19a2949ca40af
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Thu Feb 16 19:41:52 2017 +0100
+
+    Make kde3support and Qt3Support optional (default on)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b35bee9..6f1e62f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -48,6 +48,9 @@ option(WITH_SOLID_WMI "Enables the deprecated WMI backend on Windows")
+ ############### Give the user the option to build without qtwebkit dependency  ###############
+ option(WITH_KDEWEBKIT "Enables the deprecated kdewebkit and kdewebkit-widgets" "ON")
+ 
++############### Give the user the option to build without qt3support dependency ###############
++option(WITH_KDE3SUPPORT "Enables the deprecated kde3support" "ON")
++
+ ############### Load the CTest options ###############
+ # CTestCustom.cmake has to be in the CTEST_BINARY_DIR.
+ # in the KDE build system, this is the same as CMAKE_BINARY_DIR.
+@@ -324,9 +327,9 @@ endif(NOT WINCE)
+ add_subdirectory( kio )
+ add_subdirectory( solid )
+ add_subdirectory( kded       )
+-if (QT_QT3SUPPORT_FOUND)
++if (WITH_KDE3SUPPORT AND QT_QT3SUPPORT_FOUND)
+    add_subdirectory( kde3support  )
+-endif (QT_QT3SUPPORT_FOUND)
++endif (WITH_KDE3SUPPORT AND QT_QT3SUPPORT_FOUND)
+ add_subdirectory( kfile )
+ add_subdirectory( kconf_update )
+ if(NOT WINCE)
