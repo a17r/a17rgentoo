@@ -100,6 +100,7 @@ src_configure() {
 		-DBUILD_SHARED_LIBS=ON
 		-DQGIS_LIB_SUBDIR=$(get_libdir)
 		-DQGIS_PLUGIN_SUBDIR=$(get_libdir)/qgis
+		-DQWT_INCLUDE_DIR=/usr/include/qwt6
 		-DQWT_LIBRARY=/usr/$(get_libdir)/libqwt6-qt4.so
 		-DWITH_INTERNAL_DATEUTIL=OFF
 		-DWITH_INTERNAL_FUTURE=OFF
