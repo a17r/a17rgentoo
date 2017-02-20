@@ -88,7 +88,11 @@ RDEPEND="${COMMON_DEPEND}
 # Disabling test suite because upstream disallow running from install path
 RESTRICT="test"
 
-PATCHES=( "${FILESDIR}"/${PN}-2.18.3-app-icon.patch )
+PATCHES=(
+	"${FILESDIR}"/${P}-app-icon.patch
+	"${FILESDIR}"/${P}-webkit.patch
+	"${FILESDIR}"/${P}-sip-4.19.patch
+)
 
 pkg_setup() {
 	python-single-r1_pkg_setup
