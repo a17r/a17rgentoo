@@ -8,6 +8,10 @@ GNOME2_LA_PUNT="yes"
 VALA_USE_DEPEND="vapigen"
 PYTHON_COMPAT=( python{2_7,3_4,3_5} )
 
+# Patch in elogind support
+# Bug #607352
+GNOME2_EAUTORECONF="yes"
+
 inherit bash-completion-r1 gnome2 linux-info multilib python-any-r1 systemd \
 	user readme.gentoo-r1 toolchain-funcs vala versionator virtualx udev multilib-minimal
 
@@ -17,18 +21,20 @@ HOMEPAGE="https://wiki.gnome.org/Projects/NetworkManager"
 LICENSE="GPL-2+"
 SLOT="0" # add subslot if libnm-util.so.2 or libnm-glib.so.4 bumps soname version
 
-IUSE="audit bluetooth connection-sharing consolekit elogind +dhclient gnutls \
-+introspection json kernel_linux +nss +modemmanager ncurses ofono +ppp resolvconf \
-selinux systemd teamd test vala +wext +wifi"
+IUSE="audit bluetooth connection-sharing consolekit +dhclient elogind gnutls \
++introspection json kernel_linux +nss +modemmanager ncurses ofono +ppp \
+resolvconf selinux systemd teamd test vala +wext +wifi"
 
 REQUIRED_USE="
+
 	modemmanager? ( ppp )
 	vala? ( introspection )
 	wext? ( wifi )
 	^^ ( nss gnutls )
+	?? ( consolekit elogind systemd )
 "
 
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~sparc ~x86"
+KEYWORDS="~alpha amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~sparc x86"
 
 # gobject-introspection-0.10.3 is needed due to gnome bug 642300
 # wpa_supplicant-0.7.3-r3 is needed due to bug 359271
@@ -52,6 +58,7 @@ COMMON_DEPEND="
 		net-firewall/iptables )
 	consolekit? ( >=sys-auth/consolekit-1.0.0 )
 	dhclient? ( >=net-misc/dhcp-4[client] )
+	!dhclient? ( >=net-misc/dhcpcd-6.11.3 )
 	elogind? ( sys-auth/elogind )
 	gnutls? (
 		dev-libs/libgcrypt:0=[${MULTILIB_USEDEP}]
@@ -85,6 +92,12 @@ DEPEND="${COMMON_DEPEND}
 			dev-python/pygobject:3[${PYTHON_USEDEP}]')
 	)
 "
+
+PATCHES=(
+        # Patch in elogind support
+        # Bug #607352
+        "${FILESDIR}"/${P}-enable-elogind.patch
+)
 
 python_check_deps() {
 	if use test; then
@@ -149,11 +162,9 @@ multilib_src_configure() {
 		myconf+=( --with-pppd-plugin-dir=/usr/$(get_libdir)/pppd/${PPPD_VER} )
 	fi
 
-	# unit files directory needs to be passed when elogind or systemd are
-	# enabled, otherwise systemd support is not disabled completely, bug #524534
-	if use systemd || use elogind; then
-		myconf+=( --with-systemdsystemunitdir="$(systemd_get_systemunitdir)" )
-	fi
+	# unit files directory needs to be passed only when systemd is enabled,
+	# otherwise systemd support is not disabled completely, bug #524534
+	use systemd && myconf+=( --with-systemdsystemunitdir="$(systemd_get_systemunitdir)" )
 
 	if multilib_is_native_abi; then
 		# work-around man out-of-source brokenness, must be done before configure
@@ -168,6 +179,7 @@ multilib_src_configure() {
 	# maintain and fix it
 	# Also disable dhcpcd support as it's also completely unmaintained
 	# and facing bugs like #563938 and many others
+	# Update: Said bug says, that it *should* work now, so re-enable dhcpcd.
 	#
 	# We need --with-libnm-glib (and dbus-glib dep) as reverse deps are
 	# still not ready for removing that lib
@@ -191,15 +203,15 @@ multilib_src_configure() {
 			$(multilib_native_with libsoup) \
 			$(multilib_native_enable concheck) \
 			--with-crypto=$(usex nss nss gnutls) \
-			--with-session-tracking=$(multilib_native_usex systemd systemd $(multilib_native_usex consolekit consolekit no)) \
-			--with-suspend-resume=$(multilib_native_usex systemd systemd consolekit) \
+			--with-session-tracking=$(multilib_native_usex systemd systemd $(multilib_native_usex elogind elogind $(multilib_native_usex consolekit consolekit no))) \
+			--with-suspend-resume=$(multilib_native_usex systemd systemd $(multilib_native_usex elogind elogind consolekit)) \
 			$(multilib_native_use_with audit libaudit) \
 			$(multilib_native_use_enable bluetooth bluez5-dun) \
 			$(multilib_native_use_enable introspection) \
 			$(multilib_native_use_enable json json-validation) \
 			$(multilib_native_use_enable ppp) \
 			$(use_with dhclient) \
-			--without-dhcpcd \
+			$(use_with !dhclient dhcpcd) \
 			$(multilib_native_use_with modemmanager modem-manager-1) \
 			$(multilib_native_use_with ncurses nmtui) \
 			$(multilib_native_use_with ofono) \
@@ -271,7 +283,7 @@ multilib_src_install() {
 multilib_src_install_all() {
 	! use systemd && readme.gentoo_create_doc
 
-	newinitd "${FILESDIR}/init.d.NetworkManager" NetworkManager
+	newinitd "${FILESDIR}/init.d.NetworkManager-r2" NetworkManager
 	newconfd "${FILESDIR}/conf.d.NetworkManager" NetworkManager
 
 	# Need to keep the /etc/NetworkManager/dispatched.d for dispatcher scripts
