@@ -1,0 +1,24 @@
+From 4728fb4a8488310a4830cc2a8fbe4b403c737fa6 Mon Sep 17 00:00:00 2001
+From: tesfabpel <tesfabpel@gmail.com>
+Date: Sat, 10 Sep 2016 18:40:57 +0200
+Subject: [PATCH] Remove quotes from ServerArguments (#696)
+
+Remove quotes from ServerArguments since it goes directly in the command line:
+Running: /usr/bin/X "-nolisten tcp -dpi 192" -auth /var/run/sddm/{...}  -background none -noreset -displayfd 21 vt1
+---
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 65f35b6..7b5fa9e 100644
+--- a/README.md
++++ b/README.md
+@@ -87,7 +87,7 @@ Xorg yourself.  An easy way is to pass an additional argument to Xorg.
+ Edit ``/etc/sddm.conf``, go to the ``X11`` section and change ``ServerArguments`` like this:
+ 
+ ```
+-ServerArguments="-nolisten tcp -dpi 192"
++ServerArguments=-nolisten tcp -dpi 192
+ ```
+ 
+ to set DPI to 192.

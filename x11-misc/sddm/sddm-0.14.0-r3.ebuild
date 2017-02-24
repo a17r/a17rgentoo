@@ -3,6 +3,7 @@
 # $Id$
 
 EAPI=6
+
 inherit cmake-utils user
 
 DESCRIPTION="Simple Desktop Display Manager"
@@ -37,10 +38,15 @@ DEPEND="${RDEPEND}
 	virtual/pkgconfig"
 
 PATCHES=(
+	# upstream develop branch
 	"${FILESDIR}/${PN}-0.13.0-pam_kwallet.patch"
+	# upstream master branch
+	"${FILESDIR}/${P}-avatars.patch"
+	"${FILESDIR}/${P}-quotes.patch"
+	"${FILESDIR}/${P}-hidpi.patch"
+	# pending upstream
 	# fix for flags handling and bug 563108
 	"${FILESDIR}/${PN}-0.12.0-respect-user-flags.patch"
-	"${FILESDIR}/${P}-avatars.patch"
 	"${FILESDIR}/${P}-elogind.patch"
 )
 
