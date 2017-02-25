@@ -71,7 +71,7 @@ src_prepare() {
 	xdg_environment_reset
 
 	if use elogind; then
-		epatch "${FILESDIR}"/${PN}-enable-elogind.patch || die
+		eapply "${FILESDIR}"/${P}-elogind.patch || die
 	elif ! use systemd; then
 		sed -i -e 's:libsystemd-login:&disable:' configure || die
 	fi
