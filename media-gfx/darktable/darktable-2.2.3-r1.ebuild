@@ -20,7 +20,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 LANGS=" ca cs da de es fr he hu it ja nl pl ru sk sl sv uk"
 # TODO add lua once dev-lang/lua-5.2 is unmasked
-IUSE="colord cups cpu_flags_x86_sse3 doc flickr geo gphoto2 graphicsmagick jpeg2k kde libsecret
+IUSE="colord cpu_flags_x86_sse3 cups doc flickr geo gphoto2 graphicsmagick jpeg2k kwallet libsecret
 nls opencl openmp openexr pax_kernel webp
 ${LANGS// / l10n_}"
 
@@ -58,7 +58,7 @@ CDEPEND="
 	openexr? ( media-libs/openexr:0= )
 	webp? ( media-libs/libwebp:0= )"
 RDEPEND="${CDEPEND}
-	kde? ( kde-frameworks/kwallet )"
+	kwallet? ( kde-frameworks/kwallet )"
 DEPEND="${CDEPEND}
 	dev-util/intltool
 	virtual/pkgconfig
@@ -89,7 +89,7 @@ src_configure() {
 		-DUSE_COLORD=$(usex colord)
 		-DUSE_FLICKR=$(usex flickr)
 		-DUSE_GRAPHICSMAGICK=$(usex graphicsmagick)
-		-DUSE_KWALLET=$(usex kde)
+		-DUSE_KWALLET=$(usex kwallet)
 		-DUSE_LIBSECRET=$(usex libsecret)
 		-DUSE_LUA=OFF
 		-DUSE_MAP=$(usex geo)
