@@ -16,7 +16,8 @@ APPS_VERSION="16.12.2" # Don't forget to bump this
 
 DESCRIPTION="KDE libraries needed by all KDE programs"
 [[ ${KDE_BUILD_TYPE} != live ]] && \
-SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz"
+SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz
+	https://dev.gentoo.org/~asturm/qguiplatformplugin_kde-4.11.22.tar.xz"
 
 KEYWORDS="~amd64 ~arm ~ppc ~ppc64 ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
 LICENSE="LGPL-2.1"
@@ -133,6 +134,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.14.20-FindQt4.patch"
 	"${FILESDIR}/${PN}-4.14.22-webkit.patch"
 	"${FILESDIR}/${PN}-4.14.29-kde3support.patch"
+	"${FILESDIR}/${PN}-4.14.29-qguiplatformplugin.patch"
 )
 
 pkg_pretend() {
@@ -144,6 +146,8 @@ pkg_pretend() {
 }
 
 src_prepare() {
+	mv "${WORKDIR}/qguiplatformplugin_kde" "${S}"/ || die
+
 	kde4-base_src_prepare
 
 	# Rename applications.menu (needs 01_gentoo_set_xdg_menu_prefix-1.patch to work)
@@ -177,7 +181,7 @@ src_prepare() {
 		append-flags -DHAVE_ARPA_NAMESER8_COMPAT_H=1
 
 		# Try to fix kkeyserver_mac
-		epatch "${FILESDIR}"/${PN}-4.3.80-kdeui_util_kkeyserver_mac.patch
+		eapply "${FILESDIR}"/${PN}-4.3.80-kdeui_util_kkeyserver_mac.patch
 	fi
 }
 

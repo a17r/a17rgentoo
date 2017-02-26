@@ -1,0 +1,11 @@
+--- a/CMakeLists.txt	2017-02-26 03:03:15.235305256 +0100
++++ b/CMakeLists.txt	2017-02-26 03:06:36.702704202 +0100
+@@ -367,6 +367,8 @@
+ endif(WITH_KDEWEBKIT)
+ add_subdirectory( includes )
+ 
++macro_optional_add_subdirectory( qguiplatformplugin_kde  )
++
+ add_subdirectory( experimental )
+ macro_optional_add_subdirectory( doc  )
+ 
