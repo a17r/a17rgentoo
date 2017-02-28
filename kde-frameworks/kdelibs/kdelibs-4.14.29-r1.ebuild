@@ -1,6 +1,5 @@
 # Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Id$
 
 EAPI=6
 
@@ -133,8 +132,9 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.10.0-udisks.patch"
 	"${FILESDIR}/${PN}-4.14.20-FindQt4.patch"
 	"${FILESDIR}/${PN}-4.14.22-webkit.patch"
-	"${FILESDIR}/${PN}-4.14.29-kde3support.patch"
-	"${FILESDIR}/${PN}-4.14.29-qguiplatformplugin.patch"
+	"${FILESDIR}/${P}-sanitize-url.patch"
+	"${FILESDIR}/${P}-kde3support.patch"
+	"${FILESDIR}/${P}-qguiplatformplugin.patch"
 )
 
 pkg_pretend() {
