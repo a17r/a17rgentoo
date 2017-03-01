@@ -50,7 +50,7 @@ COMMON_DEPEND="
 	sci-libs/libspatialindex:=
 	sci-libs/proj
 	x11-libs/qscintilla:=[qt5]
-	>=x11-libs/qwt-6.1.2:6[qt5,svg]
+	>=x11-libs/qwt-6.1.2:6=[qt5,svg]
 	>=x11-libs/qwtpolar-1.1.1-r1[qt5]
 	georeferencer? ( sci-libs/gsl:= )
 	grass? ( sci-geosciences/grass:= )
@@ -117,6 +117,8 @@ src_configure() {
 		-DPEDANTIC=OFF
 		-DWITH_APIDOC=OFF
 		-DWITH_QSPATIALITE=ON
+		-DENABLE_PYTHON3=ON
+		-DENABLE_QT5=ON
 		-DENABLE_TESTS=OFF
 		-DWITH_BINDINGS="$(usex python)"
 		-DWITH_GRASS7="$(usex grass)"
