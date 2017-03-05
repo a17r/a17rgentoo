@@ -1,0 +1,48 @@
+commit ef4c0cd153c0f87a23eb18ed5dee83a5666698eb
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Sun Mar 5 18:28:45 2017 +0100
+
+    Adapt to >=gpgme-1.8.0, need for -phtread is gone
+
+diff --git a/cmake/modules/FindGpgme.cmake b/cmake/modules/FindGpgme.cmake
+index 5da9a60..d55d98f 100644
+--- a/cmake/modules/FindGpgme.cmake
++++ b/cmake/modules/FindGpgme.cmake
+@@ -189,7 +189,7 @@ else() # not WIN32
+ 
+       exec_program( ${_GPGMECONFIG_EXECUTABLE} ARGS --version OUTPUT_VARIABLE GPGME_VERSION )
+ 
+-      set( _GPGME_MIN_VERSION "1.1.7" )
++      set( _GPGME_MIN_VERSION "1.7.9" )
+       if( ${GPGME_VERSION} VERSION_GREATER ${_GPGME_MIN_VERSION} )
+         set( _GPGME_INSTALLED_VERSION_OK TRUE )
+       endif()
+diff --git a/cmake/modules/FindQGpgme.cmake b/cmake/modules/FindQGpgme.cmake
+index 50013eb..4d94af6 100644
+--- a/cmake/modules/FindQGpgme.cmake
++++ b/cmake/modules/FindQGpgme.cmake
+@@ -12,13 +12,8 @@ find_package(Gpgme QUIET)
+ 
+ if(GPGME_FOUND)
+ 
+-   if ( WIN32 )
+-      find_library(_QGPGME_EXTRA_LIBRARY gpgme++
+-                   HINTS ${GPGME_LIBRARY_DIR})
+-   else ( WIN32 )
+-      find_library(_QGPGME_EXTRA_LIBRARY gpgme++-pthread
+-                   HINTS ${GPGME_LIBRARY_DIR})
+-   endif()
++   find_library(_QGPGME_EXTRA_LIBRARY gpgme++
++                HINTS ${GPGME_LIBRARY_DIR})
+ 
+    find_library(QGPGME_LIBRARY qgpgme
+                 HINTS ${GPGME_LIBRARY_DIR})
+@@ -34,7 +29,7 @@ if(GPGME_FOUND)
+    if ( WIN32 )
+       set(QGPGME_LIBRARIES ${QGPGME_LIBRARY} ${_QGPGME_EXTRA_LIBRARY} ${GPGME_VANILLA_LIBRARIES} ${GPGME_QT_LIBRARIES})
+    else ( WIN32 )
+-      set(QGPGME_LIBRARIES ${QGPGME_LIBRARY} ${_QGPGME_EXTRA_LIBRARY} ${GPGME_PTHREAD_LIBRARIES})
++      set(QGPGME_LIBRARIES ${QGPGME_LIBRARY} ${_QGPGME_EXTRA_LIBRARY} ${GPGME_VANILLA_LIBRARIES})
+    endif()
+ 
+ endif()
