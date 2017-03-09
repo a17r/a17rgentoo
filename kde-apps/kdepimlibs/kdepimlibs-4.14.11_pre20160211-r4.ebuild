@@ -40,6 +40,7 @@ RDEPEND="${DEPEND}"
 PATCHES=(
 	"${FILESDIR}/${PN}-4.14.11-boostincludes.patch"
 	"${FILESDIR}/${PN}-CVE-2016-7966-r1.patch"
+	"${FILESDIR}/${PN}-4.14.11-buildtools.patch"
 )
 
 src_prepare() {
@@ -58,6 +59,7 @@ src_prepare() {
 
 src_configure() {
 	local mycmakeargs=(
+		-DBUILD_TOOLS=OFF
 		-DBUILD_doc=$(usex handbook)
 		$(cmake-utils_use_find_package ldap Ldap)
 		$(cmake-utils_use_find_package prison Prison)

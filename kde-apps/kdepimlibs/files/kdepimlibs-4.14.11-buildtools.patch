@@ -1,0 +1,85 @@
+commit f08a696129a476e354665f469aef839137657b2d
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Fri Mar 10 00:04:06 2017 +0100
+
+    Backport BUILD_TOOLS switch from KF5Akonadi
+    
+    This makes it possible to disable colliding build environment files.
+
+diff --git a/akonadi/CMakeLists.txt b/akonadi/CMakeLists.txt
+index 4a4245408..1d32b3f92 100644
+--- a/akonadi/CMakeLists.txt
++++ b/akonadi/CMakeLists.txt
+@@ -7,11 +7,22 @@ if(CMAKE_COMPILE_GCOV)
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+ endif()
+ 
+-if (KDE4_BUILD_TESTS)
+-  add_subdirectory( tests )
+-else()
++option(BUILD_TOOLS "Build and install tools for development and testing purposes." TRUE)
++
++if(KDE4_BUILD_TESTS)
++  set(BUILD_TOOLS TRUE)
++endif()
++
++if (BUILD_TOOLS)
++# add testrunner (application for managing a self-contained test environment)
+   add_subdirectory( tests/testrunner )
+   add_subdirectory( tests/testresource )
++  add_subdirectory( tests/testsearchplugin )
++  add_subdirectory( tests/benchmarker )
++endif()
++
++if (KDE4_BUILD_TESTS)
++  add_subdirectory( tests )
+ endif()
+ 
+ add_definitions( ${AKONADI_DEFINITIONS} )
+@@ -39,7 +50,9 @@ add_subdirectory( contact )
+ add_subdirectory( calendar )
+ add_subdirectory( notes )
+ add_subdirectory( socialutils )
+-add_subdirectory( xml )
++if(BUILD_TOOLS)
++  add_subdirectory( xml )
++endif()
+ 
+ include_directories(
+   ${QT_QTDBUS_INCLUDE_DIR}
+diff --git a/akonadi/tests/CMakeLists.txt b/akonadi/tests/CMakeLists.txt
+index ffd16ff22..1675e354d 100644
+--- a/akonadi/tests/CMakeLists.txt
++++ b/akonadi/tests/CMakeLists.txt
+@@ -26,16 +26,7 @@ include_directories(
+   ${CMAKE_BINARY_DIR}/kmime
+ )
+ 
+-# add testrunner (application for managing a self-contained test
+-# environment)
+-
+ add_subdirectory(etm_test_app)
+-add_subdirectory(testrunner)
+-add_subdirectory(testresource)
+-add_subdirectory(testsearchplugin)
+-
+-# add benchmarker
+-add_subdirectory(benchmarker)
+ 
+ # convenience macro to add akonadi demo application
+ macro(add_akonadi_demo _source)
+diff --git a/akonadi/xml/CMakeLists.txt b/akonadi/xml/CMakeLists.txt
+index 18ab0e1bd..8ed36df9c 100644
+--- a/akonadi/xml/CMakeLists.txt
++++ b/akonadi/xml/CMakeLists.txt
+@@ -2,7 +2,9 @@ if ( LIBXML2_FOUND )
+   add_definitions( -DHAVE_LIBXML2 )
+ endif ()
+ 
+-add_subdirectory( tests )
++if (KDE4_BUILD_TESTS)
++  add_subdirectory( tests )
++endif()
+ 
+ include_directories(
+     ${KDE4_INCLUDES}
