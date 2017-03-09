@@ -31,8 +31,8 @@ S="${WORKDIR}/${PN}-${MY_PV}/"
 
 src_install() {
 	kde4-base_src_install
-
-# 	rm "${D}"/usr/bin/baloo* || die
-	rm -r "${D}"/usr/share/dbus-1 || die
-	rm -r "${D}"/usr/share/polkit-1 || die
+	for item in "${ED}"usr/share/kde4/services/*.desktop; do
+		item="$(basename ${item})"
+		dosym "/usr/share/kde4/services/${item}" "/usr/share/kservices5/${item}"
+	done
 }
