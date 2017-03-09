@@ -1,0 +1,254 @@
+--- /CMakeLists.txt
++++ /CMakeLists.txt
+@@ -70,8 +70,8 @@
+ 
+ # The KDEPIM_ONLY_KLEO option is true
+ if(KDEPIM_ONLY_KLEO)
+-  find_package(QGpgme)
+-  macro_log_feature(QGPGME_FOUND "QGpgME" "The QGpgME library" "http://www.kde.org" TRUE "" "QGpgME is required to build Kleopatra.")
++  find_package(KDE4_QGpgme)
++  macro_log_feature(KDE4_QGPGME_FOUND "KDE4_QGpgME" "The KDE4_QGpgME library" "http://www.kde.org" TRUE "" "KDE4_QGpgME is required to build Kleopatra.")
+ 
+   add_definitions(${QT_DEFINITIONS} ${KDE4_DEFINITIONS} ${KDEPIM_DEFINITIONS})
+   include_directories (${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${KDE4_INCLUDES} ${KDEPIMLIBS_INCLUDE_DIRS} ${QT_QTDBUS_INCLUDE_DIR})
+@@ -96,8 +96,8 @@
+   find_package(Strigi)
+   macro_log_feature(STRIGI_FOUND "Strigi" "Index metadata of files" "http://strigi.sourceforge.net" TRUE "" "")
+ 
+-  find_package(QGpgme)
+-  macro_log_feature(QGPGME_FOUND "QGpgME" "The QGpgME library" "http://www.kde.org" FALSE "" "QGpgME is required to build KMail, KOrganizer and Kleopatra")
++  find_package(KDE4_QGpgme)
++  macro_log_feature(KDE4_QGPGME_FOUND "KDE4_QGpgME" "The KDE4_QGpgME library" "http://www.kde.org" FALSE "" "KDE4_QGpgME is required to build KMail, KOrganizer and Kleopatra")
+ 
+   set(SDO_MIN_VERSION 0.2)
+   set(SOPRANO_MIN_VERSION 2.3.70)
+@@ -188,12 +188,12 @@
+   add_subdirectory(messagecore)
+   add_subdirectory(messagelist)
+ 
+-  if(QGPGME_FOUND)
++  if(KDE4_QGPGME_FOUND)
+     if (Boost_TOPOLOGICAL_SORT_DIR)
+       macro_optional_add_subdirectory(kleopatra)
+     endif(Boost_TOPOLOGICAL_SORT_DIR)
+     macro_optional_add_subdirectory(wizards)
+-    # The following components depend on QGpgME.
++    # The following components depend on KDE4_QGpgME.
+     add_subdirectory(messageviewer)
+     macro_optional_add_subdirectory(kmail)
+ 
+@@ -214,7 +214,7 @@
+ #    include( SopranoAddOntology )
+ #    add_subdirectory( ontologies )
+ #    add_subdirectory( nepomuk_email_feeder )
+-  endif(QGPGME_FOUND)
++  endif(KDE4_QGPGME_FOUND)
+ 
+   if(KDEPIM_BUILD_EVERYTHING)
+     macro_optional_add_subdirectory(knode)
+@@ -254,13 +254,13 @@
+ macro_optional_add_subdirectory(doc)
+ 
+ 
+-# We really want to encourage users to enable/install QGpgME from kdepimlibs
+-if(NOT QGPGME_FOUND)
+-  # Users must be aware that QGpgMe is really needed
+-  message(STATUS "*** WARNING: QGpgME is not installed on your system ***")
++# We really want to encourage users to enable/install KDE4_QGpgME from kdepimlibs
++if(NOT KDE4_QGPGME_FOUND)
++  # Users must be aware that KDE4_QGpgMe is really needed
++  message(STATUS "*** WARNING: KDE4_QGpgME is not installed on your system ***")
+   message(STATUS "*** It is required if you want to use KMail, KOrganizer or Kleopatra ***")
+   message(STATUS "*** You are really encouraged to install it ***")
+-endif(NOT QGPGME_FOUND)
++endif(NOT KDE4_QGPGME_FOUND)
+ # All done, let's display what we found...
+ macro_display_feature_log()
+ 
+--- /examples/mailreader/CMakeLists.txt
++++ /examples/mailreader/CMakeLists.txt
+@@ -19,7 +19,7 @@
+ 
+ target_link_libraries(akonadimailreader messageviewer messagelist kdepim kpgp kleo akonadi-kde
+                                         akonadi-kmime akonadi_next ${KDE4_KDEUI_LIBS} ${KDE4_KHTML_LIBS}
+-                                        ${KDE4_KTNEF_LIBRARY} ${QGPGME_LIBRARIES}
++                                        ${KDE4_KTNEF_LIBRARY} ${KDE4_QGPGME_LIBRARIES}
+ )
+ 
+ install(TARGETS akonadimailreader ${INSTALL_TARGETS_DEFAULT_ARGS} )
+--- /kaddressbook/CMakeLists.txt
++++ /kaddressbook/CMakeLists.txt
+@@ -5,9 +5,9 @@
+ add_subdirectory( common )
+ add_subdirectory( interfaces ) 
+ add_subdirectory( printing ) 
+-if(QGPGME_FOUND)
++if(KDE4_QGPGME_FOUND)
+    add_subdirectory( editors ) 
+-endif(QGPGME_FOUND)
++endif(KDE4_QGPGME_FOUND)
+ add_subdirectory( views ) 
+ add_subdirectory( features ) 
+ add_subdirectory( kcmconfigs ) 
+--- /kaddressbook/xxport/CMakeLists.txt
++++ /kaddressbook/xxport/CMakeLists.txt
+@@ -22,7 +22,7 @@
+ 
+ 
+ ########### next target ###############
+-if(QGPGME_FOUND)
++if(KDE4_QGPGME_FOUND)
+ set(kaddrbk_vcard_xxport_PART_SRCS vcard_xxport.cpp )
+ 
+ 
+@@ -30,10 +30,10 @@
+ 
+ 
+ 
+-target_link_libraries(kaddrbk_vcard_xxport kaddressbookprivate kabinterfaces kabcommon kdepim ${KDEPIMLIBS_KABC_LIBS} ${KDE4_KDEUI_LIBS} ${QGPGME_LIBRARIES} )
++target_link_libraries(kaddrbk_vcard_xxport kaddressbookprivate kabinterfaces kabcommon kdepim ${KDEPIMLIBS_KABC_LIBS} ${KDE4_KDEUI_LIBS} ${KDE4_QGPGME_LIBRARIES} )
+ 
+ install(TARGETS kaddrbk_vcard_xxport  DESTINATION ${PLUGIN_INSTALL_DIR})
+-endif(QGPGME_FOUND)
++endif(KDE4_QGPGME_FOUND)
+ 
+ ########### next target ###############
+ 
+--- /kleopatra/CMakeLists.txt
++++ /kleopatra/CMakeLists.txt
+@@ -25,7 +25,7 @@
+   ${CMAKE_SOURCE_DIR}/libkleo
+   ${CMAKE_SOURCE_DIR}/libkdepim
+   ${Boost_INCLUDE_DIR}
+-  ${QGPGME_INCLUDES}
++  ${KDE4_QGPGME_INCLUDE_DIR}
+   ${GPGME_INCLUDES} )
+ if (USABLE_ASSUAN_FOUND)
+   if (ASSUAN2_FOUND)
+@@ -321,7 +321,7 @@
+   set( KDE4_KCMUTILS_LIBS ${KDE4_KUTILS_LIBS} )
+ endif ( NOT KDE4_KCMUTILS_LIBS )
+ 
+-target_link_libraries(kleopatra_bin ${_kleopatra_extra_libs} kleo ${QGPGME_LIBRARIES} ${KDE4_KDEUI_LIBS} ${KDE4_KMIME_LIBRARY} ${KDE4_KCMUTILS_LIBS} ${_kleopatra_uiserver_extra_libs} ${_kleopatra_libkdepim_LIBS})
++target_link_libraries(kleopatra_bin ${_kleopatra_extra_libs} kleo ${KDE4_QGPGME_LIBRARIES} ${KDE4_KDEUI_LIBS} ${KDE4_KMIME_LIBRARY} ${KDE4_KCMUTILS_LIBS} ${_kleopatra_uiserver_extra_libs} ${_kleopatra_libkdepim_LIBS})
+ if ( USABLE_ASSUAN_FOUND )
+   target_link_libraries(kleopatra_bin ${QT_QTNETWORK_LIBRARY}) 
+ ENDIF ( USABLE_ASSUAN_FOUND )
+--- /kleopatra/kgpgconf/CMakeLists.txt
++++ /kleopatra/kgpgconf/CMakeLists.txt
+@@ -21,7 +21,7 @@
+ kde4_add_app_icon(_kgpgconf_SRCS "${KDE4_ICON_DIR}/oxygen/*/apps/preferences-desktop-cryptography.png")
+ 
+ kde4_add_executable(kgpgconf ${_kgpgconf_SRCS} )
+-target_link_libraries(kgpgconf ${QGPGME_LIBRARIES} ${KDE4_KDEUI_LIBS} )
++target_link_libraries(kgpgconf ${KDE4_QGPGME_LIBRARIES} ${KDE4_KDEUI_LIBS} )
+ 
+ install(TARGETS kgpgconf ${INSTALL_TARGETS_DEFAULT_ARGS})
+ 
+--- /kleopatra/kwatchgnupg/CMakeLists.txt
++++ /kleopatra/kwatchgnupg/CMakeLists.txt
+@@ -26,7 +26,7 @@
+    set ( KDE4_KCMUTILS_LIBS ${KDE4_KUTILS_LIBS} )
+ endif ( NOT KDE4_KCMUTILS_LIBS )
+ 
+-target_link_libraries(kwatchgnupg ${KDE4_KDEUI_LIBS} kleo ${KDEPIMLIBS_GPGMEPP_LIBS})
++target_link_libraries(kwatchgnupg ${KDE4_KDEUI_LIBS} kleo ${KDEPIMLIBS_KDE4_GPGMEPP_LIBS})
+ 
+ install(TARGETS kwatchgnupg ${INSTALL_TARGETS_DEFAULT_ARGS})
+ 
+--- /kleopatra/tests/CMakeLists.txt
++++ /kleopatra/tests/CMakeLists.txt
+@@ -40,7 +40,7 @@
+ add_definitions( -DKLEO_TEST_GNUPGHOME=\\"${CMAKE_CURRENT_SOURCE_DIR}/gnupg_home\\" )
+ add_definitions( -DKLEO_TEST_DATADIR=\\"${CMAKE_CURRENT_SOURCE_DIR}\\" )
+ kde4_add_unit_test(test_verify TESTNAME kleo-verifytest ${test_verify_SRCS})
+-target_link_libraries(test_verify kleo ${QT_QTTEST_LIBRARY} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${KDE4_KDECORE_LIBS} ${QGPGME_LIBRARIES})
++target_link_libraries(test_verify kleo ${QT_QTTEST_LIBRARY} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${KDE4_KDECORE_LIBS} ${KDE4_QGPGME_LIBRARIES})
+ 
+ ########### next target ###############
+ 
+@@ -67,9 +67,9 @@
+   endif ( ASSUAN2_FOUND )
+ 
+   if(WIN32)
+-	 target_link_libraries(test_uiserver ${ASSUAN_VANILLA_LIBRARIES} ${QGPGME_LIBRARIES} ws2_32)
++    target_link_libraries(test_uiserver ${ASSUAN_VANILLA_LIBRARIES} ${KDE4_QGPGME_LIBRARIES} ws2_32)
+   else(WIN32)
+-	 target_link_libraries(test_uiserver ${ASSUAN_PTHREAD_LIBRARIES} ${QGPGME_LIBRARIES} )
++    target_link_libraries(test_uiserver ${ASSUAN_PTHREAD_LIBRARIES} ${KDE4_QGPGME_LIBRARIES} )
+   endif(WIN32)
+   if (KDEPIM_ONLY_KLEO)
+      install( TARGETS test_uiserver ${INSTALL_TARGETS_DEFAULT_ARGS})
+--- /kmail/CMakeLists.txt
++++ /kmail/CMakeLists.txt
+@@ -371,7 +371,7 @@
+   ${KDE4_KPARTS_LIBRARY}
+   ${KDE4_KRESOURCES_LIBRARY}
+   kleo
+-  ${QGPGME_LIBRARIES}
++  ${KDE4_QGPGME_LIBRARIES}
+   mimelib
+   ksieve
+   kpgp
+--- /kontact/plugins/CMakeLists.txt
++++ /kontact/plugins/CMakeLists.txt
+@@ -3,7 +3,7 @@
+ remove_definitions(-DKDE_DEFAULT_DEBUG_AREA=5600) #remove kontact debug area
+ add_definitions(-DKDE_DEFAULT_DEBUG_AREA=5602)
+ 
+-if(QGPGME_FOUND)
++if(KDE4_QGPGME_FOUND)
+   if(BUILD_kmail)
+     add_subdirectory( kmail )
+   endif(BUILD_kmail)
+@@ -15,7 +15,7 @@
+     add_subdirectory( specialdates )
+     add_subdirectory( planner )
+   endif()
+-endif(QGPGME_FOUND)
++endif(KDE4_QGPGME_FOUND)
+ if (BUILD_knotes)
+   add_subdirectory( knotes )
+ endif (BUILD_knotes)
+--- /libkleo/CMakeLists.txt
++++ /libkleo/CMakeLists.txt
+@@ -99,7 +99,7 @@
+ )
+ 
+ set(kleo_LIB_SRCS ${libkleo_core_SRCS} ${libkleo_ui_common_SRCS} ${libkleo_backend_qgpgme_SRCS})
+-set(kleo_LIB_LIBS ${KDE4_KDEUI_LIBS} ${QGPGME_LIBRARIES} ${QT_QT3SUPPORT_LIBRARY} )
++set(kleo_LIB_LIBS ${KDE4_KDEUI_LIBS} ${KDE4_QGPGME_LIBRARIES} ${QT_QT3SUPPORT_LIBRARY} )
+ if ( NOT KDEPIM_ONLY_KLEO )
+    set( kleo_LIB_SRCS ${kleo_LIB_SRCS} ${libkleo_ui_SRCS} ${libkleo_backend_chiasmus_SRCS} )
+    set( kleo_LIB_LIBS ${kleo_LIB_LIBS} ${KDE4_KDE3SUPPORT_LIBS} ${KDE4_KDECORE_LIBS} ${KDE4_KIO_LIBS} )
+--- /libkleo/tests/CMakeLists.txt
++++ /libkleo/tests/CMakeLists.txt
+@@ -18,7 +18,7 @@
+ 
+ kde4_add_executable(test_keygen TEST ${test_keygen_SRCS})
+ 
+-target_link_libraries(test_keygen  kleo ${KDE4_KDECORE_LIBS} ${KDE4_KDEUI_LIBS} ${QGPGME_LIBRARIES})
++target_link_libraries(test_keygen  kleo ${KDE4_KDECORE_LIBS} ${KDE4_KDEUI_LIBS} ${KDE4_QGPGME_LIBRARIES})
+ 
+ 
+ ########### next target ###############
+@@ -54,7 +54,7 @@
+ 
+ kde4_add_executable(test_jobs TEST ${test_jobs_SRCS})
+ 
+-target_link_libraries(test_jobs  kleo ${QT_QT3SUPPORT_LIBRARY} ${KDE4_KDECORE_LIBS} ${KDE4_KDEUI_LIBS} ${QGPGME_LIBRARIES})
++target_link_libraries(test_jobs  kleo ${QT_QT3SUPPORT_LIBRARY} ${KDE4_KDECORE_LIBS} ${KDE4_KDEUI_LIBS} ${KDE4_QGPGME_LIBRARIES})
+ 
+ ########### next target ###############
+ 
+--- /messageviewer/CMakeLists.txt
++++ /messageviewer/CMakeLists.txt
+@@ -58,7 +58,7 @@
+  ${KDEPIMLIBS_KMIME_LIBS}
+  ${KDEPIMLIBS_KPIMUTILS_LIBS} ${KDEPIMLIBS_KABC_LIBS}
+  ${KDE4_KDEUI_LIBS} ${KDE4_KHTML_LIBS} ${KDE4_KTNEF_LIBRARY}
+- ${QGPGME_LIBRARIES} ${KDE4_KDE3SUPPORT_LIBS}
++ ${KDE4_QGPGME_LIBRARIES} ${KDE4_KDE3SUPPORT_LIBS}
+ )
+ 
+ include_directories(
