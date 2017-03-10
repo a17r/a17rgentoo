@@ -1,4 +1,4 @@
-commit f08a696129a476e354665f469aef839137657b2d
+commit 910e43a0b0a25232db7fa7942b2efad4e60cb904
 Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
 Date:   Fri Mar 10 00:04:06 2017 +0100
 
@@ -7,7 +7,7 @@ Date:   Fri Mar 10 00:04:06 2017 +0100
     This makes it possible to disable colliding build environment files.
 
 diff --git a/akonadi/CMakeLists.txt b/akonadi/CMakeLists.txt
-index 4a4245408..1d32b3f92 100644
+index 4a4245408..4dfbe2ab1 100644
 --- a/akonadi/CMakeLists.txt
 +++ b/akonadi/CMakeLists.txt
 @@ -7,11 +7,22 @@ if(CMAKE_COMPILE_GCOV)
@@ -36,17 +36,6 @@ index 4a4245408..1d32b3f92 100644
  endif()
  
  add_definitions( ${AKONADI_DEFINITIONS} )
-@@ -39,7 +50,9 @@ add_subdirectory( contact )
- add_subdirectory( calendar )
- add_subdirectory( notes )
- add_subdirectory( socialutils )
--add_subdirectory( xml )
-+if(BUILD_TOOLS)
-+  add_subdirectory( xml )
-+endif()
- 
- include_directories(
-   ${QT_QTDBUS_INCLUDE_DIR}
 diff --git a/akonadi/tests/CMakeLists.txt b/akonadi/tests/CMakeLists.txt
 index ffd16ff22..1675e354d 100644
 --- a/akonadi/tests/CMakeLists.txt
@@ -69,7 +58,7 @@ index ffd16ff22..1675e354d 100644
  # convenience macro to add akonadi demo application
  macro(add_akonadi_demo _source)
 diff --git a/akonadi/xml/CMakeLists.txt b/akonadi/xml/CMakeLists.txt
-index 18ab0e1bd..8ed36df9c 100644
+index 18ab0e1bd..dc85df63d 100644
 --- a/akonadi/xml/CMakeLists.txt
 +++ b/akonadi/xml/CMakeLists.txt
 @@ -2,7 +2,9 @@ if ( LIBXML2_FOUND )
@@ -83,3 +72,24 @@ index 18ab0e1bd..8ed36df9c 100644
  
  include_directories(
      ${KDE4_INCLUDES}
+@@ -41,11 +43,13 @@ install(TARGETS akonadi-xml EXPORT kdepimlibsLibraryTargets ${INSTALL_TARGETS_DE
+ install(FILES ${akonadixml_HDRS} DESTINATION ${INCLUDE_INSTALL_DIR}/akonadi/xml COMPONENT Devel)
+ install(FILES akonadi-xml.xsd DESTINATION ${DATA_INSTALL_DIR}/akonadi/)
+ 
+-kde4_add_executable(akonadi2xml akonadi2xml.cpp)
+-target_link_libraries(akonadi2xml
+-   akonadi-xml
+-   ${KDE4_KDEUI_LIBS}
+-   akonadi-kde
+-)
++if(BUILD_TOOLS)
++  kde4_add_executable(akonadi2xml akonadi2xml.cpp)
++  target_link_libraries(akonadi2xml
++    akonadi-xml
++    ${KDE4_KDEUI_LIBS}
++    akonadi-kde
++  )
+ 
+-install(TARGETS akonadi2xml ${INSTALL_TARGETS_DEFAULT_ARGS})
++  install(TARGETS akonadi2xml ${INSTALL_TARGETS_DEFAULT_ARGS})
++endif()
