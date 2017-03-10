@@ -41,6 +41,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.14.11-boostincludes.patch"
 	"${FILESDIR}/${PN}-CVE-2016-7966-r1.patch"
 	"${FILESDIR}/${PN}-4.14.11-buildtools.patch"
+	"${FILESDIR}/${PN}-4.14.11-pim4resourcebase.patch"
 )
 
 src_prepare() {
