@@ -16,7 +16,7 @@ DEPEND="
 	app-crypt/gpgme
 	>=dev-libs/libassuan-2.0.0
 	dev-libs/libgpg-error
-	$(add_kdeapps_dep kdepimlibs '' 4.14.10-r4)
+	$(add_kdeapps_dep kdepimlibs '' 4.14.10_p20160516)
 	$(add_kdeapps_dep libkdepim '' 4.4.2015)
 	$(add_kdeapps_dep libkleo '' 4.4.2015)
 "
