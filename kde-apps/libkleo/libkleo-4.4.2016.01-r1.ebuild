@@ -13,7 +13,7 @@ IUSE="debug"
 
 DEPEND="
 	app-crypt/gpgme
-	$(add_kdeapps_dep kdepimlibs '' 4.14.10-r4)
+	$(add_kdeapps_dep kdepimlibs '' 4.14.10_p20160516)
 "
 RDEPEND="${DEPEND}
 	app-crypt/gnupg
