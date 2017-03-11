@@ -17,7 +17,7 @@ KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
 IUSE="debug google"
 
 DEPEND="
-	$(add_kdeapps_dep kdepimlibs 'akonadi(+)' 4.14.11_pre20160211-r4)
+	$(add_kdeapps_dep kdepimlibs '' 4.14.11_pre20160516)
 	app-crypt/gpgme
 	dev-libs/grantlee:0
 	kde-apps/akonadi:4
@@ -25,13 +25,13 @@ DEPEND="
 	google? ( $(add_kdeapps_dep libkgapi '' 2.2.0) )
 "
 RDEPEND="${DEPEND}
-	!kde-apps/libkdepim:4
-	!kde-apps/libkleo:4
-	!kde-apps/libkpgp:4
 	!<kde-apps/kaddressbook-4.11.50:4
 	!kde-apps/kdepim-wizards:4
 	!<kde-apps/kmail-4.14.5:4
 	!<kde-apps/korganizer-4.5.67:4
+	!kde-apps/libkdepim:4
+	!kde-apps/libkleo:4
+	!kde-apps/libkpgp:4
 	$(add_kdeapps_dep kdepim-runtime)
 	app-crypt/gnupg
 "
@@ -96,8 +96,8 @@ strip_patch_hunks_for_nonexistent_files() {
 src_prepare() {
 	find "(" -name "*.cpp" -o -name "*.h" ")" -exec \
 		sed -e 's:\(#[[:space:]]*include[[:space:]]\+[<"]\)\(gpgme++\|qgpgme\)\(/\):\1kde4_\2\3:' -i {} + || die
-	strip_patch_hunks_for_nonexistent_files "${FILESDIR}/kdepim-${PV}-update_gpgme++_and_qgpgme_references.patch" "${T}/${P}-update_gpgme++_and_qgpgme_references.patch"
-	eapply "${T}/${P}-update_gpgme++_and_qgpgme_references.patch"
+	strip_patch_hunks_for_nonexistent_files "${FILESDIR}/${P}-kde4qgpgme.patch" "${T}/${P}-kde4qgpgme.patch"
+	eapply "${T}/${P}-kde4qgpgme.patch"
 
 	kde4-meta_src_prepare
 	sed -e '/folderarchiveagent.desktop/d' \
