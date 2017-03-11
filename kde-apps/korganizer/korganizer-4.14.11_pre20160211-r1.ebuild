@@ -17,7 +17,7 @@ KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
 IUSE="debug"
 
 DEPEND="
-	$(add_kdeapps_dep kdepimlibs 'akonadi(+)' 4.14.11_pre20160211-r4)
+	$(add_kdeapps_dep kdepimlibs '' 4.14.11_pre20160516)
 	$(add_kdeapps_dep kdepim-common-libs)
 	sys-libs/zlib
 "
