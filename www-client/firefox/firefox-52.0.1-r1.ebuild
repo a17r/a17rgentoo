@@ -152,8 +152,8 @@ src_prepare() {
 		install -m 644 "${FILESDIR}/kde.js" browser/app/profile/kde.js
 
 		# patches taken from http://www.rosenauer.org/hg/mozilla
-		eapply "${FILESDIR}"/${PN}-51.0-mozilla-kde.patch
-		eapply "${FILESDIR}"/${PN}-51.0-kde.patch
+		eapply "${FILESDIR}"/${PN}-52.0-mozilla-kde.patch
+		eapply "${FILESDIR}"/${PN}-52.0-kde.patch
 		# fix the path for us
 		sed -i -e "/define KMOZILLAHELPER/s:lib/mozilla:$(get_libdir)/libexec:" \
 			"${S}"/toolkit/xre/nsKDEUtils.cpp || die
