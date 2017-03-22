@@ -25,6 +25,7 @@ SLOT="0"
 IUSE="examples georeferencer grass mapserver oracle postgres python touch webkit"
 
 REQUIRED_USE="
+	grass? ( python )
 	mapserver? ( python )
 	python? ( ${PYTHON_REQUIRED_USE} )"
 
@@ -45,7 +46,7 @@ COMMON_DEPEND="
 	dev-qt/qtsql:5
 	dev-qt/qtwidgets:5
 	dev-qt/qtxml:5
-	sci-libs/gdal:=[geos,oracle?,python?,${PYTHON_USEDEP}]
+	sci-libs/gdal:=[geos,python?,${PYTHON_USEDEP}]
 	sci-libs/geos
 	sci-libs/libspatialindex:=
 	sci-libs/proj
@@ -53,9 +54,12 @@ COMMON_DEPEND="
 	>=x11-libs/qwt-6.1.2:6=[qt5,svg]
 	>=x11-libs/qwtpolar-1.1.1-r1[qt5]
 	georeferencer? ( sci-libs/gsl:= )
-	grass? ( sci-geosciences/grass:= )
+	grass? ( >=sci-geosciences/grass-7.0.0:= )
 	mapserver? ( dev-libs/fcgi )
-	oracle? ( dev-db/oracle-instantclient:= )
+	oracle? (
+		dev-db/oracle-instantclient:=
+		sci-libs/gdal:=[oracle]
+	)
 	postgres? ( dev-db/postgresql:= )
 	python? ( ${PYTHON_DEPS}
 		dev-python/future[${PYTHON_USEDEP}]
@@ -87,8 +91,13 @@ RDEPEND="${COMMON_DEPEND}
 # Disabling test suite because upstream disallow running from install path
 RESTRICT="test"
 
+PATCHES=(
+	"${FILESDIR}"/${PN}-2.18.3-qscintilla-2.10.patch
+	"${FILESDIR}"/${PN}-2.18.3-sip-4.19.1.patch
+)
+
 pkg_setup() {
-	python-single-r1_pkg_setup
+	use python && python-single-r1_pkg_setup
 }
 
 src_prepare() {
@@ -104,32 +113,45 @@ src_configure() {
 		-DBUILD_SHARED_LIBS=ON
 		-DQGIS_LIB_SUBDIR=$(get_libdir)
 		-DQGIS_PLUGIN_SUBDIR=$(get_libdir)/qgis
-		-DWITH_INTERNAL_DATEUTIL=OFF
-		-DWITH_INTERNAL_FUTURE=OFF
-		-DWITH_INTERNAL_HTTPLIB2=OFF
-		-DWITH_INTERNAL_JINJA2=OFF
-		-DWITH_INTERNAL_MARKUPSAFE=OFF
-		-DWITH_INTERNAL_PYGMENTS=OFF
-		-DWITH_INTERNAL_PYTZ=OFF
+		-DQWT_INCLUDE_DIR=/usr/include/qwt6
+		-DQWT_LIBRARY=/usr/$(get_libdir)/libqwt6-qt5.so
 		-DWITH_INTERNAL_QWTPOLAR=OFF
-		-DWITH_INTERNAL_SIX=OFF
-		-DWITH_INTERNAL_YAML=OFF
 		-DPEDANTIC=OFF
 		-DWITH_APIDOC=OFF
 		-DWITH_QSPATIALITE=ON
-		-DENABLE_PYTHON3=ON
-		-DENABLE_QT5=ON
 		-DENABLE_TESTS=OFF
-		-DWITH_BINDINGS="$(usex python)"
-		-DWITH_GRASS7="$(usex grass)"
-		-DGRASS_PREFIX7=/usr/$(get_libdir)/grass70
-		-DWITH_ORACLE="$(usex oracle)"
-		-DWITH_POSTGRESQL="$(usex postgres)"
-		-DWITH_PYSPATIALITE="$(usex python)"
-		-DWITH_SERVER="$(usex mapserver)"
+		-DENABLE_QT5=ON
+		-DWITH_GRASS=$(usex grass)
+		-DWITH_SERVER=$(usex mapserver)
+		-DWITH_ORACLE=$(usex oracle)
+		-DWITH_POSTGRESQL=$(usex postgres)
+		-DWITH_BINDINGS=$(usex python)
 		-DWITH_TOUCH="$(usex touch)"
-		-DWITH_QTWEBKIT="$(usex webkit)"
+		-DWITH_QTWEBKIT=$(usex webkit)
 	)
+
+	if use grass; then
+		mycmakeargs+=(
+			-DWITH_GRASS7=ON
+			-DGRASS_PREFIX7=/usr/$(get_libdir)/grass70
+		)
+	fi
+
+	if use python; then
+		mycmakeargs+=(
+			-DENABLE_PYTHON3=ON
+			-DWITH_PYSPATIALITE=ON
+			-DWITH_INTERNAL_DATEUTIL=OFF
+			-DWITH_INTERNAL_FUTURE=OFF
+			-DWITH_INTERNAL_HTTPLIB2=OFF
+			-DWITH_INTERNAL_JINJA2=OFF
+			-DWITH_INTERNAL_MARKUPSAFE=OFF
+			-DWITH_INTERNAL_PYGMENTS=OFF
+			-DWITH_INTERNAL_PYTZ=OFF
+			-DWITH_INTERNAL_SIX=OFF
+			-DWITH_INTERNAL_YAML=OFF
+		)
+	fi
 
 	cmake-utils_src_configure
 }
@@ -158,10 +180,12 @@ src_install() {
 		docompress -x /usr/share/doc/${PF}/examples
 	fi
 
-	python_optimize "${ED%/}"/usr/share/qgis/python
+	if use python; then
+		python_optimize "${ED%/}"/usr/share/qgis/python
 
-	if use grass; then
-		python_fix_shebang "${ED%/}"/usr/share/qgis/grass/scripts
+		if use grass; then
+			python_fix_shebang "${ED%/}"/usr/share/qgis/grass/scripts
+		fi
 	fi
 }
 
