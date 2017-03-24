@@ -74,7 +74,8 @@ DEPEND="${RDEPEND}
 
 PATCHES=(
 	"${FILESDIR}/${PN}-5.7.0-fix-system-ffmpeg.patch"
-	"${FILESDIR}/${PN}-5.7.0-icu58.patch"
+	"${FILESDIR}/${P}-icu58.patch"
+	"${FILESDIR}/${P}-glibc-2.24.patch"
 )
 
 src_prepare() {
