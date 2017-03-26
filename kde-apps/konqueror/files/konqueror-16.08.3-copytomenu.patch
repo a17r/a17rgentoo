@@ -1,0 +1,19 @@
+commit 2b0867730cafbe44c3406d15b28c0948f1bce5d5
+Author: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date:   Sat Feb 25 15:11:04 2017 +0100
+
+    lib/konq/CMakeLists.txt: Yes we need it
+
+diff --git a/lib/konq/CMakeLists.txt b/lib/konq/CMakeLists.txt
+index 8ecbfa9..445afd9 100644
+--- a/lib/konq/CMakeLists.txt
++++ b/lib/konq/CMakeLists.txt
+@@ -59,7 +59,7 @@ install( FILES
+  konq_dndpopupmenuplugin.h
+  knewmenu.h
+  konq_menuactions.h
+- # konq_copytomenu.h - anyone needs it?
++ konq_copytomenu.h
+  konq_operations.h
+  libkonq_export.h
+  konq_events.h
