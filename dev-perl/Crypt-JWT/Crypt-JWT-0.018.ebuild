@@ -1,10 +1,10 @@
 # Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
-MODULE_AUTHOR=MIK
-MODULE_VERSION=0.018
+DIST_AUTHOR=MIK
+DIST_VERSION=0.018
 inherit perl-module
 
 DESCRIPTION="JSON Web Token (JWT, JWS, JWE) as defined by RFC7519, RFC7515, RFC7516"
