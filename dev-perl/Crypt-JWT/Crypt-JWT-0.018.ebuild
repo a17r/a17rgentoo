@@ -16,6 +16,7 @@ IUSE=""
 DEPEND="
 	dev-perl/CryptX
 	dev-perl/JSON
+	dev-perl/JSON-MaybeXS
 	virtual/perl-Compress-Raw-Zlib
 	virtual/perl-Exporter
 	virtual/perl-ExtUtils-MakeMaker
