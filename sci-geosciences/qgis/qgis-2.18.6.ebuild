@@ -3,7 +3,7 @@
 
 EAPI=6
 
-PYTHON_COMPAT=( python3_{4,5} )
+PYTHON_COMPAT=( python2_7 )
 PYTHON_REQ_USE="sqlite"
 
 if [[ ${PV} != *9999 ]]; then
@@ -91,6 +91,8 @@ RDEPEND="${COMMON_DEPEND}
 # Disabling test suite because upstream disallow running from install path
 RESTRICT="test"
 
+PATCHES=( "${FILESDIR}/${P}-featuresummary.patch" )
+
 pkg_setup() {
 	use python && python-single-r1_pkg_setup
 }
@@ -144,7 +146,7 @@ src_configure() {
 
 	if use python; then
 		mycmakeargs+=(
-			-DENABLE_PYTHON3=ON
+			-DENABLE_PYTHON3=OFF
 			-DWITH_PYSPATIALITE=ON
 			-DWITH_INTERNAL_DATEUTIL=OFF
 			-DWITH_INTERNAL_FUTURE=OFF
