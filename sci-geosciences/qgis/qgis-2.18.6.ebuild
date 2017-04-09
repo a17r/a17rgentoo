@@ -91,11 +91,6 @@ RDEPEND="${COMMON_DEPEND}
 # Disabling test suite because upstream disallow running from install path
 RESTRICT="test"
 
-PATCHES=(
-	"${FILESDIR}"/${PN}-2.18.3-qscintilla-2.10.patch
-	"${FILESDIR}"/${PN}-2.18.3-sip-4.19.1.patch
-)
-
 pkg_setup() {
 	use python && python-single-r1_pkg_setup
 }
@@ -129,6 +124,16 @@ src_configure() {
 		-DWITH_TOUCH="$(usex touch)"
 		-DWITH_QTWEBKIT=$(usex webkit)
 	)
+
+	if has_version '>=x11-misc/qscintilla-2.10'; then
+		mycmakeargs+=(
+			-DQSCINTILLA_LIBRARY=/usr/$(get_libdir)/libqscintilla2-qt5.so
+		)
+	else
+		mycmakeargs+=(
+			-DQSCINTILLA_LIBRARY=/usr/$(get_libdir)/libqscintilla2.so
+		)
+	fi
 
 	if use grass; then
 		mycmakeargs+=(
