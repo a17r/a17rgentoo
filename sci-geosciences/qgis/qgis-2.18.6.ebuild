@@ -34,7 +34,6 @@ COMMON_DEPEND="
 	>=dev-db/spatialite-4.1.0
 	dev-db/sqlite:3
 	dev-libs/expat
-	dev-libs/qjson
 	dev-qt/designer:5
 	dev-qt/qtconcurrent:5
 	dev-qt/qtcore:5
@@ -91,7 +90,10 @@ RDEPEND="${COMMON_DEPEND}
 # Disabling test suite because upstream disallow running from install path
 RESTRICT="test"
 
-PATCHES=( "${FILESDIR}/${P}-featuresummary.patch" )
+PATCHES=(
+	"${FILESDIR}/${P}-featuresummary.patch"
+	"${FILESDIR}/${P}-python.patch"
+)
 
 pkg_setup() {
 	use python && python-single-r1_pkg_setup
