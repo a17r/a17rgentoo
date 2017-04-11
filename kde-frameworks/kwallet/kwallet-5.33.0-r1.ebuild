@@ -31,11 +31,10 @@ DEPEND="${RDEPEND}
 	man? ( $(add_frameworks_dep kdoctools) )
 "
 
-PATCHES=( "${FILESDIR}"/${PN}-5.33.0-kwalletd4-{1,2,3,4,5}.patch )
+PATCHES=( "${FILESDIR}"/${P}-kwalletd4-{1,2,3,4,5}.patch )
 
 src_configure() {
 	local mycmakeargs=(
-		-DCMAKE_DISABLE_FIND_PACKAGE_KF5Gpgmepp=ON
 		$(cmake-utils_use_find_package gpg Gpgmepp)
 		$(cmake-utils_use_find_package man KF5DocTools)
 	)
