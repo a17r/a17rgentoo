@@ -4,10 +4,10 @@
 EAPI="6"
 
 EGIT_REPO_URI="git://git.gnupg.org/gpgme.git"
-PYTHON_COMPAT=( python2_7 python3_{4,5} )
+PYTHON_COMPAT=( python2_7 python3_{4,5,6} )
 DISTUTILS_OPTIONAL=1
 
-inherit autotools distutils-r1 eutils git-r3 qmake-utils
+inherit autotools distutils-r1 flag-o-matic git-r3 ltprune qmake-utils
 
 DESCRIPTION="GnuPG Made Easy is a library for making GnuPG easier to use"
 HOMEPAGE="http://www.gnupg.org/related_software/gpgme"
@@ -16,7 +16,7 @@ HOMEPAGE="http://www.gnupg.org/related_software/gpgme"
 LICENSE="GPL-2 LGPL-2.1"
 SLOT="1/11" # subslot = soname major version
 [[ ${PV} = 9999 ]] || \
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd ~x64-freebsd ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~sparc64-solaris ~x64-solaris ~x86-solaris"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~sparc64-solaris ~x64-solaris ~x86-solaris"
 IUSE="common-lisp static-libs cxx python qt5"
 
 COMMON_DEPEND="app-crypt/gnupg
@@ -70,6 +70,21 @@ src_configure() {
 		export MOC="$(qt5_get_bindir)/moc"
 	fi
 
+	if [[ ${CHOST} == *-darwin* ]] ; then
+		# FIXME: I don't know how to select on C++11 (libc++) here, but
+		# I do know all Darwin users are using C++11.  This should also
+		# apply to GCC 4.7+ with libc++, and basically anyone targetting
+		# it.
+
+		# The C-standard doesn't define strdup, and C++11 drops it
+		# resulting in an implicit declaration of strdup error.  Since
+		# it is in POSIX raise the feature set to that.
+		append-cxxflags -D_POSIX_C_SOURCE=200112L
+
+		# Work around bug 601834
+		use python && append-cflags -D_DARWIN_C_SOURCE
+	fi
+
 	econf \
 		--enable-languages="${languages[*]}" \
 		$(use_enable static-libs static)
@@ -88,4 +103,9 @@ src_install() {
 	default
 	do_python
 	prune_libtool_files
+
+	# backward compatibility for gentoo
+	# in the past we had slots
+	dodir /usr/include/gpgme
+	dosym ../gpgme.h /usr/include/gpgme/gpgme.h
 }
