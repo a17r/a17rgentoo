@@ -3,7 +3,7 @@
 
 EAPI=6
 
-PYTHON_COMPAT=( python3_{4,5} )
+PYTHON_COMPAT=( python2_7 )
 PYTHON_REQ_USE="sqlite"
 
 if [[ ${PV} != *9999 ]]; then
@@ -22,7 +22,7 @@ HOMEPAGE="http://www.qgis.org/"
 
 LICENSE="GPL-2+ GPL-3+"
 SLOT="0"
-IUSE="examples georeferencer grass mapserver oracle postgres python touch webkit"
+IUSE="designer examples georeferencer grass mapserver oracle postgres python touch webkit"
 
 REQUIRED_USE="
 	mapserver? ( python )
@@ -33,29 +33,32 @@ COMMON_DEPEND="
 	>=dev-db/spatialite-4.1.0
 	dev-db/sqlite:3
 	dev-libs/expat
-	dev-libs/qjson
-	dev-qt/designer:5
 	dev-qt/qtconcurrent:5
 	dev-qt/qtcore:5
 	dev-qt/qtgui:5
 	dev-qt/qtnetwork:5
 	dev-qt/qtpositioning:5
 	dev-qt/qtprintsupport:5
+	dev-qt/qtscript:5
 	dev-qt/qtsvg:5
 	dev-qt/qtsql:5
 	dev-qt/qtwidgets:5
 	dev-qt/qtxml:5
-	sci-libs/gdal:=[geos,oracle?,python?,${PYTHON_USEDEP}]
+	sci-libs/gdal:=[geos,python?,${PYTHON_USEDEP}]
 	sci-libs/geos
 	sci-libs/libspatialindex:=
 	sci-libs/proj
 	x11-libs/qscintilla:=[qt5]
-	>=x11-libs/qwt-6.1.2:6[qt5,svg]
+	>=x11-libs/qwt-6.1.2:6=[qt5,svg]
 	>=x11-libs/qwtpolar-1.1.1-r1[qt5]
+	designer? ( dev-qt/designer:5 )
 	georeferencer? ( sci-libs/gsl:= )
-	grass? ( sci-geosciences/grass:= )
+	grass? ( >=sci-geosciences/grass-7.0.0:= )
 	mapserver? ( dev-libs/fcgi )
-	oracle? ( dev-db/oracle-instantclient:= )
+	oracle? (
+		dev-db/oracle-instantclient:=
+		sci-libs/gdal:=[oracle]
+	)
 	postgres? ( dev-db/postgresql:= )
 	python? ( ${PYTHON_DEPS}
 		dev-python/future[${PYTHON_USEDEP}]
@@ -87,6 +90,11 @@ RDEPEND="${COMMON_DEPEND}
 # Disabling test suite because upstream disallow running from install path
 RESTRICT="test"
 
+PATCHES=(
+	"${FILESDIR}/${PN}-2.18.6-featuresummary.patch"
+	"${FILESDIR}/${PN}-2.18.6-python.patch"
+)
+
 pkg_setup() {
 	python-single-r1_pkg_setup
 }
@@ -104,30 +112,54 @@ src_configure() {
 		-DBUILD_SHARED_LIBS=ON
 		-DQGIS_LIB_SUBDIR=$(get_libdir)
 		-DQGIS_PLUGIN_SUBDIR=$(get_libdir)/qgis
-		-DWITH_INTERNAL_DATEUTIL=OFF
-		-DWITH_INTERNAL_FUTURE=OFF
-		-DWITH_INTERNAL_HTTPLIB2=OFF
-		-DWITH_INTERNAL_JINJA2=OFF
-		-DWITH_INTERNAL_MARKUPSAFE=OFF
-		-DWITH_INTERNAL_PYGMENTS=OFF
-		-DWITH_INTERNAL_PYTZ=OFF
+		-DQWT_INCLUDE_DIR=/usr/include/qwt6
+		-DQWT_LIBRARY=/usr/$(get_libdir)/libqwt6-qt5.so
 		-DWITH_INTERNAL_QWTPOLAR=OFF
-		-DWITH_INTERNAL_SIX=OFF
-		-DWITH_INTERNAL_YAML=OFF
 		-DPEDANTIC=OFF
 		-DWITH_APIDOC=OFF
 		-DWITH_QSPATIALITE=ON
 		-DENABLE_TESTS=OFF
-		-DWITH_BINDINGS="$(usex python)"
-		-DWITH_GRASS7="$(usex grass)"
-		-DGRASS_PREFIX7=/usr/$(get_libdir)/grass70
-		-DWITH_ORACLE="$(usex oracle)"
-		-DWITH_POSTGRESQL="$(usex postgres)"
-		-DWITH_PYSPATIALITE="$(usex python)"
-		-DWITH_SERVER="$(usex mapserver)"
+		-DENABLE_QT5=ON
+		-DENABLE_PYTHON3=$(python_is_python3)
+		-DWITH_CUSTOM_WIDGETS=$(usex designer)
+		-DWITH_GRASS=$(usex grass)
+		-DWITH_SERVER=$(usex mapserver)
+		-DWITH_ORACLE=$(usex oracle)
+		-DWITH_POSTGRESQL=$(usex postgres)
+		-DWITH_BINDINGS=$(usex python)
 		-DWITH_TOUCH="$(usex touch)"
-		-DWITH_QTWEBKIT="$(usex webkit)"
+		-DWITH_QTWEBKIT=$(usex webkit)
 	)
+
+	if has_version '>=x11-misc/qscintilla-2.10'; then
+		mycmakeargs+=(
+			-DQSCINTILLA_LIBRARY=/usr/$(get_libdir)/libqscintilla2-qt5.so
+		)
+	else
+		mycmakeargs+=(
+			-DQSCINTILLA_LIBRARY=/usr/$(get_libdir)/libqscintilla2.so
+		)
+	fi
+
+	if use grass; then
+		mycmakeargs+=(
+			-DWITH_GRASS7=ON
+			-DGRASS_PREFIX7=/usr/$(get_libdir)/grass70
+		)
+	fi
+
+	if use python; then
+		mycmakeargs+=(
+			-DBINDINGS_GLOBAL_INSTALL=ON
+			-DWITH_PYSPATIALITE=ON
+			-DWITH_INTERNAL_DATEUTIL=OFF
+			-DWITH_INTERNAL_FUTURE=OFF
+			-DWITH_INTERNAL_MARKUPSAFE=OFF
+			-DWITH_INTERNAL_PYTZ=OFF
+			-DWITH_INTERNAL_SIX=OFF
+			-DWITH_INTERNAL_YAML=OFF
+		)
+	fi
 
 	cmake-utils_src_configure
 }
