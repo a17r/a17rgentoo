@@ -7,11 +7,10 @@ CPPUNIT_REQUIRED="optional"
 DECLARATIVE_REQUIRED="always"
 KDE_HANDBOOK="optional"
 OPENGL_REQUIRED="optional"
-QT3SUPPORT_REQUIRED="optional"
 WEBKIT_REQUIRED="optional"
 inherit kde4-base fdo-mime multilib toolchain-funcs flag-o-matic
 
-APPS_VERSION="16.12.2" # Don't forget to bump this
+APPS_VERSION="17.04.0" # Don't forget to bump this
 
 DESCRIPTION="KDE libraries needed by all KDE programs"
 [[ ${KDE_BUILD_TYPE} != live ]] && \
@@ -98,25 +97,18 @@ RDEPEND="${COMMONDEPEND}
 	kde-frameworks/kdelibs-env:4
 	sys-apps/dbus[X]
 	!aqua? (
-		udisks? ( sys-fs/udisks:2 )
 		x11-apps/iceauth
 		x11-apps/rgb
 		x11-misc/xdg-utils
+		udisks? ( sys-fs/udisks:2 )
 		upower? ( || ( >=sys-power/upower-0.9.23 sys-power/upower-pm-utils ) )
 	)
 	udev? ( app-misc/media-player-info )
 "
 PDEPEND="
-	$(add_kdeapps_dep katepart '' 4.14.3)
-	|| (
-		$(add_kdeapps_dep kfmclient '' 4.14.3)
-		x11-misc/xdg-utils
-	)
+	x11-misc/xdg-utils
 	handbook? ( kde-apps/khelpcenter:* )
-	policykit? ( || (
-		>=sys-auth/polkit-kde-agent-0.99
-		kde-plasma/polkit-kde-agent
-	) )
+	policykit? ( kde-plasma/polkit-kde-agent )
 "
 
 PATCHES=(
@@ -131,8 +123,6 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.10.0-udisks.patch"
 	"${FILESDIR}/${PN}-4.14.20-FindQt4.patch"
 	"${FILESDIR}/${PN}-4.14.22-webkit.patch"
-	"${FILESDIR}/${P}-sanitize-url.patch"
-	"${FILESDIR}/${P}-kde3support.patch"
 )
 
 pkg_pretend() {
@@ -207,13 +197,12 @@ src_configure() {
 		-DWITH_OpenEXR=$(usex openexr)
 		-DWITH_OpenGL=$(usex opengl)
 		-DWITH_PolkitQt-1=$(usex policykit)
-		-DWITH_KDE3SUPPORT=$(usex qt3support)
 		-DWITH_ENCHANT=$(usex spell)
 		-DWITH_OpenSSL=$(usex ssl)
 		-DWITH_UDev=$(usex udev)
 		-DWITH_SOLID_UDISKS2=$(usex udisks)
-		-DWITH_Avahi=$(usex zeroconf)
 		-DWITH_KDEWEBKIT=$(usex webkit)
+		-DWITH_Avahi=$(usex zeroconf)
 	)
 
 	use zeroconf || mycmakeargs+=( -DWITH_DNSSD=OFF )
@@ -277,7 +266,7 @@ pkg_postinst() {
 
 	if use zeroconf; then
 		echo
-		elog "To make zeroconf support available in KDE make sure that the avahi daemon"
+		elog "To make zeroconf support available in applications make sure that the avahi daemon"
 		elog "is running."
 		echo
 		einfo "If you also want to use zeroconf for hostname resolution, emerge sys-auth/nss-mdns"
