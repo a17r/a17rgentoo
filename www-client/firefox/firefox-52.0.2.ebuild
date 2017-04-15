@@ -126,6 +126,7 @@ src_unpack() {
 src_prepare() {
 	# Apply our patches
 	eapply "${WORKDIR}/firefox"
+	eapply "${FILESDIR}"/musl_drop_hunspell_alloc_hooks.patch
 
 	# Enable gnomebreakpad
 	if use debug ; then
