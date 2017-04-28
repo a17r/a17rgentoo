@@ -1,6 +1,5 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Id$
 
 # @ECLASS: kde4-base.eclass
 # @MAINTAINER:
@@ -946,7 +945,9 @@ kde4-base_pkg_preinst() {
 kde4-base_pkg_postinst() {
 	debug-print-function ${FUNCNAME} "$@"
 
-	gnome2_icon_cache_update
+	if [[ -n ${GNOME2_ECLASS_ICONS} ]]; then
+		gnome2_icon_cache_update
+	fi
 	fdo-mime_desktop_database_update
 	fdo-mime_mime_database_update
 	buildsycoca
