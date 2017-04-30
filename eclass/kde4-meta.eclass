@@ -200,7 +200,7 @@ kde4-meta_src_extract() {
 		# Detect real toplevel dir from tarball name - it will be used upon extraction
 		# and in _list_needed_subdirectories
 		topdir="${tarball%.tar.*}/"
-		if [[ ${topdir} =~ _pre ]]; then
+		if [[ ${topdir} =~ _pre20160211 ]]; then
 			topdir="${topdir%-$PV*}/"
 		fi
 
