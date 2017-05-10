@@ -61,7 +61,7 @@ DOCS=( AUTHORS HACKING NEWS README.md )
 
 PATCHES=(
 	"${FILESDIR}/${P}-udisksdprivdir.patch"
-	"${FILESDIR}/${P}-enable-elogind.patch"
+	"${FILESDIR}/${P}-elogind.patch"
 )
 
 pkg_setup() {
