@@ -11,9 +11,9 @@ QT3SUPPORT_REQUIRED="optional"
 WEBKIT_REQUIRED="optional"
 inherit kde4-base fdo-mime multilib toolchain-funcs flag-o-matic
 
-APPS_VERSION="17.04.0" # Don't forget to bump this
+APPS_VERSION="17.04.1" # Don't forget to bump this
 
-DESCRIPTION="KDE libraries needed by all KDE programs"
+DESCRIPTION="Libraries needed for programs by KDE"
 [[ ${KDE_BUILD_TYPE} != live ]] && \
 SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz"
 
@@ -124,6 +124,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.10.0-udisks.patch"
 	"${FILESDIR}/${PN}-4.14.20-FindQt4.patch"
 	"${FILESDIR}/${PN}-4.14.22-webkit.patch"
+	"${FILESDIR}/${PN}-4.14.29-kde3support.patch"
 )
 
 pkg_pretend() {
@@ -283,7 +284,7 @@ pkg_postinst() {
 
 pkg_prerm() {
 	# Remove ksycoca4 global database
-	rm -f "${EROOT}${PREFIX}"/share/kde4/services/ksycoca4
+	rm -f "${EROOT%/}"/usr/share/kde4/services/ksycoca4 || die
 }
 
 pkg_postrm() {
