@@ -2,7 +2,6 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
-
 inherit autotools bash-completion-r1 eutils linux-info systemd udev xdg-utils
 
 DESCRIPTION="Daemon providing interfaces to work with storage devices"
@@ -59,11 +58,6 @@ QA_MULTILIB_PATHS="usr/lib/udisks2/udisksd"
 
 DOCS=( AUTHORS HACKING NEWS README.md )
 
-PATCHES=(
-	"${FILESDIR}/${P}-udisksdprivdir.patch"
-	"${FILESDIR}/${P}-elogind.patch"
-)
-
 pkg_setup() {
 	# Listing only major arch's here to avoid tracking kernel's defconfig
 	if use amd64 || use arm || use ppc || use ppc64 || use x86; then
@@ -83,7 +77,7 @@ src_prepare() {
 
 	eautoreconf
 
-	if ! use systemd && ! use elogind ; then
+	if ! use systemd ; then
 		sed -i -e 's:libsystemd-login:&disable:' configure || die
 	fi
 }
