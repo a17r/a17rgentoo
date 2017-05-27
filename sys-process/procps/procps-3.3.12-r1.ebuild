@@ -11,7 +11,7 @@ SRC_URI="mirror://sourceforge/${PN}-ng/${PN}-ng-${PV}.tar.xz"
 
 LICENSE="GPL-2"
 SLOT="0/5" # libprocps.so
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-linux ~ia64-linux ~x86-linux"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-linux ~x86-linux"
 IUSE="elogind +kill modern-top +ncurses nls selinux static-libs systemd test unicode"
 
 COMMON_DEPEND="
@@ -24,7 +24,7 @@ DEPEND="${COMMON_DEPEND}
 	ncurses? ( virtual/pkgconfig )
 	systemd? ( virtual/pkgconfig )
 	test? ( dev-util/dejagnu )"
-RDEPEND+="${COMMON_DEPEND}
+RDEPEND="${COMMON_DEPEND}
 	kill? (
 		!sys-apps/coreutils[kill]
 		!sys-apps/util-linux[kill]
@@ -52,7 +52,6 @@ src_configure() {
 	# http://www.freelists.org/post/procps/PATCH-enable-transparent-large-file-support
 	append-lfs-flags #471102
 	econf \
-		--docdir='$(datarootdir)'/doc/${PF} \
 		$(use_with elogind) \
 		$(use_enable kill) \
 		$(use_enable modern-top) \
