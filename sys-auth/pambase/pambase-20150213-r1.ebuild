@@ -36,13 +36,29 @@ RDEPEND="
 	sha512? ( >=sys-libs/pam-${MIN_PAM_REQ} )
 	systemd? ( sys-apps/systemd[pam] )
 "
-DEPEND="app-portage/portage-utils
-	app-arch/xz-utils"
+DEPEND="
+	app-arch/xz-utils
+	app-portage/portage-utils
+"
 
 PATCHES=(
 	"${FILESDIR}"/${P}-selinux-note.patch #540096
 	"${FILESDIR}"/${P}-elogind.patch #599498
 )
+
+pkg_setup() {
+	local stcnt=0
+
+	use consolekit && stcnt=$((stcnt+1))
+	use elogind && stcnt=$((stcnt+1))
+	use systemd && stcnt=$((stcnt+1))
+
+	if [[ ${stcnt} -gt 1 ]] ; then
+		ewarn "You are enabling ${stcnt} session trackers at the same time."
+		ewarn "This is not a recommended setup to have. Please consider enabling"
+		ewarn "only one of USE=\"consolekit\", USE=\"elogind\" or USE=\"systemd\"."
+	fi
+}
 
 src_compile() {
 	local implementation linux_pam_version
@@ -88,18 +104,4 @@ src_test() { :; }
 
 src_install() {
 	emake GIT=true DESTDIR="${ED}" install
-}
-
-pkg_postinst() {
-	local stcnt=0
-
-	use consolekit && stcnt=$((stcnt+1))
-	use elogind && stcnt=$((stcnt+1))
-	use systemd && stcnt=$((stcnt+1))
-
-	if [[ ${stcnt} -gt 1 ]] ; then
-		ewarn "You are enabling ${stcnt} session trackers at the same time."
-		ewarn "This is not a recommended setup to have. Please consider enabling"
-		ewarn "only one of USE=\"consolekit\", USE=\"elogind\" or USE=\"systemd\"."
-	fi
 }
