@@ -9,7 +9,7 @@ SRC_URI="https://dev.gentoo.org/~vapier/dist/${P}.tar.xz"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 -sparc-fbsd -x86-fbsd ~x86-freebsd ~amd64-linux ~ia64-linux ~x86-linux"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 -sparc-fbsd -x86-fbsd ~amd64-linux ~x86-linux"
 IUSE="consolekit cracklib debug elogind gnome-keyring minimal mktemp +nullok pam_krb5 pam_ssh passwdqc securetty selinux +sha512 systemd"
 
 RESTRICT="binchecks"
@@ -41,7 +41,7 @@ DEPEND="app-portage/portage-utils
 
 PATCHES=(
 	"${FILESDIR}"/${P}-selinux-note.patch #540096
-	"${FILESDIR}"/${P}-elogind.patch
+	"${FILESDIR}"/${P}-elogind.patch #599498
 )
 
 src_compile() {
@@ -93,12 +93,12 @@ src_install() {
 pkg_postinst() {
 	local stcnt=0
 
-	if use consolekit; then stcnt=$((stcnt+1)); fi
-	if use elogind;    then stcnt=$((stcnt+1)); fi
-	if use systemd;    then stcnt=$((stcnt+1)); fi
+	use consolekit && stcnt=$((stcnt+1))
+	use elogind && stcnt=$((stcnt+1))
+	use systemd && stcnt=$((stcnt+1))
 
-	if [ $stcnt -gt 1 ] ; then
-		ewarn "You are enabling $stcnt session trackers at the same time."
+	if [[ ${stcnt} -gt 1 ]] ; then
+		ewarn "You are enabling ${stcnt} session trackers at the same time."
 		ewarn "This is not a recommended setup to have. Please consider enabling"
 		ewarn "only one of USE=\"consolekit\", USE=\"elogind\" or USE=\"systemd\"."
 	fi
