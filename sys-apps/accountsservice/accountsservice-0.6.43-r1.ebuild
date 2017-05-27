@@ -40,14 +40,14 @@ RDEPEND="${CDEPEND}
 	selinux? ( sec-policy/selinux-accountsd )
 "
 
-PATCHES=( "${FILESDIR}/${PN}-0.6.35-gentoo-system-users.patch" )
+PATCHES=(
+	"${FILESDIR}/${PN}-0.6.35-gentoo-system-users.patch"
+	"${FILESDIR}/${P}-elogind.patch"
+)
 
 src_prepare() {
 	default
-	if use elogind; then
-		eapply "${FILESDIR}/${P}-elogind.patch"
-		eautoreconf
-	fi
+	eautoreconf
 }
 
 src_configure() {
