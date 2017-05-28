@@ -1,0 +1,33 @@
+diff --git a/src/widgets/krun.h b/src/widgets/krun.h
+--- a/src/widgets/krun.h
++++ b/src/widgets/krun.h
+@@ -436,7 +436,7 @@
+      * To be executable the file must pass the following rules:
+      * -# Must reside on the local filesystem.
+      * -# Must be marked as executable for the user by the filesystem.
+-     * -# The mime type must inherit application/x-executable or application/x-executable-script.
++     * -# The mime type must inherit application/x-executable, application/x-executable-script or application/x-sharedlib.
+      * To allow a script to run when the above rules are satisfied add the entry
+      * @code
+      * X-KDE-IsAlso=application/x-executable-script
+diff --git a/src/widgets/krun.cpp b/src/widgets/krun.cpp
+--- a/src/widgets/krun.cpp
++++ b/src/widgets/krun.cpp
+@@ -139,7 +139,8 @@
+ #ifdef Q_OS_WIN
+                 mimeType.inherits(QLatin1String("application/x-ms-dos-executable")) ||
+ #endif
+-                mimeType.inherits(QStringLiteral("application/x-executable-script"))
++                mimeType.inherits(QStringLiteral("application/x-executable-script")) ||
++                mimeType.inherits(QStringLiteral("application/x-sharedlib"))
+            ) {
+             return true;
+         }
+@@ -1438,6 +1439,7 @@
+ {
+     return (serviceType == QLatin1String("application/x-desktop") ||
+             serviceType == QLatin1String("application/x-executable") ||
++            serviceType == QLatin1String("application/x-sharedlib") ||
+             serviceType == QLatin1String("application/x-ms-dos-executable") ||
+             serviceType == QLatin1String("application/x-shellscript"));
+ }
