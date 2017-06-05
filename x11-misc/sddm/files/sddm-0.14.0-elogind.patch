@@ -1,6 +1,22 @@
---- a/CMakeLists.txt	2016-11-10 09:27:03.866358608 +0100
-+++ b/CMakeLists.txt	2016-11-10 10:28:25.384374766 +0100
-@@ -93,7 +93,7 @@
+From 9fb99dc959becf338b8700c49692fcb52b3d8423 Mon Sep 17 00:00:00 2001
+From: Sven Eden <seden@havi.de>
+Date: Thu, 24 Nov 2016 09:03:25 +0100
+Subject: [PATCH] Support elogind as an alterantive session tracker for
+ systemd-logind.
+
+For users who do not want to run the full systemd suite, but do not
+want to patch sddm to use ck-launch-session either, elogind can be
+used as an alternative session tracker via its PAM module.
+---
+ CMakeLists.txt            | 26 +++++++++++++++++++++++---
+ services/sddm-greeter.pam |  1 +
+ 2 files changed, 24 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fe8074b0..23e03832 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -109,7 +109,7 @@ if ("${ECM_VERSION}" VERSION_LESS "1.7.0")
  endif()
  
  # systemd
@@ -9,7 +25,7 @@
      pkg_check_modules(SYSTEMD "systemd")
  endif()
  
-@@ -127,12 +127,34 @@
+@@ -143,12 +143,32 @@ if(SYSTEMD_FOUND)
      set(REBOOT_COMMAND "/usr/bin/systemctl reboot")
  else()
      set(SYSTEMD_FOUND 0)
@@ -29,8 +45,6 @@
 +    set(MINIMUM_VT 7)
 +    set(HALT_COMMAND "/usr/bin/loginctl poweroff")
 +    set(REBOOT_COMMAND "/usr/bin/loginctl reboot")
-+else()
-+    set(ELOGIND_FOUND 0)
 +endif()
 +add_feature_info("elogind" ELOGIND_FOUND "elogind support")
 +
@@ -46,10 +60,11 @@
  
  # Set constants
  set(DATA_INSTALL_DIR            "${CMAKE_INSTALL_FULL_DATADIR}/sddm"                CACHE PATH      "System application data install directory")
---- a/services/sddm-greeter.pam	2016-06-19 12:24:42.000000000 +0200
-+++ b/services/sddm-greeter.pam	2016-11-02 09:48:18.990032363 +0100
-@@ -14,4 +14,5 @@
- 
+diff --git a/services/sddm-greeter.pam b/services/sddm-greeter.pam
+index 44e209e9..7c77b686 100644
+--- a/services/sddm-greeter.pam
++++ b/services/sddm-greeter.pam
+@@ -15,3 +15,4 @@ password	required pam_deny.so
  # Setup session
  session		required pam_unix.so
  session		optional pam_systemd.so
