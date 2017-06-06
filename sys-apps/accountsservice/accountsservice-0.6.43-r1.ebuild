@@ -3,7 +3,8 @@
 
 EAPI=6
 
-inherit autotools gnome2 systemd
+GNOME2_EAUTORECONF="yes"
+inherit gnome2 systemd
 
 DESCRIPTION="D-Bus interfaces for querying and manipulating user account information"
 HOMEPAGE="https://www.freedesktop.org/wiki/Software/AccountsService/"
@@ -20,9 +21,9 @@ REQUIRED_USE="?? ( elogind systemd )"
 CDEPEND="
 	>=dev-libs/glib-2.37.3:2
 	sys-auth/polkit
+	elogind? ( >=sys-auth/elogind-229.4 )
 	introspection? ( >=dev-libs/gobject-introspection-0.9.12:= )
 	systemd? ( >=sys-apps/systemd-186:0= )
-	elogind? ( >=sys-auth/elogind-229.4 )
 	!systemd? ( !elogind? ( sys-auth/consolekit ) )
 "
 DEPEND="${CDEPEND}
@@ -44,11 +45,6 @@ PATCHES=(
 	"${FILESDIR}/${PN}-0.6.35-gentoo-system-users.patch"
 	"${FILESDIR}/${P}-elogind.patch"
 )
-
-src_prepare() {
-	default
-	eautoreconf
-}
 
 src_configure() {
 	gnome2_src_configure \
