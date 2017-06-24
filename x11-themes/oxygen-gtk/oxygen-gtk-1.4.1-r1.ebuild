@@ -37,6 +37,7 @@ RDEPEND="${COMMON_DEPEND}
 PATCHES=(
 	"${FILESDIR}/${P}-gtk-3.14.patch"
 	"${FILESDIR}/${PN}-1.4.6-demo-optional.patch"
+	"${FILESDIR}/${PN}-1.4.6-tabstyle.patch"
 )
 
 S=${WORKDIR}/${MY_P}

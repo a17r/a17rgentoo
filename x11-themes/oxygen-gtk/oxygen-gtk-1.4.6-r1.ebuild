@@ -40,6 +40,7 @@ PATCHES=(
 	"${FILESDIR}/${P}-qtpaths.patch"
 	"${FILESDIR}/${P}-warning.patch"
 	"${FILESDIR}/${P}-demo-optional.patch"
+	"${FILESDIR}/${P}-tabstyle.patch"
 )
 
 S=${WORKDIR}/${MY_P}
