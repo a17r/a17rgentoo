@@ -56,7 +56,7 @@ unset DEV_URI
 # These are bundles that can't be removed for now due to huge patchsets.
 # If you want them gone, patches are welcome.
 ADDONS_SRC=(
-	"${ADDONS_URI}/86b1daaa438f5a7bea9a52d7b9799ac0-xmlsec1-1.2.23.tar.gz" # modifies source code
+	"${ADDONS_URI}/xmlsec1-1.2.24.tar.gz" # modifies source code
 	"collada? ( ${ADDONS_URI}/4b87018f7fff1d054939d19920b751a0-collada2gltf-master-cb1d97788a.tar.bz2 )"
 	"java? ( ${ADDONS_URI}/17410483b5b5f267aa18b7e00b65e6e0-hsqldb_1_8_0.zip )"
 	# no release for 8 years, should we package it?
@@ -83,11 +83,13 @@ $(printf 'libreoffice_extensions_%s ' ${LO_EXTS})"
 LICENSE="|| ( LGPL-3 MPL-1.1 )"
 SLOT="0"
 [[ ${PV} == *9999* ]] || \
-KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
+KEYWORDS=""
+# KEYWORDS="~amd64 ~arm ~x86 ~amd64-linux ~x86-linux"
 
 COMMON_DEPEND="${PYTHON_DEPS}
 	app-arch/unzip
 	app-arch/zip
+	app-crypt/gpgme[cxx]
 	app-text/hunspell:=
 	>=app-text/libabw-0.1.0
 	>=app-text/libebook-0.1
@@ -110,6 +112,8 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	dev-libs/expat
 	dev-libs/hyphen
 	dev-libs/icu:=
+	dev-libs/libassuan
+	dev-libs/libgpg-error
 	=dev-libs/liborcus-0.12*
 	dev-libs/librevenge
 	dev-libs/nspr
@@ -120,10 +124,10 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	media-gfx/graphite2
 	media-libs/fontconfig
 	media-libs/freetype:2
-	>=media-libs/glew-1.10:=
-	media-libs/harfbuzz:=[graphite,icu]
+	>=media-libs/harfbuzz-0.9.42:=[graphite,icu]
 	media-libs/lcms:2
 	>=media-libs/libcdr-0.1.0
+	>=media-libs/libepoxy-1.3.1
 	>=media-libs/libfreehand-0.1.0
 	media-libs/libpagemaker
 	>=media-libs/libpng-1.4:0=
@@ -150,7 +154,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 		gnome-extra/evolution-data-server
 	)
 	firebird? ( >=dev-db/firebird-3.0.2.32703.0-r1 )
-	gltf? ( media-libs/libgltf )
+	gltf? ( >=media-libs/libgltf-0.1.0 )
 	gnome? ( gnome-base/dconf )
 	gstreamer? (
 		media-libs/gstreamer:1.0
@@ -180,19 +184,14 @@ RDEPEND="${COMMON_DEPEND}
 	!app-office/openoffice
 	media-fonts/liberation-fonts
 	media-fonts/libertine
-	media-fonts/urw-fonts
 	|| ( x11-misc/xdg-utils kde-plasma/kde-cli-tools $(add_kdeapps_dep kioclient) )
 	java? ( >=virtual/jre-1.6 )
 	vlc? ( media-video/vlc )
 "
 
-if [[ ${PV} != *9999* ]]; then
-	PDEPEND="=app-office/libreoffice-l10n-$(get_version_component_range 1-2)*"
-else
-	# Translations are not reliable on live ebuilds
-	# rather force people to use english only.
-	PDEPEND="!app-office/libreoffice-l10n"
-fi
+# Translations are not reliable on live ebuilds
+# rather force people to use english only.
+PDEPEND="!app-office/libreoffice-l10n"
 
 # FIXME: cppunit should be moved to test conditional
 #        after everything upstream is under gbuild
@@ -203,7 +202,7 @@ DEPEND="${COMMON_DEPEND}
 	>=dev-libs/libxml2-2.7.8
 	dev-libs/libxslt
 	dev-perl/Archive-Zip
-	dev-util/cppunit
+	>=dev-util/cppunit-1.14.0
 	>=dev-util/gperf-3
 	dev-util/intltool
 	>=dev-util/mdds-1.2.2:1=
@@ -242,7 +241,7 @@ REQUIRED_USE="${PYTHON_REQUIRED_USE}
 
 PATCHES=(
 	# not upstreamable stuff
-	"${FILESDIR}/${PN}-5.3-system-pyuno.patch"
+	"${FILESDIR}/${PN}-5.4-system-pyuno.patch"
 	"${FILESDIR}/${PN}-5.3.4.2-kioclient5.patch"
 
 	# TODO: upstream
@@ -268,23 +267,6 @@ pkg_pretend() {
 			CHECKREQS_DISK_BUILD="6G"
 		fi
 		check-reqs_pkg_pretend
-
-		if ! $(tc-is-clang) && { [[ $(gcc-major-version) -lt 4 ]] ||
-				[[ $(gcc-major-version) -eq 4 && $(gcc-minor-version) -lt 7 ]]; } then
-			eerror "Compilation with gcc older than 4.7 is not supported"
-			die "Too old gcc found."
-		fi
-	fi
-
-	# Ensure pg version but we have to be sure the pg is installed (first
-	# install on clean system)
-	if use postgres && has_version dev-db/postgresql; then
-		 local pgslot=$(postgresql-config show)
-		 if [[ ${pgslot//.} -lt 90 ]] ; then
-			eerror "PostgreSQL slot must be set to 9.0 or higher."
-			eerror "    postgresql-config set 9.0"
-			die "PostgreSQL slot is not set to 9.0 or higher."
-		 fi
 	fi
 }
 
@@ -431,7 +413,6 @@ src_configure() {
 	# system headers/libs/...: enforce using system packages
 	# --disable-breakpad: requires not-yet-in-tree dev-utils/breakpad
 	# --enable-cairo: ensure that cairo is always required
-	# --enable-graphite: disabling causes build breakages
 	# --enable-*-link: link to the library rather than just dlopen on runtime
 	# --enable-release-build: build the libreoffice as release
 	# --disable-fetch-external: prevent dowloading during compile phase
@@ -440,14 +421,14 @@ src_configure() {
 	# --disable-report-builder: too much java packages pulled in without pkgs
 	# --without-system-sane: just sane.h header that is used for scan in writer,
 	#   not linked or anything else, worthless to depend on
+	# --disable-pdfium: not yet packaged
 	econf \
-		--docdir="${EPREFIX}/usr/share/doc/${PF}/" \
 		--with-system-dicts \
+		--with-system-epoxy \
 		--with-system-headers \
 		--with-system-jars \
 		--with-system-libs \
 		--enable-cairo-canvas \
-		--enable-graphite \
 		--enable-largefile \
 		--enable-mergelibs \
 		--enable-neon \
@@ -461,6 +442,7 @@ src_configure() {
 		--disable-fetch-external \
 		--disable-gstreamer-0-10 \
 		--disable-online-update \
+		--disable-pdfium \
 		--disable-report-builder \
 		--with-alloc=$(use jemalloc && echo "jemalloc" || echo "system") \
 		--with-build-version="Gentoo official package" \
@@ -478,6 +460,7 @@ src_configure() {
 		--without-myspell-dicts \
 		--without-help \
 		--with-helppack-integration \
+		--with-system-gpgmepp \
 		--without-system-sane \
 		$(use_enable bluetooth sdremote-bluetooth) \
 		$(use_enable coinmp) \
