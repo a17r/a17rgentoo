@@ -92,10 +92,6 @@ RDEPEND="${COMMON_DEPEND}
 RESTRICT="test"
 
 PATCHES=(
-	"${FILESDIR}/${P}-broken-psycopg2-encoding.patch"
-	"${FILESDIR}/${P}-fix-plugin-config-settings.patch"
-	"${FILESDIR}/${P}-dbmanager-plugin-exceptions.patch"
-	"${FILESDIR}/${P}-uncaught-exception.patch"
 	# TODO upstream
 	"${FILESDIR}/${PN}-2.18.6-featuresummary.patch"
 	"${FILESDIR}/${PN}-2.18.6-python.patch"
