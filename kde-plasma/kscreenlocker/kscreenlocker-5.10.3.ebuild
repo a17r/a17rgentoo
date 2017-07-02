@@ -46,6 +46,7 @@ DEPEND="${COMMON_DEPEND}
 "
 RDEPEND="${COMMON_DEPEND}
 	$(add_plasma_dep kde-cli-tools)
+	!<kde-apps/kde4-l10n-16.04.0
 	!<kde-plasma/kcheckpass-4.11.22-r1:4
 	!kde-plasma/kdebase-pam:0
 "
