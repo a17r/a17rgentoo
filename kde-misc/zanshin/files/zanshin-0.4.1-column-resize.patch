@@ -1,0 +1,32 @@
+commit 9c4b3f2f2d983666d1177e0ecb0dcb168175321e
+Author: Kevin Ottens <ervin@kde.org>
+Date:   Sat Sep 10 18:09:05 2016 +0200
+
+    Make sure the column is resized with the tree view
+    
+    Summary:
+    Found a bug while working on the delegate, it turns out that a hidden
+    header view doesn't resize the column width when the tree view is itself
+    resized. Forces it to happen.
+    
+    Reviewers: bensi, franckarrecot, dfaure
+    
+    Differential Revision: https://phabricator.kde.org/D2737
+
+diff --git a/src/widgets/pageview.cpp b/src/widgets/pageview.cpp
+index 485cb23b..34ee513e 100644
+--- a/src/widgets/pageview.cpp
++++ b/src/widgets/pageview.cpp
+@@ -62,6 +62,12 @@ protected:
+ 
+         QTreeView::keyPressEvent(event);
+     }
++
++    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE
++    {
++        header()->resizeSection(0, event->size().width());
++        QTreeView::resizeEvent(event);
++    }
+ };
+ }
+ 

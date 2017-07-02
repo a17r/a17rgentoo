@@ -1,0 +1,64 @@
+commit 4571e522740dc38105691d81adf812a9e65b8972
+Author: David Faure <faure@kde.org>
+Date:   Tue Dec 20 20:54:42 2016 +0100
+
+    Zanshin: remove code that triggers the 0.2 data migration.
+    
+    Summary:
+    When using zanshin on a new computer, the local zanshinrc is empty so
+    the migration happens even if it is not needed. This leads to tasks with
+    children becoming projects, unexpectedly.
+    
+    If a different migration is needed again in the future, we have to find
+    a way to store the version into the items themselves, rather than locally.
+    
+    If someone still hasn't upgraded from 0.2, they can run the migrator manually
+    when they do.
+    
+    Reviewers: ervin
+    
+    Reviewed By: ervin
+    
+    Subscribers: #zanshin
+    
+    Differential Revision: https://phabricator.kde.org/D3767
+
+diff --git a/src/zanshin/app/main.cpp b/src/zanshin/app/main.cpp
+index 418c8507..400a1daf 100644
+--- a/src/zanshin/app/main.cpp
++++ b/src/zanshin/app/main.cpp
+@@ -24,7 +24,6 @@
+ #include <QApplication>
+ #include <QBoxLayout>
+ #include <QDockWidget>
+-#include <QProcess>
+ #include <QAction>
+ 
+ #include <KActionCollection>
+@@ -32,9 +31,6 @@
+ 
+ #include <KXmlGuiWindow>
+ 
+-#include <KConfigGroup>
+-#include <KSharedConfig>
+-
+ #include "widgets/applicationcomponents.h"
+ #include "widgets/availablepagesview.h"
+ #include "widgets/availablesourcesview.h"
+@@ -65,16 +61,6 @@ int main(int argc, char **argv)
+     parser.process(app);
+     aboutData.processCommandLine(&parser);
+ 
+-    KSharedConfig::Ptr config = KSharedConfig::openConfig(QStringLiteral("zanshin-migratorrc"));
+-    KConfigGroup group = config->group("Migrations");
+-    if (!group.readEntry("Migrated021Projects", false)) {
+-        std::cerr << "Migrating data from zanshin 0.2, please wait..." << std::endl;
+-        QProcess proc;
+-        proc.start(QStringLiteral("zanshin-migrator"));
+-        proc.waitForFinished();
+-        std::cerr << "Migration done" << std::endl;
+-    }
+-
+     auto widget = new QWidget;
+     auto components = new Widgets::ApplicationComponents(widget);
+     components->setModel(Presentation::ApplicationModel::Ptr::create());
