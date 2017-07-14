@@ -123,7 +123,7 @@ src_configure() {
 
 	if has_version '<x11-libs/qscintilla-2.10'; then
 		mycmakeargs+=(
-			-DQSCINTILLA_LIBRARY=/usr/$(get_libdir)/libqscintilla2.so
+			-DQSCINTILLA_LIBRARY=/usr/$(get_libdir)/qt4/libqscintilla2.so
 		)
 	fi
 
