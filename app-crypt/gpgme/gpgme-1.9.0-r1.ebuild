@@ -3,11 +3,10 @@
 
 EAPI="6"
 
-EGIT_REPO_URI="git://git.gnupg.org/gpgme.git"
 PYTHON_COMPAT=( python2_7 python3_{4,5,6} )
 DISTUTILS_OPTIONAL=1
 
-inherit autotools distutils-r1 flag-o-matic git-r3 ltprune qmake-utils
+inherit autotools distutils-r1 flag-o-matic ltprune qmake-utils toolchain-funcs
 
 DESCRIPTION="GnuPG Made Easy is a library for making GnuPG easier to use"
 HOMEPAGE="http://www.gnupg.org/related_software/gpgme"
@@ -20,15 +19,13 @@ KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x
 IUSE="common-lisp cxx python qt5 static-libs"
 
 COMMON_DEPEND="app-crypt/gnupg
-	>=dev-libs/libassuan-2.0.2
-	>=dev-libs/libgpg-error-1.11
+	>=dev-libs/libassuan-2.0.2:=
+	>=dev-libs/libgpg-error-1.17:=
 	python? ( ${PYTHON_DEPS} )
-	qt5? ( dev-qt/qtcore:5 )
-"
+	qt5? ( dev-qt/qtcore:5 )"
 DEPEND="${COMMON_DEPEND}
 	python? ( dev-lang/swig )
-	qt5? ( dev-qt/qttest:5 )
-"
+	qt5? ( dev-qt/qttest:5 )"
 	#doc? ( app-doc/doxygen[dot] )
 RDEPEND="${COMMON_DEPEND}
 	cxx? (
@@ -36,29 +33,25 @@ RDEPEND="${COMMON_DEPEND}
 		!kde-apps/gpgmepp:5
 		!<kde-apps/kdepimlibs-4.14.10_p20160611:4
 		!=kde-apps/kdepimlibs-4.14.11_pre20160211*:4
-	)
-"
+	)"
 
-REQUIRED_USE="qt5? ( cxx )"
-
-PATCHES=( "${FILESDIR}"/${PN}-1.1.8-et_EE.patch )
+REQUIRED_USE="qt5? ( cxx ) python? ( ${PYTHON_REQUIRED_USE} )"
 
 do_python() {
 	if use python; then
-		pushd lang/python > /dev/null || die
-		distutils-r1_src_${EBUILD_PHASE}
+		pushd "lang/python" > /dev/null || die
+		top_builddir="../.." srcdir="." CPP=$(tc-getCPP) distutils-r1_src_${EBUILD_PHASE}
 		popd > /dev/null
 	fi
 }
 
-src_unpack() {
-	git-r3_src_unpack
+pkg_setup() {
+	addpredict /run/user/$(id -u)/gnupg
 }
 
 src_prepare() {
 	default
 	eautoreconf
-	do_python
 }
 
 src_configure() {
@@ -99,6 +92,19 @@ src_configure() {
 src_compile() {
 	default
 	do_python
+}
+
+src_test() {
+	default
+	if use python; then
+		test_python() {
+			emake -C lang/python/tests xcheck \
+				PYTHON=${EPYTHON} \
+				PYTHONS=${EPYTHON} \
+				TESTFLAGS="--python-libdir=${BUILD_DIR}/lib"
+		}
+		python_foreach_impl test_python
+	fi
 }
 
 src_install() {
