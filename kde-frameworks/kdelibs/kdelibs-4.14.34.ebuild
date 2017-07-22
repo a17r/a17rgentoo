@@ -128,6 +128,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.14.22-webkit.patch"
 	"${FILESDIR}/${P}-svg.patch"
 	"${FILESDIR}/${P}-cmake-3.9.patch"
+	"${FILESDIR}/${P}-3dnow.patch"
 	"${FILESDIR}/${P}-kde3support.patch"
 	"${FILESDIR}/${P}-plasma4.patch"
 )
@@ -140,7 +141,9 @@ src_prepare() {
 		-i kded/CMakeLists.txt || die "Sed on CMakeLists.txt for applications.menu failed."
 
 	if ! use opengl; then
-		sed -e -i "/if/s/QT_QTOPENGL_FOUND/FALSE/" || die "failed to sed out QT_QTOPENGL_FOUND"
+		sed -i -e "/if/ s/QT_QTOPENGL_FOUND/FALSE/" \
+			plasma/CMakeLists.txt plasma/tests/CMakeLists.txt includes/CMakeLists.txt \
+			|| die "failed to sed out QT_QTOPENGL_FOUND"
 	fi
 
 	if use aqua; then
