@@ -19,11 +19,12 @@ SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz"
 
 KEYWORDS="~amd64 ~arm ~ppc ~ppc64 ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
 LICENSE="LGPL-2.1"
-IUSE="cpu_flags_x86_3dnow acl altivec +bzip2 +crypt debug doc fam jpeg2k
-kerberos libressl lzma cpu_flags_x86_mmx nls openexr +policykit spell
+IUSE="cpu_flags_x86_3dnow acl altivec +bzip2 debug doc fam jpeg2k kerberos
+libressl lzma cpu_flags_x86_mmx nls openexr plasma +policykit spell
 cpu_flags_x86_sse cpu_flags_x86_sse2 ssl +udev +udisks +upower zeroconf"
 
 REQUIRED_USE="
+	opengl? ( plasma )
 	udisks? ( udev )
 	upower? ( udev )
 "
@@ -70,7 +71,6 @@ COMMONDEPEND="
 		)
 	)
 	bzip2? ( app-arch/bzip2 )
-	crypt? ( app-crypt/qca:2[qt4] )
 	fam? ( virtual/fam )
 	jpeg2k? ( media-libs/jasper:= )
 	kerberos? ( virtual/krb5 )
@@ -78,6 +78,7 @@ COMMONDEPEND="
 		media-libs/openexr:=
 		media-libs/ilmbase:=
 	)
+	plasma? ( app-crypt/qca:2[qt4] )
 	policykit? ( sys-auth/polkit-qt[qt4] )
 	spell? ( app-text/enchant )
 	ssl? (
@@ -104,6 +105,7 @@ RDEPEND="${COMMONDEPEND}
 		udisks? ( sys-fs/udisks:2 )
 		upower? ( || ( >=sys-power/upower-0.9.23 sys-power/upower-pm-utils ) )
 	)
+	plasma? ( !sci-libs/plasma )
 	udev? ( app-misc/media-player-info )
 "
 PDEPEND="
@@ -127,15 +129,8 @@ PATCHES=(
 	"${FILESDIR}/${P}-svg.patch"
 	"${FILESDIR}/${P}-cmake-3.9.patch"
 	"${FILESDIR}/${P}-kde3support.patch"
+	"${FILESDIR}/${P}-plasma4.patch"
 )
-
-pkg_pretend() {
-	if [[ ${MERGE_TYPE} != binary ]] && tc-is-gcc; then
-		[[ $(gcc-major-version) -lt 4 ]] || \
-				( [[ $(gcc-major-version) -eq 4 && $(gcc-minor-version) -le 3 ]] ) \
-			&& die "Sorry, but gcc-4.3 and earlier won't work for KDE SC 4.6 (see bug #354837)."
-	fi
-}
 
 src_prepare() {
 	kde4-base_src_prepare
@@ -143,6 +138,10 @@ src_prepare() {
 	# Rename applications.menu (needs 01_gentoo_set_xdg_menu_prefix-1.patch to work)
 	sed -e 's|FILES[[:space:]]applications.menu|FILES applications.menu RENAME kde-4-applications.menu|g' \
 		-i kded/CMakeLists.txt || die "Sed on CMakeLists.txt for applications.menu failed."
+
+	if ! use opengl; then
+		sed -e -i "/if/s/QT_QTOPENGL_FOUND/FALSE/" || die "failed to sed out QT_QTOPENGL_FOUND"
+	fi
 
 	if use aqua; then
 		sed -i -e \
@@ -192,14 +191,14 @@ src_configure() {
 		-DHAVE_X86_SSE2=$(usex cpu_flags_x86_sse2)
 		-DWITH_ACL=$(usex acl)
 		-DWITH_BZip2=$(usex bzip2)
-		-DWITH_QCA2=$(usex crypt)
 		-DWITH_FAM=$(usex fam)
 		-DWITH_Jasper=$(usex jpeg2k)
 		-DWITH_GSSAPI=$(usex kerberos)
 		-DWITH_LibLZMA=$(usex lzma)
 		-DWITH_Libintl=$(usex nls)
 		-DWITH_OpenEXR=$(usex openexr)
-		-DWITH_OpenGL=$(usex opengl)
+		-DWITH_PLASMA4SUPPORT=$(usex plasma)
+		-DWITH_QCA2=$(usex plasma)
 		-DWITH_PolkitQt-1=$(usex policykit)
 		-DWITH_KDE3SUPPORT=$(usex qt3support)
 		-DWITH_ENCHANT=$(usex spell)
@@ -259,6 +258,9 @@ src_install() {
 			|| die "failed fixing FindXKB.cmake"
 	fi
 
+	# We don't package it, so don't install headers
+	rm -r "${ED}"/usr/include/KDE/Nepomuk || die
+
 	einfo Installing environment file.
 	# Since 44qt4 is sourced earlier QT_PLUGIN_PATH is defined.
 	echo "COLON_SEPARATED=QT_PLUGIN_PATH" > "${T}/77kde"
@@ -270,15 +272,15 @@ pkg_postinst() {
 	fdo-mime_mime_database_update
 
 	if use zeroconf; then
-		echo
+		elog
 		elog "To make zeroconf support available in applications make sure that the avahi daemon"
 		elog "is running."
-		echo
-		einfo "If you also want to use zeroconf for hostname resolution, emerge sys-auth/nss-mdns"
-		einfo "and enable multicast dns lookups by editing the 'hosts:' line in /etc/nsswitch.conf"
-		einfo "to include 'mdns', e.g.:"
-		einfo "	hosts: files mdns dns"
-		echo
+		elog
+		elog "If you also want to use zeroconf for hostname resolution, emerge sys-auth/nss-mdns"
+		elog "and enable multicast dns lookups by editing the 'hosts:' line in /etc/nsswitch.conf"
+		elog "to include 'mdns', e.g.:"
+		elog "	hosts: files mdns dns"
+		elog
 	fi
 
 	kde4-base_pkg_postinst
