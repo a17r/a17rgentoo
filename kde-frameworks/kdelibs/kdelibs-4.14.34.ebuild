@@ -17,7 +17,7 @@ DESCRIPTION="Libraries needed for programs by KDE"
 [[ ${KDE_BUILD_TYPE} != live ]] && \
 SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz"
 
-KEYWORDS="~amd64 ~arm ~ppc ~ppc64 ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
 LICENSE="LGPL-2.1"
 IUSE="cpu_flags_x86_3dnow acl altivec +bzip2 debug doc fam jpeg2k kerberos
 libressl lzma cpu_flags_x86_mmx nls openexr plasma +policykit spell
@@ -132,6 +132,7 @@ PATCHES=(
 	"${FILESDIR}/${P}-kde3support.patch"
 	"${FILESDIR}/${P}-plasma4.patch"
 )
+# USE=-plasma affected packages: amarok, simon, pykde4
 
 src_prepare() {
 	kde4-base_src_prepare
