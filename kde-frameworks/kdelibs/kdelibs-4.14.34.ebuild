@@ -132,7 +132,8 @@ PATCHES=(
 	"${FILESDIR}/${P}-kde3support.patch"
 	"${FILESDIR}/${P}-plasma4.patch"
 )
-# USE=-plasma affected packages: amarok, simon, pykde4
+# TODO: USE=-plasma affected packages: amarok, simon, pykde4
+# less deps: -qtsql:4, -qca
 
 src_prepare() {
 	kde4-base_src_prepare
