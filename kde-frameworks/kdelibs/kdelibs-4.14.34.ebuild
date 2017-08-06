@@ -7,7 +7,6 @@ CPPUNIT_REQUIRED="optional"
 DECLARATIVE_REQUIRED="always"
 KDE_HANDBOOK="optional"
 OPENGL_REQUIRED="optional"
-QT3SUPPORT_REQUIRED="optional"
 WEBKIT_REQUIRED="optional"
 inherit kde4-base fdo-mime multilib toolchain-funcs flag-o-matic
 
@@ -20,8 +19,8 @@ SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
 LICENSE="LGPL-2.1"
 IUSE="cpu_flags_x86_3dnow acl altivec +bzip2 debug doc fam jpeg2k kerberos
-libressl lzma cpu_flags_x86_mmx nls openexr plasma +policykit spell
-cpu_flags_x86_sse cpu_flags_x86_sse2 ssl +udev +udisks +upower zeroconf"
+libressl lzma cpu_flags_x86_mmx nls openexr plasma +policykit qt3support
+spell cpu_flags_x86_sse cpu_flags_x86_sse2 ssl +udev +udisks +upower zeroconf"
 
 REQUIRED_USE="
 	opengl? ( plasma )
@@ -78,7 +77,10 @@ COMMONDEPEND="
 		media-libs/openexr:=
 		media-libs/ilmbase:=
 	)
-	plasma? ( app-crypt/qca:2[qt4] )
+	plasma? (
+		app-crypt/qca:2[qt4]
+		>=dev-qt/qtsql-${QT_MINIMAL}:4
+	)
 	policykit? ( sys-auth/polkit-qt[qt4] )
 	spell? ( app-text/enchant )
 	ssl? (
@@ -132,8 +134,7 @@ PATCHES=(
 	"${FILESDIR}/${P}-kde3support.patch"
 	"${FILESDIR}/${P}-plasma4.patch"
 )
-# TODO: USE=-plasma affected packages: amarok, simon, pykde4
-# less deps: -qtsql:4, -qca
+# TODO: USE=-plasma affected packages: amarok, simon, pykde4, akregator, kjots
 
 src_prepare() {
 	kde4-base_src_prepare
