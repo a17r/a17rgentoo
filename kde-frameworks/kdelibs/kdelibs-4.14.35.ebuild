@@ -10,7 +10,7 @@ OPENGL_REQUIRED="optional"
 WEBKIT_REQUIRED="optional"
 inherit kde4-base fdo-mime multilib toolchain-funcs flag-o-matic
 
-APPS_VERSION="17.04.3" # Don't forget to bump this
+APPS_VERSION="17.08.0" # Don't forget to bump this
 
 DESCRIPTION="Libraries needed for programs by KDE"
 [[ ${KDE_BUILD_TYPE} != live ]] && \
@@ -39,6 +39,7 @@ COMMONDEPEND="
 	dev-libs/libpcre[unicode]
 	dev-libs/libxml2
 	dev-libs/libxslt
+	>=dev-qt/qtcore-${QT_MINIMAL}:4[qt3support?]
 	media-libs/fontconfig
 	media-libs/freetype:2
 	media-libs/giflib:=
@@ -79,7 +80,7 @@ COMMONDEPEND="
 	)
 	plasma? (
 		app-crypt/qca:2[qt4]
-		>=dev-qt/qtsql-${QT_MINIMAL}:4
+		>=dev-qt/qtsql-${QT_MINIMAL}:4[qt3support?]
 	)
 	policykit? ( sys-auth/polkit-qt[qt4] )
 	spell? ( app-text/enchant )
@@ -128,8 +129,6 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.10.0-udisks.patch"
 	"${FILESDIR}/${PN}-4.14.20-FindQt4.patch"
 	"${FILESDIR}/${PN}-4.14.22-webkit.patch"
-	"${FILESDIR}/${P}-svg.patch"
-	"${FILESDIR}/${P}-cmake-3.9.patch"
 	"${FILESDIR}/${P}-3dnow.patch"
 	"${FILESDIR}/${P}-kde3support.patch"
 	"${FILESDIR}/${P}-plasma4.patch"
