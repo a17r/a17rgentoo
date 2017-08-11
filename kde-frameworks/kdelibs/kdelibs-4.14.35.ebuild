@@ -8,7 +8,7 @@ DECLARATIVE_REQUIRED="always"
 KDE_HANDBOOK="optional"
 OPENGL_REQUIRED="optional"
 WEBKIT_REQUIRED="optional"
-inherit kde4-base fdo-mime multilib toolchain-funcs flag-o-matic
+inherit kde4-base toolchain-funcs flag-o-matic xdg-utils
 
 APPS_VERSION="17.08.0" # Don't forget to bump this
 
@@ -235,7 +235,7 @@ src_install() {
 
 	# use system certificates
 	rm -f "${ED}"/usr/share/apps/kssl/ca-bundle.crt || die
-	dosym /etc/ssl/certs/ca-certificates.crt /usr/share/apps/kssl/ca-bundle.crt
+	dosym ../../../../etc/ssl/certs/ca-certificates.crt /usr/share/apps/kssl/ca-bundle.crt
 
 	if use doc; then
 		einfo "Installing API documentation. This could take a bit of time."
@@ -274,7 +274,7 @@ src_install() {
 }
 
 pkg_postinst() {
-	fdo-mime_mime_database_update
+	xdg_mimeinfo_database_update
 
 	if use zeroconf; then
 		elog
@@ -297,7 +297,7 @@ pkg_prerm() {
 }
 
 pkg_postrm() {
-	fdo-mime_mime_database_update
+	xdg_mimeinfo_database_update
 
 	kde4-base_pkg_postrm
 }
