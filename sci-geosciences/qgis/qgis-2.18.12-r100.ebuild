@@ -109,8 +109,13 @@ pkg_setup() {
 src_prepare() {
 	cmake-utils_src_prepare
 
-	sed -i -e "s:\${QT_BINARY_DIR}:$(qt5_get_bindir):" \
-		CMakeLists.txt || die "Failed to fix lrelease path"
+	sed -e "s:\${QT_BINARY_DIR}:$(qt5_get_bindir):" \
+		-i CMakeLists.txt || die "Failed to fix lrelease path"
+
+	sed -e "/QT_LRELEASE_EXECUTABLE/d" \
+		-e "/QT_LUPDATE_EXECUTABLE/s/set/find_program/" \
+		-e "s:lupdate-qt5:NAMES lupdate PATHS $(qt5_get_bindir) NO_DEFAULT_PATH:" \
+		-i cmake/modules/ECMQt4To5Porting.cmake || die "Failed to fix ECMQt4To5Porting.cmake"
 
 	cd src/plugins || die
 	use georeferencer || cmake_comment_add_subdirectory georeferencer
