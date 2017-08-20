@@ -48,6 +48,7 @@ DOCS=( README.md doc/ChangeLog doc/cmd.txt )
 PATCHES=(
 	# TODO: Take to upstream
 	"${FILESDIR}"/${PN}-0.26-gnuinstalldirs.patch
+	"${FILESDIR}"/${PN}-0.26-localedir.patch
 	"${FILESDIR}"/${PN}-0.26-fix-docs.patch
 	"${FILESDIR}"/${PN}-0.26-tools-optional.patch
 )

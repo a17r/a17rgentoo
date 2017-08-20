@@ -1,0 +1,45 @@
+From e32510614a9bb60a9bee1e6cc2f7bdeb0970460e Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
+Date: Sun, 20 Aug 2017 23:07:59 +0200
+Subject: [PATCH] LOCALEDIR is used by EXIV2_ENABLE_BUILD_PO so make sure it is
+ defined
+
+Otherwise it is possible to install translations in / if EXIV2_ENABLE_NLS=OFF.
+---
+ config/findDependencies.cmake | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/config/findDependencies.cmake b/config/findDependencies.cmake
+index 6b909361..db77fa68 100644
+--- a/config/findDependencies.cmake
++++ b/config/findDependencies.cmake
+@@ -24,6 +24,13 @@ if (EXIV2_ENABLE_XMP)
+     find_package(EXPAT REQUIRED)
+ endif (EXIV2_ENABLE_XMP)
+ 
++if( NOT LOCALEDIR )
++    set( LOCALEDIR "${CMAKE_INSTALL_LOCALEDIR}" )
++    if( WIN32 )
++        STRING( REPLACE "/" "\\\\" LOCALEDIR ${LOCALEDIR} )
++    endif( WIN32 )
++endif( NOT LOCALEDIR )
++
+ if( EXIV2_ENABLE_NLS )
+     find_package(Intl)
+     if(Intl_FOUND)
+@@ -32,12 +39,6 @@ if( EXIV2_ENABLE_NLS )
+     else()
+         set(LIBINTL_LIBRARIES)
+     endif()
+-    if( NOT LOCALEDIR )
+-        set( LOCALEDIR "${CMAKE_INSTALL_LOCALEDIR}" )
+-        if( WIN32 )
+-            STRING( REPLACE "/" "\\\\" LOCALEDIR ${LOCALEDIR} )
+-        endif( WIN32 )
+-    endif( NOT LOCALEDIR )
+     add_definitions( -DEXV_LOCALEDIR="${LOCALEDIR}" )
+     set( ENABLE_NLS 1 )
+     # TODO : This is assuming that Intl is always found. This check should be improved and remove
+-- 
+2.14.1
+
