@@ -1,12 +1,13 @@
-From e8e9745e4bbaf0a0dc9b5176ba6252930d8a5543 Mon Sep 17 00:00:00 2001
+From 3c82f8a0c31cf8e93780540c8c6cb0a90780dd66 Mon Sep 17 00:00:00 2001
 From: Andreas Sturmlechner <andreas.sturmlechner@gmail.com>
 Date: Sun, 20 Aug 2017 21:50:15 +0200
 Subject: [PATCH] Use more GNUInstallDirs
 
+Conveniently fixes multiarch install dir issues.
 ---
  CMakeLists.txt         |  2 ++
  config/CMakeChecks.txt |  2 --
- config/exiv2.pc.in     |  4 ++--
+ config/exiv2.pc.cmake  |  4 ++--
  po/CMakeLists.txt      |  2 +-
  samples/CMakeLists.txt |  8 ++++----
  src/CMakeLists.txt     | 12 ++++++------
@@ -39,20 +40,20 @@ index 3fe96295..f53f9e56 100644
  IF( EXIV2_ENABLE_SHARED )
      ADD_DEFINITIONS( -DEXV_HAVE_DLL )
      SET( STATIC_FLAG SHARED )
-diff --git a/config/exiv2.pc.in b/config/exiv2.pc.in
-index e74b18b0..eceaf42d 100644
---- a/config/exiv2.pc.in
-+++ b/config/exiv2.pc.in
+diff --git a/config/exiv2.pc.cmake b/config/exiv2.pc.cmake
+index 256f8ac6..afc16e2b 100644
+--- a/config/exiv2.pc.cmake
++++ b/config/exiv2.pc.cmake
 @@ -1,7 +1,7 @@
- prefix=@prefix@
- exec_prefix=@exec_prefix@
--libdir=@libdir@
--includedir=@includedir@
+ prefix=@CMAKE_INSTALL_PREFIX@
+ exec_prefix=${prefix}
+-libdir=${prefix}/lib
+-includedir=${prefix}/include
 +libdir=@CMAKE_INSTALL_FULL_LIBDIR@
 +includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
  
  Name: exiv2
- Description: Image metadata library and tools
+ Description: Exif and IPTC metadata library and tools
 diff --git a/po/CMakeLists.txt b/po/CMakeLists.txt
 index 63b37733..69e8414b 100644
 --- a/po/CMakeLists.txt
