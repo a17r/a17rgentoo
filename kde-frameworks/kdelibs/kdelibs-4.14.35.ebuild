@@ -14,7 +14,8 @@ APPS_VERSION="17.08.0" # Don't forget to bump this
 
 DESCRIPTION="Libraries needed for programs by KDE"
 [[ ${KDE_BUILD_TYPE} != live ]] && \
-SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz"
+SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz
+	https://dev.gentoo.org/~asturm/qguiplatformplugin_kde-4.11.22.tar.xz"
 
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
 LICENSE="LGPL-2.1"
@@ -132,10 +133,12 @@ PATCHES=(
 	"${FILESDIR}/${P}-3dnow.patch"
 	"${FILESDIR}/${P}-kde3support.patch"
 	"${FILESDIR}/${P}-plasma4.patch"
+	"${FILESDIR}/${P}-qguiplatformplugin.patch"
 )
-# TODO: USE=-plasma affected packages: amarok, simon, pykde4, akregator, kjots
 
 src_prepare() {
+	mv "${WORKDIR}/qguiplatformplugin_kde" "${S}"/ || die
+
 	kde4-base_src_prepare
 
 	# Rename applications.menu (needs 01_gentoo_set_xdg_menu_prefix-1.patch to work)
