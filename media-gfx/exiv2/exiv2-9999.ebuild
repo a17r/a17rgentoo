@@ -46,11 +46,12 @@ DEPEND="${RDEPEND}
 DOCS=( README.md doc/ChangeLog doc/cmd.txt )
 
 PATCHES=(
-	# TODO: Take to upstream
+	# Pending upstream
 	"${FILESDIR}"/${PN}-0.26-gnuinstalldirs.patch
 	"${FILESDIR}"/${PN}-0.26-localedir.patch
-	"${FILESDIR}"/${PN}-0.26-fix-docs.patch
 	"${FILESDIR}"/${PN}-0.26-tools-optional.patch
+	# TODO: Take to upstream
+	"${FILESDIR}"/${PN}-0.26-fix-docs.patch
 )
 
 pkg_setup() {
@@ -103,9 +104,9 @@ src_prepare() {
 
 multilib_src_configure() {
 	local mycmakeargs=(
-		-DEXIV2_ENABLE_BUILD_PO=YES
 		-DEXIV2_ENABLE_BUILD_SAMPLES=NO
 		-DEXIV2_ENABLE_NLS=$(usex nls)
+		-DEXIV2_ENABLE_BUILD_PO=$(usex nls)
 		-DEXIV2_ENABLE_PNG=$(usex png)
 		-DEXIV2_ENABLE_CURL=$(usex webready)
 		-DEXIV2_ENABLE_SSH=$(usex webready)
