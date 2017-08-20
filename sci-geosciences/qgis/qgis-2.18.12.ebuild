@@ -6,7 +6,7 @@ EAPI=6
 PYTHON_COMPAT=( python2_7 )
 PYTHON_REQ_USE="sqlite"
 
-inherit cmake-utils eutils fdo-mime gnome2-utils python-single-r1
+inherit cmake-utils eutils gnome2-utils python-single-r1 qmake-utils xdg-utils
 
 DESCRIPTION="User friendly Geographic Information System"
 HOMEPAGE="http://www.qgis.org/"
@@ -95,6 +95,9 @@ pkg_setup() {
 
 src_prepare() {
 	cmake-utils_src_prepare
+
+	sed -i -e "s:\${QT_BINARY_DIR}:$(qt4_get_bindir):" \
+		CMakeLists.txt || die "Failed to fix lrelease path"
 
 	cd src/plugins || die
 	use georeferencer || cmake_comment_add_subdirectory georeferencer
@@ -198,12 +201,12 @@ pkg_postinst() {
 	fi
 
 	gnome2_icon_cache_update
-	fdo-mime_mime_database_update
-	fdo-mime_desktop_database_update
+	xdg_mimeinfo_database_update
+	xdg_desktop_database_update
 }
 
 pkg_postrm() {
 	gnome2_icon_cache_update
-	fdo-mime_mime_database_update
-	fdo-mime_desktop_database_update
+	xdg_mimeinfo_database_update
+	xdg_desktop_database_update
 }

@@ -14,7 +14,7 @@ else
 	GIT_ECLASS="git-r3"
 	EGIT_REPO_URI="https://github.com/${PN}/${PN^^}.git"
 fi
-inherit cmake-utils eutils fdo-mime ${GIT_ECLASS} gnome2-utils python-single-r1
+inherit cmake-utils eutils ${GIT_ECLASS} gnome2-utils python-single-r1 qmake-utils xdg-utils
 unset GIT_ECLASS
 
 DESCRIPTION="User friendly Geographic Information System"
@@ -79,6 +79,7 @@ COMMON_DEPEND="
 	)
 "
 DEPEND="${COMMON_DEPEND}
+	dev-qt/linguist-tools:5
 	dev-qt/qttest:5
 	dev-qt/qtxmlpatterns:5
 	sys-devel/bison
@@ -107,6 +108,9 @@ pkg_setup() {
 
 src_prepare() {
 	cmake-utils_src_prepare
+
+	sed -i -e "s:\${QT_BINARY_DIR}:$(qt5_get_bindir):" \
+		CMakeLists.txt || die "Failed to fix lrelease path"
 
 	cd src/plugins || die
 	use georeferencer || cmake_comment_add_subdirectory georeferencer
@@ -214,12 +218,12 @@ pkg_postinst() {
 	fi
 
 	gnome2_icon_cache_update
-	fdo-mime_mime_database_update
-	fdo-mime_desktop_database_update
+	xdg_mimeinfo_database_update
+	xdg_desktop_database_update
 }
 
 pkg_postrm() {
 	gnome2_icon_cache_update
-	fdo-mime_mime_database_update
-	fdo-mime_desktop_database_update
+	xdg_mimeinfo_database_update
+	xdg_desktop_database_update
 }
