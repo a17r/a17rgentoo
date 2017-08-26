@@ -3,7 +3,7 @@
 
 EAPI=6
 
-PYTHON_COMPAT=( python2_7 )
+PYTHON_COMPAT=( python3_{4,5} )
 PYTHON_REQ_USE="sqlite"
 
 if [[ ${PV} != *9999 ]]; then
@@ -14,7 +14,7 @@ else
 	GIT_ECLASS="git-r3"
 	EGIT_REPO_URI="https://github.com/${PN}/${PN^^}.git"
 fi
-inherit cmake-utils eutils fdo-mime ${GIT_ECLASS} gnome2-utils python-single-r1
+inherit cmake-utils eutils ${GIT_ECLASS} gnome2-utils python-single-r1 qmake-utils xdg-utils
 unset GIT_ECLASS
 
 DESCRIPTION="User friendly Geographic Information System"
@@ -79,7 +79,9 @@ COMMON_DEPEND="
 	webkit? ( dev-qt/qtwebkit:5 )
 "
 DEPEND="${COMMON_DEPEND}
+	dev-qt/linguist-tools:5
 	dev-qt/qttest:5
+	dev-qt/qtxmlpatterns:5
 	sys-devel/bison
 	sys-devel/flex
 "
@@ -91,8 +93,13 @@ RDEPEND="${COMMON_DEPEND}
 RESTRICT="test"
 
 PATCHES=(
+	# TODO upstream
 	"${FILESDIR}/${PN}-2.18.6-featuresummary.patch"
 	"${FILESDIR}/${PN}-2.18.6-python.patch"
+	# Taken from redhat
+	"${FILESDIR}/${PN}-2.18.12-sip.patch"
+	# git master
+	"${FILESDIR}/${PN}-2.18.12-cmake-lib-suffix.patch"
 )
 
 pkg_setup() {
@@ -101,6 +108,14 @@ pkg_setup() {
 
 src_prepare() {
 	cmake-utils_src_prepare
+
+	sed -e "s:\${QT_BINARY_DIR}:$(qt5_get_bindir):" \
+		-i CMakeLists.txt || die "Failed to fix lrelease path"
+
+	sed -e "/QT_LRELEASE_EXECUTABLE/d" \
+		-e "/QT_LUPDATE_EXECUTABLE/s/set/find_program/" \
+		-e "s:lupdate-qt5:NAMES lupdate PATHS $(qt5_get_bindir) NO_DEFAULT_PATH:" \
+		-i cmake/modules/ECMQt4To5Porting.cmake || die "Failed to fix ECMQt4To5Porting.cmake"
 
 	cd src/plugins || die
 	use georeferencer || cmake_comment_add_subdirectory georeferencer
@@ -120,22 +135,17 @@ src_configure() {
 		-DWITH_QSPATIALITE=ON
 		-DENABLE_TESTS=OFF
 		-DENABLE_QT5=ON
-		-DENABLE_PYTHON3=$(python_is_python3)
 		-DWITH_CUSTOM_WIDGETS=$(usex designer)
 		-DWITH_GRASS=$(usex grass)
 		-DWITH_SERVER=$(usex mapserver)
 		-DWITH_ORACLE=$(usex oracle)
 		-DWITH_POSTGRESQL=$(usex postgres)
 		-DWITH_BINDINGS=$(usex python)
-		-DWITH_TOUCH="$(usex touch)"
+		-DWITH_TOUCH=$(usex touch)
 		-DWITH_QTWEBKIT=$(usex webkit)
 	)
 
-	if has_version '>=x11-misc/qscintilla-2.10'; then
-		mycmakeargs+=(
-			-DQSCINTILLA_LIBRARY=/usr/$(get_libdir)/libqscintilla2-qt5.so
-		)
-	else
+	if has_version '<x11-libs/qscintilla-2.10'; then
 		mycmakeargs+=(
 			-DQSCINTILLA_LIBRARY=/usr/$(get_libdir)/libqscintilla2.so
 		)
@@ -212,12 +222,12 @@ pkg_postinst() {
 	fi
 
 	gnome2_icon_cache_update
-	fdo-mime_mime_database_update
-	fdo-mime_desktop_database_update
+	xdg_mimeinfo_database_update
+	xdg_desktop_database_update
 }
 
 pkg_postrm() {
 	gnome2_icon_cache_update
-	fdo-mime_mime_database_update
-	fdo-mime_desktop_database_update
+	xdg_mimeinfo_database_update
+	xdg_desktop_database_update
 }
