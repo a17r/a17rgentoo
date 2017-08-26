@@ -24,7 +24,7 @@ BRANDING="${PN}-branding-gentoo-0.8.tar.xz"
 # PATCHSET="${P}-patchset-01.tar.xz"
 
 [[ ${PV} == *9999* ]] && SCM_ECLASS="git-r3"
-inherit multiprocessing autotools bash-completion-r1 check-reqs eutils java-pkg-opt-2 kde4-base pax-utils python-single-r1  toolchain-funcs flag-o-matic versionator xdg-utils qmake-utils ${SCM_ECLASS}
+inherit multiprocessing autotools bash-completion-r1 check-reqs eutils java-pkg-opt-2 kde4-base pax-utils python-single-r1 toolchain-funcs flag-o-matic versionator xdg-utils qmake-utils ${SCM_ECLASS}
 unset SCM_ECLASS
 
 DESCRIPTION="A full office productivity suite"
@@ -49,7 +49,6 @@ unset DEV_URI
 # These are bundles that can't be removed for now due to huge patchsets.
 # If you want them gone, patches are welcome.
 ADDONS_SRC=(
-	"${ADDONS_URI}/libepubgen-0.0.1.tar.bz2"
 	"collada? ( ${ADDONS_URI}/4b87018f7fff1d054939d19920b751a0-collada2gltf-master-cb1d97788a.tar.bz2 )"
 	"java? ( ${ADDONS_URI}/17410483b5b5f267aa18b7e00b65e6e0-hsqldb_1_8_0.zip )"
 	# no release for 8 years, should we package it?
@@ -70,7 +69,7 @@ unset ADDONS_SRC
 LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 
 IUSE="bluetooth +branding coinmp collada +cups dbus debug eds firebird gltf gnome googledrive
-gstreamer +gtk gtk3 jemalloc kde libressl mysql odk pdfimport postgres qt5 test vlc
+gstreamer +gtk gtk3 jemalloc kde libressl mysql odk pdfimport postgres quickstarter test vlc
 $(printf 'libreoffice_extensions_%s ' ${LO_EXTS})"
 
 LICENSE="|| ( LGPL-3 MPL-1.1 )"
@@ -168,11 +167,6 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	mysql? ( dev-db/mysql-connector-c++ )
 	pdfimport? ( app-text/poppler:=[cxx] )
 	postgres? ( >=dev-db/postgresql-9.0:*[kerberos] )
-	qt5? (
-		kde-frameworks/kcoreaddons:5
-		dev-qt/qtcore:5
-		dev-qt/qtwidgets:5
-	)
 "
 
 RDEPEND="${COMMON_DEPEND}
@@ -301,7 +295,7 @@ src_unpack() {
 	else
 		local base_uri branch mypv
 		base_uri="https://anongit.freedesktop.org/git"
-		use qt5 && branch="feature/kde5" || branch="master"
+		branch="master"
 		mypv=${PV/.9999}
 		[[ ${mypv} != ${PV} ]] && branch="${PN}-${mypv/./-}"
 		git-r3_fetch "${base_uri}/${PN}/core" "refs/heads/${branch}"
@@ -459,7 +453,6 @@ src_configure() {
 		--without-help \
 		--with-helppack-integration \
 		--with-system-gpgmepp \
-		--without-system-libepubgen \
 		--without-system-sane \
 		$(use_enable bluetooth sdremote-bluetooth) \
 		$(use_enable coinmp) \
@@ -480,7 +473,7 @@ src_configure() {
 		$(use_enable odk) \
 		$(use_enable pdfimport) \
 		$(use_enable postgres postgresql-sdbc) \
-		$(use_enable qt5 kde5) \
+		$(use_enable quickstarter systray) \
 		$(use_enable vlc) \
 		$(use_with coinmp system-coinmp) \
 		$(use_with collada system-opencollada) \
