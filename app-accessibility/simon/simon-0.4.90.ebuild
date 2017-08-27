@@ -18,7 +18,6 @@ KEYWORDS="~amd64 ~x86"
 IUSE="libsamplerate opencv sphinx"
 
 RDEPEND="
-	kde-frameworks/kdelibs:4[plasma(+)]
 	media-libs/alsa-lib
 	x11-libs/libX11
 	x11-libs/libXtst
