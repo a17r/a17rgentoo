@@ -1,0 +1,26 @@
+From f3510393ab29e734d591e49bec943c8e00e3073b Mon Sep 17 00:00:00 2001
+From: Luke Dashjr <luke-jr+git@utopios.org>
+Date: Sun, 27 Aug 2017 06:27:10 +0000
+Subject: [PATCH 4/4] mailtransport: Rename kcfg to mailtransport4.kcfg to
+ avoid conflicts with KDE 5
+
+---
+ mailtransport/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mailtransport/CMakeLists.txt b/mailtransport/CMakeLists.txt
+index 698216f1a..18ba4b9a7 100644
+--- a/mailtransport/CMakeLists.txt
++++ b/mailtransport/CMakeLists.txt
+@@ -122,7 +122,7 @@ set_target_properties(mailtransport PROPERTIES
+ )
+ 
+ install(TARGETS mailtransport EXPORT kdepimlibsLibraryTargets ${INSTALL_TARGETS_DEFAULT_ARGS})
+-install(FILES mailtransport.kcfg DESTINATION ${KCFG_INSTALL_DIR})
++install(FILES mailtransport.kcfg DESTINATION ${KCFG_INSTALL_DIR} RENAME mailtransport4.kcfg)
+ 
+ set(mailtransport_kcm_srcs configmodule.cpp)
+ kde4_add_plugin(kcm_mailtransport ${mailtransport_kcm_srcs})
+-- 
+2.14.1
+
