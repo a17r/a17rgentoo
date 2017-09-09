@@ -7,24 +7,24 @@ CPPUNIT_REQUIRED="optional"
 DECLARATIVE_REQUIRED="always"
 KDE_HANDBOOK="optional"
 OPENGL_REQUIRED="optional"
-QT3SUPPORT_REQUIRED="true"
-SQL_REQUIRED="always"
 WEBKIT_REQUIRED="optional"
-inherit kde4-base fdo-mime multilib toolchain-funcs flag-o-matic
+inherit kde4-base toolchain-funcs flag-o-matic xdg-utils
 
-APPS_VERSION="17.04.3" # Don't forget to bump this
+APPS_VERSION="17.08.0" # Don't forget to bump this
 
 DESCRIPTION="Libraries needed for programs by KDE"
 [[ ${KDE_BUILD_TYPE} != live ]] && \
-SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz"
+SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz
+	https://dev.gentoo.org/~asturm/qguiplatformplugin_kde-4.11.22.tar.xz"
 
-KEYWORDS="amd64 ~arm ~arm64 ~ppc ~ppc64 x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
 LICENSE="LGPL-2.1"
-IUSE="cpu_flags_x86_3dnow acl altivec aqua +bzip2 +crypt debug doc fam jpeg2k
-kerberos libressl lzma cpu_flags_x86_mmx nls openexr +policykit spell
-cpu_flags_x86_sse cpu_flags_x86_sse2 ssl +udev +udisks +upower zeroconf"
+IUSE="cpu_flags_x86_3dnow acl altivec +bzip2 debug doc fam jpeg2k kerberos
+libressl lzma cpu_flags_x86_mmx nls openexr plasma +policykit qt3support
+spell cpu_flags_x86_sse cpu_flags_x86_sse2 ssl +udev +udisks +upower zeroconf"
 
 REQUIRED_USE="
+	opengl? ( plasma )
 	udisks? ( udev )
 	upower? ( udev )
 "
@@ -40,6 +40,7 @@ COMMONDEPEND="
 	dev-libs/libpcre[unicode]
 	dev-libs/libxml2
 	dev-libs/libxslt
+	>=dev-qt/qtcore-${QT_MINIMAL}:4[qt3support?]
 	media-libs/fontconfig
 	media-libs/freetype:2
 	media-libs/giflib:=
@@ -48,36 +49,35 @@ COMMONDEPEND="
 	sys-libs/zlib
 	virtual/jpeg:0
 	x11-misc/shared-mime-info
+	x11-libs/libICE
+	x11-libs/libSM
+	x11-libs/libX11
+	x11-libs/libXau
+	x11-libs/libXcursor
+	x11-libs/libXdmcp
+	x11-libs/libXext
+	x11-libs/libXfixes
+	x11-libs/libXft
+	x11-libs/libXpm
+	x11-libs/libXrender
+	x11-libs/libXScrnSaver
+	x11-libs/libXtst
+	!kernel_SunOS? ( || (
+		sys-libs/libutempter
+		>=sys-freebsd/freebsd-lib-9.0
+	) )
 	acl? ( virtual/acl )
-	!aqua? (
-		x11-libs/libICE
-		x11-libs/libSM
-		x11-libs/libX11
-		x11-libs/libXau
-		x11-libs/libXcursor
-		x11-libs/libXdmcp
-		x11-libs/libXext
-		x11-libs/libXfixes
-		x11-libs/libXft
-		x11-libs/libXpm
-		x11-libs/libXrender
-		x11-libs/libXScrnSaver
-		x11-libs/libXtst
-		!kernel_SunOS? (
-			|| (
-				sys-libs/libutempter
-				>=sys-freebsd/freebsd-lib-9.0
-			)
-		)
-	)
 	bzip2? ( app-arch/bzip2 )
-	crypt? ( app-crypt/qca:2[qt4] )
 	fam? ( virtual/fam )
 	jpeg2k? ( media-libs/jasper:= )
 	kerberos? ( virtual/krb5 )
 	openexr? (
 		media-libs/openexr:=
 		media-libs/ilmbase:=
+	)
+	plasma? (
+		app-crypt/qca:2[qt4]
+		>=dev-qt/qtsql-${QT_MINIMAL}:4[qt3support?]
 	)
 	policykit? ( sys-auth/polkit-qt[qt4] )
 	spell? ( app-text/enchant )
@@ -98,14 +98,13 @@ RDEPEND="${COMMONDEPEND}
 	app-misc/ca-certificates
 	kde-frameworks/kdelibs-env:4
 	sys-apps/dbus[X]
-	!aqua? (
-		x11-apps/iceauth
-		x11-apps/rgb
-		x11-misc/xdg-utils
-		udisks? ( sys-fs/udisks:2 )
-		upower? ( || ( >=sys-power/upower-0.9.23 sys-power/upower-pm-utils ) )
-	)
+	x11-apps/iceauth
+	x11-apps/rgb
+	x11-misc/xdg-utils
+	plasma? ( !sci-libs/plasma )
+	upower? ( || ( >=sys-power/upower-0.9.23 sys-power/upower-pm-utils ) )
 	udev? ( app-misc/media-player-info )
+	udisks? ( sys-fs/udisks:2 )
 "
 PDEPEND="
 	x11-misc/xdg-utils
@@ -125,11 +124,15 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.10.0-udisks.patch"
 	"${FILESDIR}/${PN}-4.14.20-FindQt4.patch"
 	"${FILESDIR}/${PN}-4.14.22-webkit.patch"
-	"${FILESDIR}/${P}-svg.patch"
-	"${FILESDIR}/${P}-cmake-3.9.patch"
+	"${FILESDIR}/${P}-3dnow.patch"
+	"${FILESDIR}/${P}-kde3support.patch"
+	"${FILESDIR}/${P}-plasma4.patch"
+	"${FILESDIR}/${P}-qguiplatformplugin.patch"
 )
 
 src_prepare() {
+	mv "${WORKDIR}/qguiplatformplugin_kde" "${S}"/ || die
+
 	kde4-base_src_prepare
 
 	# Rename applications.menu (needs 01_gentoo_set_xdg_menu_prefix-1.patch to work)
@@ -140,36 +143,6 @@ src_prepare() {
 		sed -i -e "/if/ s/QT_QTOPENGL_FOUND/FALSE/" \
 			plasma/CMakeLists.txt plasma/tests/CMakeLists.txt includes/CMakeLists.txt \
 			|| die "failed to sed out QT_QTOPENGL_FOUND"
-	fi
-
-	if use aqua; then
-		sed -i -e \
-			"s:BUNDLE_INSTALL_DIR \"/Applications:BUNDLE_INSTALL_DIR \"${EPREFIX}/${APP_BUNDLE_DIR}:g" \
-			cmake/modules/FindKDE4Internal.cmake || die "failed to sed FindKDE4Internal.cmake"
-
-		#if [[ ${CHOST} == *-darwin8 ]]; then
-		sed -i -e \
-			"s:set(_add_executable_param MACOSX_BUNDLE):remove(_add_executable_param MACOSX_BUNDLE):g" \
-			cmake/modules/KDE4Macros.cmake || die "failed to sed KDE4Macros.cmake"
-		#fi
-
-		# solid/solid/backends/iokit doesn't properly link, so disable it.
-		sed -e "s|\(APPLE\)|(FALSE)|g" -i solid/solid/CMakeLists.txt \
-			|| die "disabling solid/solid/backends/iokit failed"
-		sed -e "s|m_backend = .*Backends::IOKit.*;|m_backend = 0;|g" -i solid/solid/managerbase.cpp \
-			|| die "disabling solid/solid/backends/iokit failed"
-
-		# There's no fdatasync on OSX and the check fails to detect that.
-		sed -e "/HAVE_FDATASYNC/ d" -i config.h.cmake \
-			|| die "disabling fdatasync failed"
-
-		# Fix nameser include to nameser8_compat
-		sed -e "s|nameser8_compat.h|nameser_compat.h|g" -i kio/misc/kpac/discovery.cpp \
-			|| die "fixing nameser include failed"
-		append-flags -DHAVE_ARPA_NAMESER8_COMPAT_H=1
-
-		# Try to fix kkeyserver_mac
-		eapply "${FILESDIR}"/${PN}-4.3.80-kdeui_util_kkeyserver_mac.patch
 	fi
 }
 
@@ -190,14 +163,16 @@ src_configure() {
 		-DHAVE_X86_SSE2=$(usex cpu_flags_x86_sse2)
 		-DWITH_ACL=$(usex acl)
 		-DWITH_BZip2=$(usex bzip2)
-		-DWITH_QCA2=$(usex crypt)
 		-DWITH_FAM=$(usex fam)
 		-DWITH_Jasper=$(usex jpeg2k)
 		-DWITH_GSSAPI=$(usex kerberos)
 		-DWITH_LibLZMA=$(usex lzma)
 		-DWITH_Libintl=$(usex nls)
 		-DWITH_OpenEXR=$(usex openexr)
+		-DWITH_PLASMA4SUPPORT=$(usex plasma)
+		-DWITH_QCA2=$(usex plasma)
 		-DWITH_PolkitQt-1=$(usex policykit)
+		-DWITH_KDE3SUPPORT=$(usex qt3support)
 		-DWITH_ENCHANT=$(usex spell)
 		-DWITH_OpenSSL=$(usex ssl)
 		-DWITH_UDev=$(usex udev)
@@ -227,32 +202,13 @@ src_install() {
 
 	# use system certificates
 	rm -f "${ED}"/usr/share/apps/kssl/ca-bundle.crt || die
-	dosym /etc/ssl/certs/ca-certificates.crt /usr/share/apps/kssl/ca-bundle.crt
+	dosym ../../../../etc/ssl/certs/ca-certificates.crt /usr/share/apps/kssl/ca-bundle.crt
 
 	if use doc; then
 		einfo "Installing API documentation. This could take a bit of time."
 		cd "${S}"/doc/api/
 		docinto /HTML/en/kdelibs-apidox
 		dohtml -r ${P}-apidocs/*
-	fi
-
-	if use aqua; then
-		einfo "fixing ${PN} plugins"
-
-		local _PV=${PV:0:3}.0
-		local _dir=${EPREFIX}/usr/$(get_libdir)/kde4/plugins/script
-
-		install_name_tool -id \
-			"${_dir}/libkrossqtsplugin.${_PV}.dylib" \
-			"${D}/${_dir}/libkrossqtsplugin.${_PV}.dylib" \
-			|| die "failed fixing libkrossqtsplugin.${_PV}.dylib"
-
-		einfo "fixing ${PN} cmake detection files"
-		#sed -i -e \
-		#	"s:if (HAVE_XKB):if (HAVE_XKB AND NOT APPLE):g" \
-		echo -e "set(XKB_FOUND FALSE)\nset(HAVE_XKB FALSE)" > \
-			"${ED}"/usr/share/apps/cmake/modules/FindXKB.cmake \
-			|| die "failed fixing FindXKB.cmake"
 	fi
 
 	# We don't package it, so don't install headers
@@ -266,7 +222,7 @@ src_install() {
 }
 
 pkg_postinst() {
-	fdo-mime_mime_database_update
+	xdg_mimeinfo_database_update
 
 	if use zeroconf; then
 		elog
@@ -289,7 +245,7 @@ pkg_prerm() {
 }
 
 pkg_postrm() {
-	fdo-mime_mime_database_update
+	xdg_mimeinfo_database_update
 
 	kde4-base_pkg_postrm
 }
