@@ -10,11 +10,12 @@ OPENGL_REQUIRED="optional"
 WEBKIT_REQUIRED="optional"
 inherit kde4-base toolchain-funcs flag-o-matic xdg-utils
 
-APPS_VERSION="17.08.0" # Don't forget to bump this
+APPS_VERSION="17.08.1" # Don't forget to bump this
 
 DESCRIPTION="Libraries needed for programs by KDE"
 [[ ${KDE_BUILD_TYPE} != live ]] && \
-SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz"
+SRC_URI="mirror://kde/stable/applications/${APPS_VERSION}/src/${P}.tar.xz
+	https://dev.gentoo.org/~asturm/qguiplatformplugin_kde-4.11.22.tar.xz"
 
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux"
 LICENSE="LGPL-2.1"
@@ -47,6 +48,7 @@ COMMONDEPEND="
 	media-libs/phonon[qt4]
 	sys-libs/zlib
 	virtual/jpeg:0
+	x11-misc/shared-mime-info
 	x11-libs/libICE
 	x11-libs/libSM
 	x11-libs/libX11
@@ -60,7 +62,6 @@ COMMONDEPEND="
 	x11-libs/libXrender
 	x11-libs/libXScrnSaver
 	x11-libs/libXtst
-	x11-misc/shared-mime-info
 	!kernel_SunOS? ( || (
 		sys-libs/libutempter
 		>=sys-freebsd/freebsd-lib-9.0
@@ -101,9 +102,9 @@ RDEPEND="${COMMONDEPEND}
 	x11-apps/rgb
 	x11-misc/xdg-utils
 	plasma? ( !sci-libs/plasma )
+	upower? ( || ( >=sys-power/upower-0.9.23 sys-power/upower-pm-utils ) )
 	udev? ( app-misc/media-player-info )
 	udisks? ( sys-fs/udisks:2 )
-	upower? ( || ( >=sys-power/upower-0.9.23 sys-power/upower-pm-utils ) )
 "
 PDEPEND="
 	x11-misc/xdg-utils
@@ -123,13 +124,17 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.10.0-udisks.patch"
 	"${FILESDIR}/${PN}-4.14.20-FindQt4.patch"
 	"${FILESDIR}/${PN}-4.14.22-webkit.patch"
-	"${FILESDIR}/${P}-3dnow.patch"
-	"${FILESDIR}/${P}-kde3support.patch"
-	"${FILESDIR}/${P}-plasma4.patch"
-	"${FILESDIR}/${P}-enchant2.patch"
+	"${FILESDIR}/${PN}-3dnow.patch"
+	"${FILESDIR}/${PN}-4.14.35-kde3support.patch"
+	"${FILESDIR}/${PN}-4.14.35-plasma4.patch"
+	"${FILESDIR}/${PN}-4.14.35-qguiplatformplugin.patch"
+	# upstream:
+	"${FILESDIR}/${PN}-4.14.35-enchant2.patch"
 )
 
 src_prepare() {
+	mv "${WORKDIR}/qguiplatformplugin_kde" "${S}"/ || die
+
 	kde4-base_src_prepare
 
 	# Rename applications.menu (needs 01_gentoo_set_xdg_menu_prefix-1.patch to work)
