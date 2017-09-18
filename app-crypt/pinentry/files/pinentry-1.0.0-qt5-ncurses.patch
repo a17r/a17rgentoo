@@ -1,0 +1,60 @@
+From cd7b35e8ff106993b9ce98ea99a5210d637f3452 Mon Sep 17 00:00:00 2001
+From: Andre Heinecke <aheinecke@intevation.de>
+Date: Mon, 13 Feb 2017 17:34:24 +0100
+Subject: [PATCH] qt: Fix pinentry-curses fallback for qt5
+
+* qt/main.cpp (main): Initialize QApplication later.
+
+--
+This fixes the curses fallback because with Qt5 the creation of
+the auto_ptr for the application already initialized the XCB subsystem
+and caused the abort of the application.
+
+Also removes the usage of the deprecated auto_ptr.
+---
+ qt/main.cpp | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/qt/main.cpp b/qt/main.cpp
+index e2af686..40d0a5b 100644
+--- a/qt/main.cpp
++++ b/qt/main.cpp
+@@ -42,7 +42,6 @@
+ #include <stdlib.h>
+ #include <errno.h>
+ 
+-#include <memory>
+ #include <stdexcept>
+ #include <gpg-error.h>
+ 
+@@ -313,7 +312,7 @@ main(int argc, char *argv[])
+ {
+     pinentry_init("pinentry-qt");
+ 
+-    std::auto_ptr<QApplication> app;
++    QApplication *app = Q_NULLPTR;
+ 
+ #ifdef FALLBACK_CURSES
+     if (!pinentry_have_display(argc, argv)) {
+@@ -353,14 +352,14 @@ main(int argc, char *argv[])
+                 p += strlen(argv[i]) + 1;
+             }
+ 
+-        /* We use a modal dialog window, so we don't need the application
+-           window anymore.  */
+         i = argc;
+-        app.reset(new QApplication(i, new_argv));
++        app = new QApplication(i, new_argv);
+         app->setWindowIcon(QIcon(QLatin1String(":/document-encrypt.png")));
+     }
+ 
+     pinentry_parse_opts(argc, argv);
+ 
+-    return pinentry_loop() ? EXIT_FAILURE : EXIT_SUCCESS ;
++    int rc = pinentry_loop();
++    delete app;
++    return rc ? EXIT_FAILURE : EXIT_SUCCESS ;
+ }
+-- 
+2.8.0.rc3
+
