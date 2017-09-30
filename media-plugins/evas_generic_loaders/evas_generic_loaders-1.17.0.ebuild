@@ -13,7 +13,7 @@ else
 	EKEY_STATE="release"
 fi
 
-inherit enlightenment toolchain-funcs
+inherit enlightenment flag-o-matic
 
 DESCRIPTION="Provides external applications as generic loaders for Evas"
 HOMEPAGE="https://www.enlightenment.org/"
