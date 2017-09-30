@@ -13,7 +13,7 @@ else
 	EKEY_STATE="snap"
 fi
 
-inherit enlightenment
+inherit enlightenment toolchain-funcs
 
 DESCRIPTION="Provides external applications as generic loaders for Evas"
 HOMEPAGE="https://www.enlightenment.org/"
