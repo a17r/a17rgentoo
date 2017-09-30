@@ -38,10 +38,13 @@ DEPEND="${RDEPEND}"
 
 S=${WORKDIR}/${MY_P}
 
-src_configure() {
+src_prepare() {
 	# bug 627402, poppler headers require C++11
 	use pdf && append-cxxflags -std=c++11
+	default
+}
 
+src_configure() {
 	E_ECONF=(
 		$(use_enable gstreamer gstreamer1)
 		$(use_enable pdf poppler)
