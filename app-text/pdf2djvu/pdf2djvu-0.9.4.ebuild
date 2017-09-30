@@ -39,10 +39,13 @@ pkg_setup() {
 	use test && python-any-r1_pkg_setup
 }
 
-src_configure() {
+src_prepare() {
 	# bug 626874, poppler headers require C++11
 	append-cxxflags -std=c++11
+	default
+}
 
+src_configure() {
 	local openmp=--disable-openmp
 	use openmp && tc-has-openmp && openmp=--enable-openmp
 
