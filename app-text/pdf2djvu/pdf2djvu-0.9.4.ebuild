@@ -41,7 +41,7 @@ pkg_setup() {
 
 src_configure() {
 	# bug 626874, poppler headers require C++11
-	use pdf && append-cxxflags -std=c++11
+	append-cxxflags -std=c++11
 
 	local openmp=--disable-openmp
 	use openmp && tc-has-openmp && openmp=--enable-openmp
