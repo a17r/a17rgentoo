@@ -5,7 +5,7 @@ EAPI=5
 
 PYTHON_COMPAT=( python2_7 )
 
-inherit python-any-r1 toolchain-funcs
+inherit python-any-r1 toolchain-funcs flag-o-matic
 
 DESCRIPTION="A tool to create DjVu files from PDF files"
 HOMEPAGE="http://jwilk.net/software/pdf2djvu"
