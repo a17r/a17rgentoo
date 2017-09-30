@@ -33,8 +33,7 @@ src_prepare() {
 	has_version '>=app-text/poppler-0.20.0:0' && epatch "${FILESDIR}/poppler020.patch"
 	has_version '>=app-text/poppler-0.22.0:0' && epatch "${FILESDIR}/poppler022.patch"
 	has_version '>=app-text/poppler-0.26.0:0' && epatch "${FILESDIR}/poppler026-backport.patch"
-	# bug 627538, poppler headers require C++11
-	has_version '>=app-text/poppler-0.57.0:0' && append-cxxflags -std=c++11
+	has_version '>=app-text/poppler-0.57.0:0' && append-cxxflags -std=c++11 # bug 627538
 	epatch "${FILESDIR}/kpathsea2012.patch" \
 		"${FILESDIR}/remove-zlib-version-check.patch"
 	S="${S}/build-aux" elibtoolize --shallow
