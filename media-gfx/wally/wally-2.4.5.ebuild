@@ -3,7 +3,7 @@
 
 EAPI=6
 
-inherit cmake-utils eutils
+inherit cmake-utils eutils xdg-utils
 
 DESCRIPTION="Qt4 wallpaper changer"
 HOMEPAGE="http://www.becrux.com/index.php?page=projects&name=wally"
