@@ -93,9 +93,6 @@ RDEPEND="${COMMON_DEPEND}
 RESTRICT="test"
 
 PATCHES=(
-	# TODO upstream
-	"${FILESDIR}/${PN}-2.18.6-featuresummary.patch"
-	"${FILESDIR}/${PN}-2.18.6-python.patch"
 	# Taken from redhat
 	"${FILESDIR}/${PN}-2.18.12-sip.patch"
 	# git master
@@ -181,10 +178,10 @@ src_install() {
 
 	local size type
 	for size in 16 22 24 32 48 64 96 128 256; do
-		newicon -s ${size} debian/${PN}-icon${size}x${size}.png ${PN}.png
-		newicon -c mimetypes -s ${size} debian/${PN}-mime-icon${size}x${size}.png ${PN}-mime.png
+		newicon -s ${size} debian/icons/${PN}-icon${size}x${size}.png ${PN}.png
+		newicon -c mimetypes -s ${size} debian/icons/${PN}-mime-icon${size}x${size}.png ${PN}-mime.png
 		for type in qgs qml qlr qpt; do
-			newicon -c mimetypes -s ${size} debian/${PN}-${type}${size}x${size}.png ${PN}-${type}.png
+			newicon -c mimetypes -s ${size} debian/icons/${PN}-${type}${size}x${size}.png ${PN}-${type}.png
 		done
 	done
 	newicon -s scalable images/icons/qgis_icon.svg qgis.svg
