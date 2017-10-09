@@ -100,17 +100,15 @@ src_prepare() {
 
 multilib_src_configure() {
 	local mycmakeargs=(
-		-DEXIV2_ENABLE_BUILD_SAMPLES=NO
+		-DEXIV2_BUILD_SAMPLES=NO
+#		-DEXIV2_BUILD_PO=$(usex nls)
 		-DEXIV2_ENABLE_NLS=$(usex nls)
-		-DEXIV2_ENABLE_BUILD_PO=$(usex nls)
 		-DEXIV2_ENABLE_PNG=$(usex png)
 		-DEXIV2_ENABLE_CURL=$(usex webready)
 		-DEXIV2_ENABLE_SSH=$(usex webready)
 		-DEXIV2_ENABLE_WEBREADY=$(usex webready)
 		-DEXIV2_ENABLE_XMP=$(usex xmp)
-		-DEXIV2_ENABLE_LIBXMP=NO
-		$(multilib_is_native_abi || \
-			echo -DEXIV2_ENABLE_TOOLS=NO)
+		$(multilib_is_native_abi || echo -DEXIV2_BUILD_EXIV2_COMMAND=NO)
 	)
 
 	cmake-utils_src_configure
