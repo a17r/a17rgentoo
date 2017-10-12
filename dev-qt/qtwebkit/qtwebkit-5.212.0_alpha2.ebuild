@@ -5,7 +5,7 @@ EAPI=6
 
 CMAKE_MAKEFILE_GENERATOR="ninja"
 PYTHON_COMPAT=( python2_7 )
-QT_MIN_VER="5.9.2:5" # Minimum Qt version
+QT_MIN_VER="5.6.2:5"
 USE_RUBY="ruby22 ruby23 ruby24"
 inherit check-reqs cmake-utils flag-o-matic python-any-r1 qmake-utils ruby-single toolchain-funcs
 
@@ -69,7 +69,7 @@ RDEPEND="
 DEPEND="${RDEPEND}
 	${PYTHON_DEPS}
 	${RUBY_DEPS}
-	>=dev-lang/perl-5.10
+	dev-lang/perl
 	dev-util/gperf
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
