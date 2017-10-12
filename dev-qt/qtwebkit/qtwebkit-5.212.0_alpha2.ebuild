@@ -18,7 +18,7 @@ SLOT=5
 LICENSE="LGPL-2+ BSD"
 KEYWORDS="~amd64 ~x86"
 
-IUSE="+geolocation +gstreamer +hyphen +jit multimedia nsplugin opengl orientation +printsupport qml +webp X"
+IUSE="+geolocation gles2 +gstreamer +hyphen +jit multimedia nsplugin opengl orientation +printsupport qml +webp X"
 
 REQUIRED_USE="
 	nsplugin? ( X )
@@ -48,7 +48,10 @@ RDEPEND="
 	)
 	hyphen? ( dev-libs/hyphen )
 	multimedia? ( >=dev-qt/qtmultimedia-${QT_MIN_VER}[widgets] )
-	opengl? ( >=dev-qt/qtopengl-${QT_MIN_VER} )
+	opengl? (
+		>=dev-qt/qtgui-${QT_MIN_VER}[gles2=]
+		>=dev-qt/qtopengl-${QT_MIN_VER}
+	)
 	orientation? ( >=dev-qt/qtsensors-${QT_MIN_VER} )
 	printsupport? ( >=dev-qt/qtprintsupport-${QT_MIN_VER} )
 	qml? (
