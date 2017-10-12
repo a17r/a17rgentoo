@@ -32,7 +32,7 @@ RDEPEND="
 	dev-libs/icu:=
 	dev-libs/libxml2:2
 	dev-libs/libxslt
-	>=dev-qt/qtcore-${QT_MIN_VER}=
+	>=dev-qt/qtcore-${QT_MIN_VER}=[icu]
 	>=dev-qt/qtgui-${QT_MIN_VER}
 	>=dev-qt/qtnetwork-${QT_MIN_VER}
 	>=dev-qt/qtwidgets-${QT_MIN_VER}
