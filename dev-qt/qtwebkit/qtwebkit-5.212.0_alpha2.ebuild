@@ -18,7 +18,7 @@ SLOT=5
 LICENSE="LGPL-2+ BSD"
 KEYWORDS="~amd64 ~x86"
 
-IUSE="+geolocation gles2 +gstreamer +hyphen +jit multimedia nsplugin opengl orientation +printsupport qml +webp X"
+IUSE="+geolocation gles2 +gstreamer +hyphen +jit multimedia nsplugin opengl orientation +printsupport qml webp X"
 
 REQUIRED_USE="
 	nsplugin? ( X )
@@ -37,7 +37,6 @@ RDEPEND="
 	>=dev-qt/qtnetwork-${QT_MIN_VER}
 	>=dev-qt/qtwidgets-${QT_MIN_VER}
 	media-libs/libpng:0=
-	media-libs/libwebp:=
 	virtual/jpeg:0
 	geolocation? ( >=dev-qt/qtpositioning-${QT_MIN_VER} )
 	gstreamer? (
@@ -58,6 +57,7 @@ RDEPEND="
 		>=dev-qt/qtdeclarative-${QT_MIN_VER}
 		>=dev-qt/qtwebchannel-${QT_MIN_VER}[qml]
 	)
+	webp? ( media-libs/libwebp:0= )
 	X? (
 		x11-libs/libX11
 		x11-libs/libXcomposite
@@ -129,6 +129,7 @@ src_configure() {
 		-DENABLE_OPENGL=$(usex opengl)
 		-DENABLE_DEVICE_ORIENTATION=$(usex orientation)
 		-DENABLE_WEBKIT2=$(usex qml)
+		$(cmake-utils_use_find_package webp WebP)
 		-DENABLE_X11_TARGET=$(usex X)
 		-DCMAKE_BUILD_TYPE=Release
 		-DPORT=Qt
