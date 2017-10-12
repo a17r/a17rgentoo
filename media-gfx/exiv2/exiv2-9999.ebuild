@@ -34,21 +34,16 @@ RDEPEND="
 
 DEPEND="${RDEPEND}
 	doc? (
+		${PYTHON_DEPS}
 		app-doc/doxygen
 		dev-libs/libxslt
 		media-gfx/graphviz
 		virtual/pkgconfig
-		${PYTHON_DEPS}
 	)
 	nls? ( sys-devel/gettext )
 "
 
 DOCS=( README.md doc/ChangeLog doc/cmd.txt )
-
-PATCHES=(
-	# TODO: Take to upstream
-# 	"${FILESDIR}"/${PN}-0.26-fix-docs.patch
-)
 
 pkg_setup() {
 	use doc && python-any-r1_pkg_setup
@@ -101,7 +96,7 @@ src_prepare() {
 multilib_src_configure() {
 	local mycmakeargs=(
 		-DEXIV2_BUILD_SAMPLES=NO
-#		-DEXIV2_BUILD_PO=$(usex nls)
+		-DEXIV2_BUILD_PO=$(usex nls)
 		-DEXIV2_ENABLE_NLS=$(usex nls)
 		-DEXIV2_ENABLE_PNG=$(usex png)
 		-DEXIV2_ENABLE_CURL=$(usex webready)
