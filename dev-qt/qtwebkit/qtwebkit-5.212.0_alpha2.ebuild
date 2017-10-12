@@ -7,7 +7,7 @@ CMAKE_MAKEFILE_GENERATOR="ninja"
 PYTHON_COMPAT=( python2_7 )
 QT_MIN_VER="5.9.2:5" # Minimum Qt version
 USE_RUBY="ruby22 ruby23 ruby24"
-inherit check-reqs cmake-utils flag-o-matic python-any-r1 ruby-single toolchain-funcs
+inherit check-reqs cmake-utils flag-o-matic python-any-r1 qmake-utils ruby-single toolchain-funcs
 
 DESCRIPTION="Open source web browser engine"
 HOMEPAGE="https://www.qt.io/"
@@ -141,4 +141,10 @@ src_compile() {
 
 src_install() {
 	cmake-utils_src_install
+
+	# bug 572056
+	if [[ ! -f ${D%/}$(qt5_get_libdir)/libQt5WebKit.so ]]; then
+		eerror "${CATEGORY}/${PF} could not build due to a broken ruby environment."
+		die 'Check "eselect ruby" and ensure you have a working ruby in your $PATH'
+	fi
 }
