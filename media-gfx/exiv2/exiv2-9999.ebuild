@@ -31,7 +31,6 @@ RDEPEND="
 	)
 	xmp? ( >=dev-libs/expat-2.1.0-r3[${MULTILIB_USEDEP}] )
 "
-
 DEPEND="${RDEPEND}
 	doc? (
 		${PYTHON_DEPS}

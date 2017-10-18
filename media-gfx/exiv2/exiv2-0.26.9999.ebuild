@@ -9,13 +9,12 @@ if [[ ${PV} = *9999 ]]; then
 	EGIT_REPO_URI="https://github.com/Exiv2/exiv2.git"
 	EGIT_BRANCH="0.26"
 	GIT_ECLASS=git-r3
-elif [[ ${PV} = *_pre* ]]; then
+elif [[ ${PV} = *_p* ]]; then
 	COMMIT=269370863ecd61dd038eed3b96ecd65898d3bb6e
 	GIT_ECLASS=vcs-snapshot
 	SRC_URI="https://github.com/Exiv2/${PN}/tarball/${COMMIT} -> ${P}.tar.gz"
 else
 	SRC_URI="http://www.exiv2.org/builds/${P}-trunk.tar.gz"
-	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~x64-solaris ~x86-solaris"
 fi
 inherit cmake-multilib python-any-r1 ${GIT_ECLASS}
 
@@ -25,6 +24,7 @@ HOMEPAGE="http://www.exiv2.org/"
 LICENSE="GPL-2"
 SLOT="0/26"
 IUSE="doc examples nls png webready xmp $(printf 'linguas_%s ' ${LINGUAS})"
+[[ ${PV} != *9999 ]] && KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~x64-solaris ~x86-solaris"
 
 RDEPEND="
 	>=virtual/libiconv-0-r1[${MULTILIB_USEDEP}]
@@ -36,7 +36,6 @@ RDEPEND="
 	)
 	xmp? ( >=dev-libs/expat-2.1.0-r3[${MULTILIB_USEDEP}] )
 "
-
 DEPEND="${RDEPEND}
 	doc? (
 		${PYTHON_DEPS}
