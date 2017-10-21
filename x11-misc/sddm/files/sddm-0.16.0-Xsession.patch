@@ -1,0 +1,20 @@
+--- a/Xsession	2017-10-09 17:05:49.000000000 +0200
++++ b/Xsession	2017-10-09 17:08:57.813073531 +0200
+@@ -50,6 +50,10 @@
+     ;;
+ esac
+ 
++# Make D-Bus and ConsoleKit start properly, see:
++# /etc/X11/xinit/xinitrc.d/{80-dbus,90-consolekit}
++command="$@"
++
+ [ -f /etc/xprofile ] && . /etc/xprofile
+ [ -f $HOME/.xprofile ] && . $HOME/.xprofile
+ 
+@@ -97,5 +101,5 @@
+ if [ -z "$@" ]; then
+     exec xmessage -center -buttons OK:0 -default OK "Sorry, $DESKTOP_SESSION is no valid session."
+ else
+-    exec ck-launch-session $@
++    exec $command
+ fi
