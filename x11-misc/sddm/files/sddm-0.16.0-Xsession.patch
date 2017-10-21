@@ -1,5 +1,5 @@
 --- a/data/scripts/Xsession	2016-08-28 14:52:04.910181422 +0200
-+++ b/data/scripts/Xsession	2017-10-09 17:08:57.813073531 +0200
++++ b/data/scripts/Xsession	2017-10-21 15:25:47.668886596 +0200
 @@ -50,6 +50,10 @@
      ;;
  esac
@@ -11,8 +11,12 @@
  [ -f /etc/xprofile ] && . /etc/xprofile
  [ -f $HOME/.xprofile ] && . $HOME/.xprofile
  
-@@ -97,5 +101,5 @@
- if [ -z "$@" ]; then
+@@ -94,8 +98,8 @@
+   . "$USERXSESSION"
+ fi
+ 
+-if [ -z "$@" ]; then
++if [ -z "$command" ]; then
      exec xmessage -center -buttons OK:0 -default OK "Sorry, $DESKTOP_SESSION is no valid session."
  else
 -    exec $@
