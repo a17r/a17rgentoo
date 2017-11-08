@@ -20,7 +20,7 @@ BRANDING="${PN}-branding-gentoo-0.8.tar.xz"
 # PATCHSET="${P}-patchset-01.tar.xz"
 
 [[ ${PV} == *9999* ]] && SCM_ECLASS="git-r3"
-inherit multiprocessing autotools bash-completion-r1 check-reqs eutils java-pkg-opt-2 pax-utils python-single-r1 toolchain-funcs flag-o-matic versionator xdg-utils qmake-utils ${SCM_ECLASS}
+inherit multiprocessing autotools bash-completion-r1 check-reqs gnome2-utils java-pkg-opt-2 pax-utils python-single-r1 toolchain-funcs flag-o-matic versionator xdg-utils qmake-utils ${SCM_ECLASS}
 unset SCM_ECLASS
 
 DESCRIPTION="A full office productivity suite"
@@ -555,17 +555,13 @@ pkg_preinst() {
 }
 
 pkg_postinst() {
-	if [[ -n ${GNOME2_ECLASS_ICONS} ]]; then
-		gnome2_icon_cache_update
-	fi
+	gnome2_icon_cache_update
 	xdg_desktop_database_update
 	xdg_mimeinfo_database_update
 }
 
 pkg_postrm() {
-	if [[ -n ${GNOME2_ECLASS_ICONS} ]]; then
-		gnome2_icon_cache_update
-	fi
+	gnome2_icon_cache_update
 	xdg_desktop_database_update
 	xdg_mimeinfo_database_update
 }
