@@ -312,8 +312,7 @@ src_unpack() {
 
 src_prepare() {
 	[[ -n ${PATCHSET} ]] && eapply "${WORKDIR}/${PATCHSET/.tar.xz/}"
-	eapply "${PATCHES[@]}"
-	eapply_user
+	default
 
 	AT_M4DIR="m4" eautoreconf
 	# hack in the autogen.sh
