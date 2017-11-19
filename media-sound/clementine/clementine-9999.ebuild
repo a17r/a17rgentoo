@@ -1,1 +1,0 @@
-/home/andreas/gentoo/media-sound/clementine/clementine-9999.ebuild

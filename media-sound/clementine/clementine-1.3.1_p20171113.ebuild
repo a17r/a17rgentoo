@@ -1,1 +1,0 @@
-/home/andreas/gentoo/media-sound/clementine/clementine-1.3.1_p20171113.ebuild
