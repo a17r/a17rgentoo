@@ -44,7 +44,7 @@ COMMON_DEPEND="
 	dev-qt/qtsql:5
 	dev-qt/qtwidgets:5
 	dev-qt/qtxml:5
-	sci-libs/gdal:=[geos,python?,${PYTHON_USEDEP}]
+	>=sci-libs/gdal-2.2.3:=[geos,python?,${PYTHON_USEDEP}]
 	sci-libs/geos
 	sci-libs/libspatialindex:=
 	sci-libs/proj
