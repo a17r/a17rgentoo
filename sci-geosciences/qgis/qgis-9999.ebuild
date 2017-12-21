@@ -5,6 +5,7 @@ EAPI=6
 
 PYTHON_COMPAT=( python3_{4,5} )
 PYTHON_REQ_USE="sqlite"
+QT_MIN_VER="5.9.1"
 
 if [[ ${PV} != *9999 ]]; then
 	SRC_URI="http://qgis.org/downloads/${P}.tar.bz2
@@ -22,36 +23,35 @@ HOMEPAGE="http://www.qgis.org/"
 
 LICENSE="GPL-2+ GPL-3+"
 SLOT="0"
-IUSE="designer examples georeferencer grass mapserver oracle postgres python touch webkit"
+IUSE="designer examples georeferencer grass mapserver oracle polar postgres python webkit"
 
 REQUIRED_USE="
 	mapserver? ( python )
 	python? ( ${PYTHON_REQUIRED_USE} )"
 
 COMMON_DEPEND="
-	app-crypt/qca:2[qt5,ssl]
-	>=dev-db/spatialite-4.1.0
+	app-crypt/qca:2[qt5(+),ssl]
+	>=dev-db/spatialite-4.2.0
 	dev-db/sqlite:3
 	dev-libs/expat
-	dev-qt/qtconcurrent:5
-	dev-qt/qtcore:5
-	dev-qt/qtgui:5
-	dev-qt/qtnetwork:5
-	dev-qt/qtpositioning:5
-	dev-qt/qtprintsupport:5
-	dev-qt/qtscript:5
-	dev-qt/qtsvg:5
-	dev-qt/qtsql:5
-	dev-qt/qtwidgets:5
-	dev-qt/qtxml:5
+	dev-libs/libzip:=
+	>=dev-qt/qtconcurrent-${QT_MIN_VER}:5
+	>=dev-qt/qtcore-${QT_MIN_VER}:5
+	>=dev-qt/qtgui-${QT_MIN_VER}:5
+	>=dev-qt/qtnetwork-${QT_MIN_VER}:5
+	>=dev-qt/qtpositioning-${QT_MIN_VER}:5
+	>=dev-qt/qtprintsupport-${QT_MIN_VER}:5
+	>=dev-qt/qtsvg-${QT_MIN_VER}:5
+	>=dev-qt/qtsql-${QT_MIN_VER}:5
+	>=dev-qt/qtwidgets-${QT_MIN_VER}:5
+	>=dev-qt/qtxml-${QT_MIN_VER}:5
 	>=sci-libs/gdal-2.2.3:=[geos,python?,${PYTHON_USEDEP}]
 	sci-libs/geos
 	sci-libs/libspatialindex:=
 	sci-libs/proj
-	x11-libs/qscintilla:=[qt5]
-	>=x11-libs/qwt-6.1.2:6=[qt5,svg]
-	>=x11-libs/qwtpolar-1.1.1-r1[qt5]
-	designer? ( dev-qt/designer:5 )
+	>=x11-libs/qscintilla-2.10.1:=[qt5(+)]
+	>=x11-libs/qwt-6.1.2:6=[qt5(+),svg]
+	designer? ( >=dev-qt/designer-${QT_MIN_VER}:5 )
 	georeferencer? ( sci-libs/gsl:= )
 	grass? ( >=sci-geosciences/grass-7.0.0:= )
 	mapserver? ( dev-libs/fcgi )
@@ -59,6 +59,7 @@ COMMON_DEPEND="
 		dev-db/oracle-instantclient:=
 		sci-libs/gdal:=[oracle]
 	)
+	polar? ( >=x11-libs/qwtpolar-1.1.1-r1[qt5(+)] )
 	postgres? ( dev-db/postgresql:= )
 	python? ( ${PYTHON_DEPS}
 		dev-python/future[${PYTHON_USEDEP}]
@@ -70,18 +71,18 @@ COMMON_DEPEND="
 		dev-python/python-dateutil[${PYTHON_USEDEP}]
 		dev-python/pytz[${PYTHON_USEDEP}]
 		dev-python/pyyaml[${PYTHON_USEDEP}]
-		dev-python/qscintilla-python[qt5,${PYTHON_USEDEP}]
+		>=dev-python/qscintilla-python-2.10.1[qt5(+),${PYTHON_USEDEP}]
 		dev-python/requests[${PYTHON_USEDEP}]
 		dev-python/sip:=[${PYTHON_USEDEP}]
 		dev-python/six[${PYTHON_USEDEP}]
 		postgres? ( dev-python/psycopg:2[${PYTHON_USEDEP}] )
 	)
-	webkit? ( dev-qt/qtwebkit:5 )
+	webkit? ( >=dev-qt/qtwebkit-${QT_MIN_VER}:5 )
 "
 DEPEND="${COMMON_DEPEND}
-	dev-qt/linguist-tools:5
-	dev-qt/qttest:5
-	dev-qt/qtxmlpatterns:5
+	>=dev-qt/linguist-tools-${QT_MIN_VER}:5
+	>=dev-qt/qttest-${QT_MIN_VER}:5
+	>=dev-qt/qtxmlpatterns-${QT_MIN_VER}:5
 	sys-devel/bison
 	sys-devel/flex
 "
@@ -115,7 +116,6 @@ src_prepare() {
 		-i cmake/modules/ECMQt4To5Porting.cmake || die "Failed to fix ECMQt4To5Porting.cmake"
 
 	cd src/plugins || die
-	use georeferencer || cmake_comment_add_subdirectory georeferencer
 }
 
 src_configure() {
@@ -126,27 +126,20 @@ src_configure() {
 		-DQGIS_PLUGIN_SUBDIR=$(get_libdir)/qgis
 		-DQWT_INCLUDE_DIR=/usr/include/qwt6
 		-DQWT_LIBRARY=/usr/$(get_libdir)/libqwt6-qt5.so
-		-DWITH_INTERNAL_QWTPOLAR=OFF
 		-DPEDANTIC=OFF
 		-DWITH_APIDOC=OFF
 		-DWITH_QSPATIALITE=ON
 		-DENABLE_TESTS=OFF
-		-DENABLE_QT5=ON
 		-DWITH_CUSTOM_WIDGETS=$(usex designer)
+		-DWITH_GEOREFERENCER=$(usex georeferencer)
 		-DWITH_GRASS=$(usex grass)
 		-DWITH_SERVER=$(usex mapserver)
 		-DWITH_ORACLE=$(usex oracle)
+		-DWITH_QWTPOLAR=$(usex polar)
 		-DWITH_POSTGRESQL=$(usex postgres)
 		-DWITH_BINDINGS=$(usex python)
-		-DWITH_TOUCH=$(usex touch)
 		-DWITH_QTWEBKIT=$(usex webkit)
 	)
-
-	if has_version '<x11-libs/qscintilla-2.10'; then
-		mycmakeargs+=(
-			-DQSCINTILLA_LIBRARY=/usr/$(get_libdir)/libqscintilla2.so
-		)
-	fi
 
 	if use grass; then
 		mycmakeargs+=(
