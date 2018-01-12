@@ -258,7 +258,6 @@ pkg_preinst() {
 pkg_postinst() {
 	xdg_desktop_database_update
 	xdg_mimeinfo_database_update
-	buildsycoca
 
 	if use zeroconf; then
 		elog
@@ -281,5 +280,4 @@ pkg_prerm() {
 pkg_postrm() {
 	xdg_desktop_database_update
 	xdg_mimeinfo_database_update
-	buildsycoca
 }
