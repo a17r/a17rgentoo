@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="6"
@@ -69,6 +69,8 @@ RDEPEND="
 	mdnsresponder-compat? ( !net-misc/mDNSResponder )
 	selinux? ( sec-policy/selinux-avahi )
 "
+
+MULTILIB_WRAPPED_HEADERS=( /usr/include/avahi-qt5/qt-watch.h )
 
 PATCHES=( "${FILESDIR}/${P}-qt5.patch" )
 
