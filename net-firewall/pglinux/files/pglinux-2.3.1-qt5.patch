@@ -1,0 +1,212 @@
+diff -Naur a/configure.ac b/configure.ac
+--- a/configure.ac	2018-01-29 15:36:56.208142640 +0100
++++ b/configure.ac	2018-01-29 15:37:57.227785570 +0100
+@@ -212,29 +212,28 @@
+ 
+ ##
+ # initial QT_flags
+-QT_CXXFLAGS=""
++QT_CXXFLAGS="-fPIC"
+ QT_CPPFLAGS="-DVERSION=\\\"$VERSION\\\" -D_REENTRANT -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_SHARED"
+ QT_LDFLAGS=""
+ QT_LIBS=""
++QT_MODULES="Qt5Core Qt5Gui Qt5Widgets"
+ 
+-# configure-switch for qt4
+-AC_ARG_WITH([qt4],
+-    [AS_HELP_STRING([--without-qt4],
++# configure-switch for qt5
++AC_ARG_WITH([qt5],
++    [AS_HELP_STRING([--without-qt5],
+         [build without gui])],
+-    [with_qt4="$withval"],
+-    [with_qt4="yes"]) # this only reflects the default ("if not given")
++    [with_qt5="$withval"],
++    [with_qt5="yes"]) # this only reflects the default ("if not given")
+ 
+-# modify QT4_flags if qt4 enabled and
++# modify QT5_flags if qt5 enabled and
+ # include pglgui as subdir in Makefile.am (QT_SUB)
+-AS_IF([test "x$with_qt4" = "xyes"],
++AS_IF([test "x$with_qt5" = "xyes"],
+     [AS_IF([test "x$enable_dbus" = "xyes"],
+-        [PKG_CHECK_MODULES([QT4DBUS], [QtDBus])],
+-        [AC_MSG_ERROR([qt4 needs dbus!])])]
+-    [AC_CHECK_QT4(["4.3.0"])] # from qt4.m4
+-    [PKG_CHECK_MODULES([QT4], [QtCore QtGui])]
++        [QT_MODULES="$QT_MODULES Qt5DBus"])]
++    [AC_CHECK_QT5(["5.0.0"], ["$QT_MODULES"])] #from qt5.m4
+     [AC_SEARCH_LIBS([pthread_create], [pthread])] # adds -lpthread to LIBS
+-    [QT_CPPFLAGS="$QT_CPPFLAGS $QT4_CFLAGS $QT4DBUS_CFLAGS"]
+-    [QT_LIBS="$QT_LIBS $QT4_LIBS $QT4DBUS_LIBS"]
++    [QT_CPPFLAGS="$QT_CPPFLAGS $QT_CFLAGS"]
++    [QT_LIBS="$QT_LIBS"]
+     [QT_SUB="pglgui"])
+ 
+ # targets
+@@ -315,7 +314,7 @@
+ else
+ echo lowmem....................................... : no
+ fi
+-if test "x$with_qt4" = "xyes"; then
++if test "x$with_qt5" = "xyes"; then
+ echo QT-gui....................................... : yes
+ else
+ echo QT-gui....................................... : no
+diff -Naur a/debian/control b/debian/control
+--- a/debian/control	2018-01-29 15:36:56.207142596 +0100
++++ b/debian/control	2018-01-29 15:38:25.036573721 +0100
+@@ -11,8 +11,8 @@
+  libdbus-1-dev,
+  libnetfilter-queue-dev (>= 1.0~),
+  libnfnetlink-dev,
+- libqt4-dev,
+  po-debconf,
++ qtbase5-dev,
+  zlib1g-dev,
+ Build-Conflicts:
+  autoconf2.13,
+@@ -131,7 +131,7 @@
+  .
+  pgl is based on the Linux kernel netfilter framework and iptables.
+  .
+- This is the pgl Graphical User Interface pglgui (C++, Qt4).
++ This is the pgl Graphical User Interface pglgui (C++, Qt).
+ 
+ Package: pglgui-dbg
+ Section: debug
+@@ -152,6 +152,6 @@
+  .
+  pgl is based on the Linux kernel netfilter framework and iptables.
+  .
+- This is the pgl Graphical User Interface pglgui (C++, Qt4).
++ This is the pgl Graphical User Interface pglgui (C++, Qt).
+  .
+  This package contains the debugging symbols for pglgui.
+diff -Naur a/debian/copyright b/debian/copyright
+--- a/debian/copyright	2018-01-29 15:36:56.206142551 +0100
++++ b/debian/copyright	2018-01-29 15:38:25.037573766 +0100
+@@ -138,7 +138,7 @@
+  Manually added ar-lib and config.h.in.
+  See http://www.gnu.org/licenses/exceptions.html
+ 
+-Files:     m4/qt4.m4
++Files:     m4/qt5.m4
+ Copyright: 2004, 2007-2009, Juergen Heinemann, http://www.hjcms.de
+ License:   GPL-2+
+  This program is free software; you can redistribute it and/or modify
+diff -Naur a/debian/rules b/debian/rules
+--- a/debian/rules	2018-01-29 15:36:56.207142596 +0100
++++ b/debian/rules	2018-01-29 15:38:25.037573766 +0100
+@@ -5,6 +5,10 @@
+ # Uncomment this to turn on verbose mode.
+ #export DH_VERBOSE=1
+ 
++# Build with Qt5:
++# See http://pkg-kde.alioth.debian.org/packagingqtbasedstuff.html
++export QT_SELECT=5
++
+ %:
+ 	dh $@ --with autoreconf
+ 
+diff -Naur a/INSTALL b/INSTALL
+--- a/INSTALL	2018-01-29 15:36:56.211142774 +0100
++++ b/INSTALL	2018-01-29 15:38:11.708970395 +0100
+@@ -51,7 +51,15 @@
+   autoreconf
+ 
+ 
+-Step 3.1: Configure
++Step 3.1: Set correct Qt version.
++---------------------------------
++
++If you have multiple Qt versions installed on your system you might have to use
++qtchooser to select Qt5:
++   export QT_SELECT=5
++
++
++Step 3.2: Configure
+ -------------------
+ 
+ Pgl uses autotools which comes with several configure-switches you have
+@@ -76,7 +84,7 @@
+ 
+ For a slick installation you can build without the GUI and turn off dbus
+ support:
+-  --without-qt4
++  --without-qt5
+   --disable-dbus
+ 
+ Especially for embedded devices (like router or NAS box) you might disable
+@@ -106,7 +114,7 @@
+     --enable-logrotate \
+     --enable-networkmanager \
+     --enable-zlib \
+-    --with-qt4 \
++    --with-qt5 \
+     --disable-lowmem
+ 
+ Minimal example line for a complete build and full system integration (on a
+@@ -195,7 +203,7 @@
+ - libnetfilter-queue development files (>= 1.0, or use the git pgl_backport
+   branch if you have a lower version)
+ - libdbus development files (optional, required for the GUI)
+-- Qt4 development files including Qt4 dbus (optional, required for the GUI)
++- Qt5 development files including Qt dbus (optional, required for the GUI)
+ - zlib development files (optional, for loading gz compressed blocklists
+   directly)
+ 
+@@ -243,7 +251,7 @@
+  Runtime environment pglgui:
+ - pgld
+ - pglcmd
+-- Qt4
++- Qt5
+ - dbus
+ - whois
+ 
+diff -Naur a/pglgui/src/main.cpp b/pglgui/src/main.cpp
+--- a/pglgui/src/main.cpp	2018-01-29 15:36:56.210142730 +0100
++++ b/pglgui/src/main.cpp	2018-01-29 15:37:57.227785570 +0100
+@@ -32,12 +32,12 @@
+ #include "pglgui.h"
+ #include "command.h"
+ 
+-void customOutput( QtMsgType type, const char *msg );
++void customOutput(QtMsgType, const QMessageLogContext &, const QString &);
+ 
+ int main(int argc, char *argv[])
+ {
+ 
+-        qInstallMsgHandler( customOutput );
++        qInstallMessageHandler( customOutput );
+ 
+         //Start the real application
+         QApplication app(argc, argv);
+@@ -61,20 +61,21 @@
+ 
+ }
+ 
+-void customOutput( QtMsgType type, const char *msg ) {
++void customOutput(QtMsgType type, const QMessageLogContext & context, const QString & msg) {
+ 
++        QByteArray localMsg = msg.toLocal8Bit();
+         switch( type ) {
+                 case QtDebugMsg:
+-                        fprintf( stderr, "** Debug: %s\n", msg );
++                        fprintf( stderr, "** Debug: %s\n", localMsg.constData() );
+                         break;
+                 case QtWarningMsg:
+-                        fprintf( stderr, "** Warning: %s\n", msg );
++                        fprintf( stderr, "** Warning: %s\n", localMsg.constData() );
+                         break;
+                 case QtCriticalMsg:
+-                        fprintf( stderr, "** Critical: %s\n", msg );
++                        fprintf( stderr, "** Critical: %s\n", localMsg.constData() );
+                         break;
+                 case QtFatalMsg:
+-                        fprintf( stderr, "** Fatal: %s\n", msg );
++                        fprintf( stderr, "** Fatal: %s\n", localMsg.constData() );
+                         break;
+         }
+ 
