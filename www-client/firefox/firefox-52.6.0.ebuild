@@ -125,6 +125,7 @@ src_unpack() {
 
 src_prepare() {
 	# Apply our patches
+	rm -f "${WORKDIR}"/firefox/2007_fix_nvidia_latest.patch
 	eapply "${WORKDIR}/firefox"
 
 	# Enable gnomebreakpad
