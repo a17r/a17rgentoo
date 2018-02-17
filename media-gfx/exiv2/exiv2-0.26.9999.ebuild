@@ -1,18 +1,18 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
 
-LINGUAS="bs de es fi fr gl ms pl pt ru sk sv ug uk vi"
 PYTHON_COMPAT=( python{2_7,3_4,3_5,3_6} )
 if [[ ${PV} = *9999 ]]; then
-	EGIT_REPO_URI="https://github.com/Exiv2/exiv2.git"
-	EGIT_BRANCH="0.26"
+	EGIT_REPO_URI="https://github.com/a17r/exiv2.git"
+	EGIT_BRANCH="0.26-backports"
 	GIT_ECLASS=git-r3
 elif [[ ${PV} = *_p* ]]; then
 	COMMIT=269370863ecd61dd038eed3b96ecd65898d3bb6e
 	GIT_ECLASS=vcs-snapshot
 	SRC_URI="https://github.com/Exiv2/${PN}/tarball/${COMMIT} -> ${P}.tar.gz"
+	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~x64-solaris ~x86-solaris"
 else
 	SRC_URI="http://www.exiv2.org/builds/${P}-trunk.tar.gz"
 fi
@@ -23,8 +23,7 @@ HOMEPAGE="http://www.exiv2.org/"
 
 LICENSE="GPL-2"
 SLOT="0/26"
-IUSE="doc examples nls png webready xmp $(printf 'linguas_%s ' ${LINGUAS})"
-[[ ${PV} != *9999 ]] && KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~x64-solaris ~x86-solaris"
+IUSE="doc examples nls png webready xmp"
 
 RDEPEND="
 	>=virtual/libiconv-0-r1[${MULTILIB_USEDEP}]
@@ -50,7 +49,6 @@ DEPEND="${RDEPEND}
 DOCS=( README doc/ChangeLog doc/cmd.txt )
 
 PATCHES=(
-	"${FILESDIR}"/${PN}-0.26-cmake{1,2,3,4,5,6,7}.patch
 	# TODO: Take to upstream
 	"${FILESDIR}"/${PN}-0.26-fix-docs.patch
 	"${FILESDIR}"/${PN}-0.26-tools-optional.patch
@@ -66,7 +64,8 @@ src_prepare() {
 			pushd po > /dev/null || die
 			local lang
 			for lang in *.po; do
-				if [[ -e ${lang} ]] && ! has ${lang/.po/} ${LINGUAS} ; then
+				if [[ -e ${lang} ]] \
+						&& ! has ${lang/.po/} ${LINGUAS-${lang/.po/}} ; then
 					case ${lang} in
 						CMakeLists.txt | \
 						${PN}.pot)      ;;
