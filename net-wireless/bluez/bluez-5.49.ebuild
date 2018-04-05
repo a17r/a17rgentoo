@@ -2,9 +2,9 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
-
 PYTHON_COMPAT=( python2_7 )
-inherit autotools ltprune multilib python-single-r1 readme.gentoo-r1 systemd udev user multilib-minimal
+
+inherit autotools multilib python-single-r1 readme.gentoo-r1 systemd udev user multilib-minimal
 
 DESCRIPTION="Bluetooth Tools and System Daemons for Linux"
 HOMEPAGE="http://www.bluez.org"
@@ -12,8 +12,8 @@ SRC_URI="mirror://kernel/linux/bluetooth/${P}.tar.xz"
 
 LICENSE="GPL-2+ LGPL-2.1+"
 SLOT="0/3"
-KEYWORDS="~amd64 ~arm ~arm64 ~hppa ~mips ~ppc ~ppc64 x86"
-IUSE="alsa cups debug deprecated doc elogind experimental extra-tools +mesh +obex +readline selinux systemd test test-programs +udev user-session"
+KEYWORDS="amd64 ~arm ~arm64 ~hppa ~mips ~ppc ~ppc64 x86"
+IUSE="alsa cups doc debug deprecated extra-tools experimental +mesh +obex +readline selinux systemd test test-programs +udev user-session"
 
 # Since this release all remaining extra-tools need readline support, but this could
 # change in the future, hence, this REQUIRED_USE constraint could be dropped
@@ -22,7 +22,7 @@ REQUIRED_USE="
 	extra-tools? ( deprecated readline )
 	test? ( ${PYTHON_REQUIRED_USE} )
 	test-programs? ( ${PYTHON_REQUIRED_USE} )
-	user-session? ( || ( elogind systemd ) )
+	user-session? ( systemd )
 "
 
 CDEPEND="
@@ -31,7 +31,6 @@ CDEPEND="
 	>=sys-apps/hwids-20121202.2
 	alsa? ( media-libs/alsa-lib )
 	cups? ( net-print/cups:= )
-	elogind? ( sys-auth/elogind )
 	mesh? (
 		dev-libs/json-c:=
 		sys-libs/readline:0= )
@@ -56,9 +55,6 @@ RDEPEND="${CDEPEND}
 DOC_CONTENTS="
 	If you want to control your bluetooth devices as a non-root user,
 	please remember to add you to plugdev group.
-
-	If you want to use rfcomm as a normal user, you need to add the user
-	to the uucp group.
 "
 
 PATCHES=(
@@ -134,12 +130,11 @@ multilib_src_configure() {
 		)
 	fi
 
-	local myeconf
-	use elogind || use systemd && myeconf="$(multilib_native_use_enable systemd)"
-
+	# btpclient disabled because we don't have ell library in the tree
 	econf \
 		--localstatedir=/var \
 		--disable-android \
+		--disable-btpclient \
 		--enable-datafiles \
 		--enable-experimental \
 		--enable-optimization \
@@ -151,6 +146,7 @@ multilib_src_configure() {
 		--enable-manpages \
 		--enable-monitor \
 		--with-systemdsystemunitdir="$(systemd_get_systemunitdir)" \
+		--with-systemduserunitdir="$(systemd_get_userunitdir)" \
 		$(multilib_native_use_enable alsa midi) \
 		$(multilib_native_use_enable cups) \
 		$(multilib_native_use_enable deprecated) \
@@ -158,10 +154,10 @@ multilib_src_configure() {
 		$(multilib_native_use_enable mesh) \
 		$(multilib_native_use_enable obex) \
 		$(multilib_native_use_enable readline client) \
+		$(multilib_native_use_enable systemd) \
 		$(multilib_native_use_enable test-programs test) \
 		$(multilib_native_use_enable udev) \
-		$(multilib_native_use_enable udev sixaxis) \
-		${myeconf}
+		$(multilib_native_use_enable udev sixaxis)
 }
 
 multilib_src_compile() {
@@ -233,7 +229,7 @@ multilib_src_install_all() {
 	# https://bugzilla.redhat.com/show_bug.cgi?id=1389347
 	use user-session && ln -s "${ED}"/usr/lib/systemd/user/obex.service "${ED}"/usr/lib/systemd/user/dbus-org.bluez.obex.service
 
-	prune_libtool_files --modules
+	find "${D}" -name '*.la' -delete || die
 
 	keepdir /var/lib/bluetooth
 
@@ -247,15 +243,14 @@ multilib_src_install_all() {
 	doins src/main.conf
 
 	newinitd "${FILESDIR}"/bluetooth-init.d-r4 bluetooth
-	newinitd "${FILESDIR}"/rfcomm-init.d-r2 rfcomm
 
 	einstalldocs
 	use doc && dodoc doc/*.txt
-	readme.gentoo_create_doc
+	! use systemd && readme.gentoo_create_doc
 }
 
 pkg_postinst() {
-	readme.gentoo_print_elog
+	! use systemd && readme.gentoo_print_elog
 
 	use udev && udev_reload
 	systemd_reenable bluetooth.service

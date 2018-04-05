@@ -7,7 +7,6 @@
   </maintainer>
 <use>
   <flag name="deprecated">Build deprecated plugins</flag>
-  <flag name="elogind">Use <pkg>sys-auth/elogind</pkg> for session tracking</flag>
   <flag name="experimental">Build experimental plugins</flag>
   <flag name="extra-tools">Install tools that upstream doesn't install on
     purpose by default. All this tools shouldn't be used. Then, please
