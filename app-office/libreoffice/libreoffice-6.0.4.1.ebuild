@@ -248,7 +248,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.4-system-pyuno.patch"
 	"${FILESDIR}/${PN}-5.3.4.2-kioclient5.patch"
 	# 6.0 branch
-	"${FILESDIR}/${PN}-6.0.3.2-poppler-0.64.patch"
+	"${FILESDIR}/${PN}-6.0.3.2-poppler-0.64.patch" # bug 653478
 
 	# TODO: upstream
 	"${FILESDIR}/${PN}-5.2.5.1-glibc-2.24.patch"
