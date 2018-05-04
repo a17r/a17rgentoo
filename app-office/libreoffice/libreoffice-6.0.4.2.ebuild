@@ -157,6 +157,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 		x11-libs/gdk-pixbuf
 		>=x11-libs/gtk+-2.24:2
 	)
+	jemalloc? ( dev-libs/jemalloc )
 	kde? (
 		dev-qt/qtcore:5
 		dev-qt/qtgui:5
@@ -168,7 +169,6 @@ COMMON_DEPEND="${PYTHON_DEPS}
 		kde-frameworks/kio:5
 		kde-frameworks/kwindowsystem:5
 	)
-	jemalloc? ( dev-libs/jemalloc )
 	libreoffice_extensions_scripting-beanshell? ( dev-java/bsh )
 	libreoffice_extensions_scripting-javascript? ( dev-java/rhino:1.6 )
 	mysql? ( dev-db/mysql-connector-c++ )
@@ -247,8 +247,6 @@ PATCHES=(
 	# not upstreamable stuff
 	"${FILESDIR}/${PN}-5.4-system-pyuno.patch"
 	"${FILESDIR}/${PN}-5.3.4.2-kioclient5.patch"
-	# 6.0 branch
-	"${FILESDIR}/${PN}-6.0.3.2-poppler-0.64.patch" # bug 653478
 
 	# TODO: upstream
 	"${FILESDIR}/${PN}-5.2.5.1-glibc-2.24.patch"
