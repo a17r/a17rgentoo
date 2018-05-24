@@ -46,6 +46,7 @@ PATCHES=(
 	# TODO: not yet upstream
 	"${FILESDIR}/${P}-libXau.patch" # FIXME: possibly: bug 584960
 	"${FILESDIR}/${P}-switchtogreeter.patch" # bugs 644718, 649888
+	"${FILESDIR}/${P}-logind-race.patch" # bug 656286
 )
 
 src_prepare() {
