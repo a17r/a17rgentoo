@@ -27,7 +27,7 @@ unset SCM_ECLASS
 DESCRIPTION="A full office productivity suite"
 HOMEPAGE="https://www.libreoffice.org"
 SRC_URI="branding? ( https://dev.gentoo.org/~dilfridge/distfiles/${BRANDING} )"
-[[ -n ${PATCHSET} ]] && SRC_URI+=" http://dev.gentooexperimental.org/~scarabeus/${PATCHSET}"
+[[ -n ${PATCHSET} ]] && SRC_URI+=" https://dev.gentoo.org/~asturm/distfiles/${PATCHSET}"
 
 # Split modules following git/tarballs; Core MUST be first!
 # Help is used for the image generator
@@ -94,6 +94,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	app-text/liblangtag
 	>=app-text/libmspub-0.1.0
 	>=app-text/libmwaw-0.3.1
+	app-text/libnumbertext
 	>=app-text/libodfgen-0.1.0
 	app-text/libqxp
 	app-text/libstaroffice
@@ -235,6 +236,7 @@ DEPEND="${COMMON_DEPEND}
 	)
 	odk? ( >=app-doc/doxygen-1.8.4 )
 	test? (
+		app-crypt/gnupg
 		dev-util/cppunit
 		media-fonts/dejavu
 	)
@@ -340,7 +342,7 @@ src_prepare() {
 
 	if use branding; then
 		# hack...
-		mv -v "${WORKDIR}/branding-intro.png" "icon-themes/galaxy/brand/intro.png" || die
+		mv -v "${WORKDIR}/branding-intro.png" "icon-themes/colibre/brand/intro.png" || die
 	fi
 
 	# Don't list pdfimport support in desktop when built with none, bug # 605464
@@ -433,9 +435,9 @@ src_configure() {
 		$(use_enable gstreamer gstreamer-1-0)
 		$(use_enable gtk gtk3)
 		$(use_enable gtk2 gtk)
-		$(use_enable kde qt5)
-		$(use_enable kde kde5)
 		$(use_enable kde gtk3-kde5)
+		$(use_enable kde kde5)
+		$(use_enable kde qt5)
 		$(use_enable mysql ext-mariadb-connector)
 		$(use_enable odk)
 		$(use_enable pdfimport)
