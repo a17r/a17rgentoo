@@ -43,10 +43,10 @@ PATCHES=(
 	"${FILESDIR}/${PN}-0.12.0-respect-user-flags.patch" # fix for flags handling and bug 563108
 	"${FILESDIR}/${PN}-0.16.0-Xsession.patch" # bug 611210
 	"${FILESDIR}/${PN}-0.16.0-ck2-revert.patch" # bug 633920
+	"${FILESDIR}/${P}-logind-race.patch" # bug 656286
 	# TODO: not yet upstream
 	"${FILESDIR}/${P}-libXau.patch" # FIXME: possibly: bug 584960
-	"${FILESDIR}/${P}-switchtogreeter.patch" # bugs 644718, 649888
-	"${FILESDIR}/${P}-logind-race.patch" # bug 656286
+	"${FILESDIR}/${P}-switchtogreeter-r1.patch" # bugs 644718, 649888
 )
 
 src_prepare() {

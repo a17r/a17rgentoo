@@ -22,7 +22,7 @@ Fixes: https://github.com/sddm/sddm/issues/824
          Q_OBJECT
      public:
 -        explicit SeatManager(QObject *parent = 0);
-+        explicit SeatManager(QObject *parent = 0) {}
++        explicit SeatManager(QObject *parent = 0) : QObject(parent) {}
  
 +        void initialize();
          void createSeat(const QString &name);
