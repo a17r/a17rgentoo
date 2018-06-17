@@ -62,6 +62,8 @@ S="${WORKDIR}"/${PN}-${COMMIT}
 
 RESTRICT="test"
 
+PATCHES=( "${FILESDIR}/${PN}-1.5.0-FindXDR.patch" )
+
 pkg_setup() {
 	use python && python-single-r1_pkg_setup
 }
