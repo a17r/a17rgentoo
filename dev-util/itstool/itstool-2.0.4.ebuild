@@ -1,9 +1,9 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
 
-PYTHON_COMPAT=( python2_7 python3_{4,5} )
+PYTHON_COMPAT=( python2_7 python3_{4,5,6} )
 PYTHON_REQ_USE="xml"
 
 inherit python-single-r1
@@ -25,12 +25,6 @@ DEPEND="${PYTHON_DEPS}
 RDEPEND="${DEPEND}"
 
 DOCS=( ChangeLog NEWS ) # AUTHORS, README are empty
-
-PATCHES=(
-	"${FILESDIR}/${P}"-utf8.patch
-	"${FILESDIR}/${P}"-py3.patch
-	"${FILESDIR}/${P}"-fix-merging-translations.patch
-)
 
 pkg_setup() {
 	python-single-r1_pkg_setup
