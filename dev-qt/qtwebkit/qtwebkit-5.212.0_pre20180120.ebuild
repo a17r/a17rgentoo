@@ -6,7 +6,6 @@ EAPI=6
 COMMIT=72cfbd7664f21fcc0e62b869a6b01bf73eb5e7da
 CMAKE_MAKEFILE_GENERATOR="ninja"
 PYTHON_COMPAT=( python2_7 )
-QT_MIN_VER="5.9.1:5"
 USE_RUBY="ruby23 ruby24 ruby25"
 inherit check-reqs cmake-utils flag-o-matic python-any-r1 qmake-utils ruby-single toolchain-funcs
 
@@ -14,13 +13,10 @@ DESCRIPTION="WebKit rendering library for the Qt5 framework (deprecated)"
 HOMEPAGE="https://www.qt.io/"
 SRC_URI="http://code.qt.io/cgit/qt/${PN}.git/snapshot/${COMMIT}.tar.gz -> ${P}.tar.gz"
 
-if [[ ${PV} != *9999* ]]; then
-	KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
-fi
-
-SLOT=5
 LICENSE="BSD LGPL-2+"
-IUSE="+geolocation gles2 +gstreamer +hyphen +jit multimedia nsplugin opengl orientation +printsupport qml webp X"
+SLOT="5/5.212"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~x86"
+IUSE="geolocation gles2 +gstreamer +hyphen +jit multimedia nsplugin opengl orientation +printsupport qml webp X"
 
 REQUIRED_USE="
 	nsplugin? ( X )
@@ -28,6 +24,7 @@ REQUIRED_USE="
 	?? ( gstreamer multimedia )
 "
 
+QT_MIN_VER="5.9.1:5"
 # Dependencies found at Source/cmake/OptionsQt.cmake
 RDEPEND="
 	dev-db/sqlite:3
@@ -78,26 +75,25 @@ DEPEND="${RDEPEND}
 	virtual/pkgconfig
 "
 
-CHECKREQS_DISK_BUILD="1G" # Debug build requires much more see bug #417307
+CHECKREQS_DISK_BUILD="16G" # Debug build requires much more see bug #417307
 
 S="${WORKDIR}/${COMMIT}"
 
 PATCHES=( "${FILESDIR}/${P}-functional.patch" )
 
-pkg_pretend() {
-	if [[ ${MERGE_TYPE} != "binary" ]] ; then
-		if is-flagq "-g*" && ! is-flagq "-g*0" ; then
-			einfo "Checking for sufficient disk space to build ${PN} with debugging CFLAGS"
-			check-reqs_pkg_pretend
-		fi
+_check_reqs() {
+	if [[ ${MERGE_TYPE} != "binary" ]] && is-flagq "-g*" && ! is-flagq "-g*0" ; then
+		einfo "Checking for sufficient disk space to build ${PN} with debugging CFLAGS"
+		check-reqs_pkg_pretend
 	fi
 }
 
-pkg_setup() {
-	if [[ ${MERGE_TYPE} != "binary" ]] && is-flagq "-g*" && ! is-flagq "-g*0" ; then
-		check-reqs_pkg_setup
-	fi
+pkg_pretend() {
+	_check_reqs
+}
 
+pkg_setup() {
+	_check_reqs
 	python-any-r1_pkg_setup
 }
 
