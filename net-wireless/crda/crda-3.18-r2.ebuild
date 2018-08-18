@@ -1,10 +1,10 @@
 # Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
 PYTHON_COMPAT=( python2_7 )
-inherit eutils toolchain-funcs python-any-r1 udev
+inherit python-any-r1 toolchain-funcs udev
 
 DESCRIPTION="Central Regulatory Domain Agent for wireless networks"
 HOMEPAGE="https://wireless.wiki.kernel.org/en/developers/regulatory/crda"
@@ -13,34 +13,39 @@ SRC_URI="http://linuxwireless.org/download/crda/${P}.tar.xz
 
 LICENSE="ISC"
 SLOT="0"
-KEYWORDS="alpha amd64 arm ~arm64 ia64 ~mips ppc ppc64 sparc x86"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86"
 IUSE="gcrypt libressl"
 
-RDEPEND="!gcrypt? (
+RDEPEND="
+	dev-libs/libnl:3
+	net-wireless/wireless-regdb
+	!gcrypt? (
 		!libressl? ( dev-libs/openssl:0 )
 		libressl? ( dev-libs/libressl )
 	)
 	gcrypt? ( dev-libs/libgcrypt:0 )
-	dev-libs/libnl:3
-	net-wireless/wireless-regdb"
+"
 DEPEND="${RDEPEND}
 	${PYTHON_DEPS}
 	$(python_gen_any_dep 'dev-python/m2crypto[${PYTHON_USEDEP}]')
-	virtual/pkgconfig"
+	virtual/pkgconfig
+"
 
 python_check_deps() {
 	has_version --host-root "dev-python/m2crypto[${PYTHON_USEDEP}]"
 }
 
+PATCHES=(
+	"${FILESDIR}"/${PN}-3.18-no-ldconfig.patch
+	"${FILESDIR}"/${PN}-3.18-no-werror.patch
+	"${FILESDIR}"/${PN}-3.18-openssl.patch
+	"${FILESDIR}"/${PN}-3.18-cflags.patch
+	"${FILESDIR}"/${PN}-3.18-libreg-link.patch # bug 542436
+)
+
 src_prepare() {
-	epatch "${FILESDIR}"/${PN}-3.18-no-ldconfig.patch
-	epatch "${FILESDIR}"/${PN}-3.18-no-werror.patch
-	epatch "${FILESDIR}"/${PN}-3.18-openssl.patch
-	epatch "${FILESDIR}"/${PN}-3.18-cflags.patch
-	epatch "${FILESDIR}"/${PN}-3.18-libreg-link.patch #542436
-	sed -i \
-		-e "s:\<pkg-config\>:$(tc-getPKG_CONFIG):" \
-		Makefile || die
+	default
+	sed -e "s:\<pkg-config\>:$(tc-getPKG_CONFIG):" -i Makefile || die
 }
 
 _emake() {
