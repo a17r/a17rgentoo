@@ -38,9 +38,9 @@ python_check_deps() {
 PATCHES=(
 	"${FILESDIR}"/${PN}-3.18-no-ldconfig.patch
 	"${FILESDIR}"/${PN}-3.18-no-werror.patch
-	"${FILESDIR}"/${PN}-3.18-openssl.patch
 	"${FILESDIR}"/${PN}-3.18-cflags.patch
 	"${FILESDIR}"/${PN}-3.18-libreg-link.patch # bug 542436
+	"${FILESDIR}"/${PN}-3.18-openssl-1.1.patch # bug 652428
 )
 
 src_prepare() {
