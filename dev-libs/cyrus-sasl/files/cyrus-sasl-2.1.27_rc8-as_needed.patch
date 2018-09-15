@@ -1,0 +1,14 @@
+Author: Matthias Klose <doko@ubuntu.com>
+Desription: Fix FTBFS, add $(SASL_DB_LIB) as dependency to libsasldb, and use
+it.
+--- a/sasldb/Makefile.am
++++ b/sasldb/Makefile.am
+@@ -54,6 +54,6 @@
+ 
+ libsasldb_la_SOURCES = allockey.c sasldb.h
+ EXTRA_libsasldb_la_SOURCES = $(extra_common_sources)
+-libsasldb_la_DEPENDENCIES = $(SASL_DB_BACKEND)
+-libsasldb_la_LIBADD = $(SASL_DB_BACKEND)
++libsasldb_la_DEPENDENCIES = $(SASL_DB_BACKEND) $(SASL_DB_LIB)
++libsasldb_la_LIBADD = $(SASL_DB_BACKEND) $(SASL_DB_LIB)
+ libsasldb_la_LDFLAGS = -no-undefined
