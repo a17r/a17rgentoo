@@ -1,0 +1,48 @@
+Index: libjpeg9-9a/jmorecfg.h
+===================================================================
+--- libjpeg9-9a.orig/jmorecfg.h	2014-07-07 14:03:41.623312113 +0200
++++ libjpeg9-9a/jmorecfg.h	2014-07-07 14:17:09.175210845 +0200
+@@ -304,19 +304,14 @@
+  */
+ 
+ #ifndef HAVE_BOOLEAN
+-#if defined FALSE || defined TRUE || defined QGLOBAL_H
+-/* Qt3 defines FALSE and TRUE as "const" variables in qglobal.h */
+ typedef int boolean;
++#endif
+ #ifndef FALSE			/* in case these macros already exist */
+ #define FALSE	0		/* values of boolean */
+ #endif
+ #ifndef TRUE
+ #define TRUE	1
+ #endif
+-#else
+-typedef enum { FALSE = 0, TRUE = 1 } boolean;
+-#endif
+-#endif
+ 
+ 
+ /*
+Index: libjpeg9-9a/jconfig.cfg
+===================================================================
+--- libjpeg9-9a.orig/jconfig.cfg	2014-07-07 14:03:41.623312113 +0200
++++ libjpeg9-9a/jconfig.cfg	2014-07-07 14:17:09.175210845 +0200
+@@ -17,17 +17,11 @@
+ /* Define this if you get warnings about undefined structures. */
+ #undef INCOMPLETE_TYPES_BROKEN
+ 
+-/* Define "boolean" as unsigned char, not enum, on Windows systems. */
++/* Define "boolean" as unsigned char, not int, on Windows systems. */
+ #ifdef _WIN32
+ #ifndef __RPCNDR_H__		/* don't conflict if rpcndr.h already read */
+ typedef unsigned char boolean;
+ #endif
+-#ifndef FALSE			/* in case these macros already exist */
+-#define FALSE	0		/* values of boolean */
+-#endif
+-#ifndef TRUE
+-#define TRUE	1
+-#endif
+ #define HAVE_BOOLEAN		/* prevent jmorecfg.h from redefining it */
+ #endif
+ 
