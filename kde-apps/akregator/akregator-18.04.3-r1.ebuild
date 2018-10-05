@@ -54,4 +54,7 @@ RDEPEND="${COMMON_DEPEND}
 	!kde-apps/kdepim-l10n
 "
 
-PATCHES=( "${FILESDIR}/${PN}-17.12.2-crashfix.patch" )
+PATCHES=(
+	"${FILESDIR}/${PN}-17.12.2-crashfix.patch"
+	"${FILESDIR}/${P}-syndication.patch"
+)
