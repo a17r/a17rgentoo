@@ -22,3 +22,5 @@ DEPEND="
 RDEPEND="${DEPEND}
 	!kde-apps/kdepim-l10n
 "
+
+PATCHES=( "${FILESDIR}/${P}-syndication.patch" )
