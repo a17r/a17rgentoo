@@ -1,9 +1,9 @@
 # Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-inherit rpm eapi7-ver
+inherit rpm
 
 BASE_PV=$(ver_cut 1-3)
 MY_PV="${PV/_alpha/.alpha}"
@@ -79,13 +79,13 @@ src_compile() { :; }
 
 src_install() {
 	local dir="${S}"/opt/${PN/-l10n/}$(ver_cut 1-2)/
-	# Condition required for people that do not install anything eg no l10n
+	# Condition required for people who do not install anything e.g. no l10n
 	# or just english with no offlinehelp.
 	if [[ -d "${dir}" ]] ; then
 		insinto /usr/$(get_libdir)/${PN/-l10n/}/
 		doins -r "${dir}"/*
 	fi
-	# remove extensions that are in the l10n for some weird reason
-	rm -rf "${ED}"usr/$(get_libdir)/${PN/-l10n/}/share/extensions/ || \
+	# remove extensions that are in l10n for some weird reason
+	rm -rf "${ED}"/usr/$(get_libdir)/${PN/-l10n/}/share/extensions/ || \
 		die "Failed to remove extensions"
 }
