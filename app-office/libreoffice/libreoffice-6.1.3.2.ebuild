@@ -18,7 +18,7 @@ DEV_URI="
 ADDONS_URI="https://dev-www.libreoffice.org/src/"
 
 BRANDING="${PN}-branding-gentoo-0.8.tar.xz"
-PATCHSET="${P}-patchset-01.tar.xz"
+PATCHSET="${PN}-6.1.3.1-patchset-01.tar.xz"
 
 [[ ${MY_PV} == *9999* ]] && SCM_ECLASS="git-r3"
 inherit autotools bash-completion-r1 check-reqs eapi7-ver flag-o-matic gnome2-utils java-pkg-opt-2 multiprocessing pax-utils python-single-r1 qmake-utils toolchain-funcs xdg-utils ${SCM_ECLASS}
@@ -248,9 +248,6 @@ PATCHES=(
 	# not upstreamable stuff
 	"${FILESDIR}/${PN}-5.4-system-pyuno.patch"
 	"${FILESDIR}/${PN}-5.3.4.2-kioclient5.patch"
-
-	# 6.1 branch
-	"${FILESDIR}/${P}-nonempty-numeric-match.patch"
 
 	# TODO: upstream
 	"${FILESDIR}/${PN}-5.2.5.1-glibc-2.24.patch"
