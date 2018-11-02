@@ -41,12 +41,12 @@ src_prepare() {
 	sed -i -e '/install.*FILES.*DESTINATION.*OPENJPEG_INSTALL_DOC_DIR/d' CMakeLists.txt || die
 
 	# Install doxygen docs to the right directory:
-	sed -i -e "s:DESTINATION\s*share/doc:\0/${PF}:" doc/CMakeLists.txt || die
+# 	sed -i -e "s:DESTINATION\s*share/doc:\0/${PF}:" doc/CMakeLists.txt || die
 }
 
 multilib_src_configure() {
 	local mycmakeargs=(
-		-DOPENJPEG_INSTALL_LIB_DIR="$(get_libdir)"
+# 		-DOPENJPEG_INSTALL_LIB_DIR="$(get_libdir)"
 		-DBUILD_TESTING="$(multilib_native_usex test)"
 		-DBUILD_DOC=$(multilib_native_usex doc ON OFF)
 		-DBUILD_CODEC=$(multilib_is_native_abi && echo ON || echo OFF)
@@ -56,7 +56,7 @@ multilib_src_configure() {
 
 	if use static-libs; then
 		mycmakeargs=(
-			-DOPENJPEG_INSTALL_LIB_DIR="$(get_libdir)"
+# 			-DOPENJPEG_INSTALL_LIB_DIR="$(get_libdir)"
 			-DBUILD_TESTING="$(usex test)"
 			-DBUILD_CODEC="$(usex test)"
 			)
