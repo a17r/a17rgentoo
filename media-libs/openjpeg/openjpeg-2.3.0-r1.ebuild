@@ -19,10 +19,11 @@ SLOT="2/7" # based on SONAME
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~sparc-solaris ~x64-solaris ~x86-solaris"
 IUSE="doc static-libs test"
 
-RDEPEND="media-libs/lcms:2=
+RDEPEND="
+	media-libs/lcms:2
 	media-libs/libpng:0=
-	media-libs/tiff:0=
-	sys-libs/zlib:="
+	media-libs/tiff:0
+	sys-libs/zlib"
 DEPEND="${RDEPEND}
 	doc? ( app-doc/doxygen )"
 
@@ -32,34 +33,27 @@ PATCHES=( "${FILESDIR}/${P}-cmakedir.patch" )
 
 src_prepare() {
 	if use test; then
-		mv "${WORKDIR}"/openjpeg-data-${MY_TESTDATA_COMMIT} "${WORKDIR}"/data || die "Failed to rename test data"
+		mv "${WORKDIR}"/openjpeg-data-${MY_TESTDATA_COMMIT} "${WORKDIR}"/data ||
+			die "Failed to rename test data"
 	fi
 
 	cmake-utils_src_prepare
-
-	# Stop installing LICENSE file, and install CHANGES from DOCS instead:
-	sed -i -e '/install.*FILES.*DESTINATION.*OPENJPEG_INSTALL_DOC_DIR/d' CMakeLists.txt || die
-
-	# Install doxygen docs to the right directory:
-# 	sed -i -e "s:DESTINATION\s*share/doc:\0/${PF}:" doc/CMakeLists.txt || die
 }
 
 multilib_src_configure() {
 	local mycmakeargs=(
-# 		-DOPENJPEG_INSTALL_LIB_DIR="$(get_libdir)"
 		-DBUILD_TESTING="$(multilib_native_usex test)"
 		-DBUILD_DOC=$(multilib_native_usex doc ON OFF)
 		-DBUILD_CODEC=$(multilib_is_native_abi && echo ON || echo OFF)
-		)
+	)
 
 	cmake-utils_src_configure
 
 	if use static-libs; then
 		mycmakeargs=(
-# 			-DOPENJPEG_INSTALL_LIB_DIR="$(get_libdir)"
 			-DBUILD_TESTING="$(usex test)"
 			-DBUILD_CODEC="$(usex test)"
-			)
+		)
 		BUILD_DIR=${BUILD_DIR}_static cmake-utils_src_configure
 	fi
 }
@@ -74,7 +68,7 @@ multilib_src_compile() {
 
 multilib_src_test() {
 	if ! multilib_is_native_abi ; then
-		elog "Cannot run tests for non-multilib abi."
+		einfo "Cannot run tests for non-multilib abi."
 		return 0
 	fi
 
@@ -91,7 +85,6 @@ multilib_src_test() {
 		popd > /dev/null || die
 		return 0
 	else
-		echo ""
 		einfo "Note: Upstream is maintaining a list of known test failures."
 		einfo "We will now compare our test results against this list and sort out any known failure."
 
