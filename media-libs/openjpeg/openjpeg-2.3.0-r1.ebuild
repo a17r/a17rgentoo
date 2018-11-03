@@ -29,7 +29,10 @@ DEPEND="${RDEPEND}
 
 DOCS=( AUTHORS.md CHANGELOG.md NEWS.md README.md THANKS.md )
 
-PATCHES=( "${FILESDIR}/${P}-cmakedir.patch" )
+PATCHES=(
+	"${FILESDIR}/${P}-fix-disable-static-libs.patch" # bug 650322
+	"${FILESDIR}/${P}-cmakedir.patch"
+)
 
 src_prepare() {
 	if use test; then
@@ -42,28 +45,14 @@ src_prepare() {
 
 multilib_src_configure() {
 	local mycmakeargs=(
+		-DBUILD_PKGCONFIG_FILES=ON	# always build pkgconfig files, bug #539834
 		-DBUILD_TESTING="$(multilib_native_usex test)"
 		-DBUILD_DOC=$(multilib_native_usex doc ON OFF)
 		-DBUILD_CODEC=$(multilib_is_native_abi && echo ON || echo OFF)
+		-DBUILD_STATIC_LIBS=$(usex static-libs)
 	)
 
 	cmake-utils_src_configure
-
-	if use static-libs; then
-		mycmakeargs=(
-			-DBUILD_TESTING="$(usex test)"
-			-DBUILD_CODEC="$(usex test)"
-		)
-		BUILD_DIR=${BUILD_DIR}_static cmake-utils_src_configure
-	fi
-}
-
-multilib_src_compile() {
-	cmake-utils_src_compile
-
-	if use static-libs; then
-		BUILD_DIR=${BUILD_DIR}_static cmake-utils_src_compile
-	fi
 }
 
 multilib_src_test() {
@@ -119,12 +108,4 @@ multilib_src_test() {
 			return 0
 		fi
 	fi
-}
-
-multilib_src_install() {
-	if use static-libs; then
-		BUILD_DIR=${BUILD_DIR}_static cmake-utils_src_install
-	fi
-
-	cmake-utils_src_install
 }
