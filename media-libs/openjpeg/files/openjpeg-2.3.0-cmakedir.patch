@@ -35,7 +35,7 @@ index b20294ca..2925108a 100644
    if(EXISTS ${SELF_DIR}/OpenJPEGExports.cmake)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index cb545666..aed5b638 100644
+index cb545666..2ff3b00a 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -7,7 +7,7 @@
@@ -113,20 +113,22 @@ index cb545666..aed5b638 100644
  	option(OPJ_USE_DSYMUTIL "Call dsymutil on binaries after build." OFF)
  endif()
  
-@@ -341,10 +310,10 @@ install( FILES ${OPENJPEG_BINARY_DIR}/OpenJPEGConfig.cmake
- # install CHANGES and LICENSE
- if(BUILD_DOC)
- if(EXISTS ${OPENJPEG_SOURCE_DIR}/CHANGES)
--  install(FILES CHANGES DESTINATION ${OPENJPEG_INSTALL_DOC_DIR})
-+  install(FILES CHANGES DESTINATION ${CMAKE_INSTALL_DOCDIR})
- endif()
+@@ -338,14 +307,6 @@ install( FILES ${OPENJPEG_BINARY_DIR}/OpenJPEGConfig.cmake
+ )
  
+ #-----------------------------------------------------------------------------
+-# install CHANGES and LICENSE
+-if(BUILD_DOC)
+-if(EXISTS ${OPENJPEG_SOURCE_DIR}/CHANGES)
+-  install(FILES CHANGES DESTINATION ${OPENJPEG_INSTALL_DOC_DIR})
+-endif()
+-
 -install(FILES LICENSE DESTINATION ${OPENJPEG_INSTALL_DOC_DIR})
-+install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DOCDIR})
- endif()
+-endif()
  
  include (cmake/OpenJPEGCPack.cmake)
-@@ -362,14 +331,14 @@ if(BUILD_PKGCONFIG_FILES)
+ 
+@@ -362,14 +323,14 @@ if(BUILD_PKGCONFIG_FILES)
    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/openjp2/libopenjp2.pc.cmake.in
      ${CMAKE_CURRENT_BINARY_DIR}/libopenjp2.pc @ONLY)
    install( FILES  ${CMAKE_CURRENT_BINARY_DIR}/libopenjp2.pc DESTINATION
@@ -143,7 +145,7 @@ index cb545666..aed5b638 100644
    endif()
  #
    if(BUILD_JPIP)
-@@ -377,7 +346,7 @@ if(BUILD_PKGCONFIG_FILES)
+@@ -377,7 +338,7 @@ if(BUILD_PKGCONFIG_FILES)
    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/openjpip/libopenjpip.pc.cmake.in
      ${CMAKE_CURRENT_BINARY_DIR}/libopenjpip.pc @ONLY)
    install( FILES  ${CMAKE_CURRENT_BINARY_DIR}/libopenjpip.pc DESTINATION
@@ -152,7 +154,7 @@ index cb545666..aed5b638 100644
    endif()
  #
    if(BUILD_JP3D)
-@@ -385,7 +354,7 @@ if(BUILD_PKGCONFIG_FILES)
+@@ -385,7 +346,7 @@ if(BUILD_PKGCONFIG_FILES)
    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/openjp3d/libopenjp3d.pc.cmake.in
      ${CMAKE_CURRENT_BINARY_DIR}/libopenjp3d.pc @ONLY)
    install( FILES  ${CMAKE_CURRENT_BINARY_DIR}/libopenjp3d.pc DESTINATION
@@ -174,6 +176,19 @@ index 2925108a..702e2790 100644
    file(RELATIVE_PATH PKG_TO_INC_RPATH "${PKG_DIR}" "${INC_DIR}")
  
    get_filename_component(OPENJPEG_INCLUDE_DIRS "${SELF_DIR}/${PKG_TO_INC_RPATH}" ABSOLUTE)
+diff --git a/doc/CMakeLists.txt b/doc/CMakeLists.txt
+index d4f3ddbe..ed5cb44c 100644
+--- a/doc/CMakeLists.txt
++++ b/doc/CMakeLists.txt
+@@ -44,7 +44,7 @@ if(DOXYGEN_FOUND)
+ 
+   # install HTML documentation (install png files too):
+   install(DIRECTORY ${CMAKE_BINARY_DIR}/doc/html
+-    DESTINATION share/doc
++    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+     PATTERN ".svn" EXCLUDE
+   )
+ else()
 diff --git a/src/bin/jp2/CMakeLists.txt b/src/bin/jp2/CMakeLists.txt
 index 4d4bd952..29b4dd20 100644
 --- a/src/bin/jp2/CMakeLists.txt
