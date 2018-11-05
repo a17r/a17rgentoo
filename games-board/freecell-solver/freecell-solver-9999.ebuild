@@ -26,13 +26,13 @@ IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 DEPEND="
-	dev-lang/perl:=
+	dev-perl/Path-Tiny
+	dev-perl/Template-Toolkit
 	dev-python/six
 	dev-util/gperf
 "
-RDEPEND="
+RDEPEND="${PYTHON_DEPS}
 	dev-python/random2
-	${PYTHON_DEPS}
 "
 
 src_configure() {
