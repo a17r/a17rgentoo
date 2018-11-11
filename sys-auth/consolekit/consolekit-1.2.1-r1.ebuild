@@ -126,7 +126,7 @@ src_install() {
 		doexe "${FILESDIR}"/pam-foreground-compat.ck
 	fi
 
-	prune_libtool_files --all # --all for pam_ck_connector.la
+	find "${D}" -name '*.la' -delete || die
 
 	rm -rf "${ED}"/var/run || die # let the init script create the directory
 }
