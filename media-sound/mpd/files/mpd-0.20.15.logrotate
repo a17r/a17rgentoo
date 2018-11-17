@@ -1,7 +1,0 @@
-/var/lib/mpd/log {
-	delaycompress
-	missingok
-	postrotate
-	/etc/init.d/mpd reload
-	endscript
-}
