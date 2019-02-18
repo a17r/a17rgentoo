@@ -12,7 +12,7 @@ HOMEPAGE="https://launchpad.net/libdbusmenu-qt/"
 LICENSE="LGPL-2"
 SLOT="0"
 KEYWORDS=""
-IUSE=""
+IUSE="doc"
 
 BDEPEND="kde-frameworks/extra-cmake-modules:5"
 DEPEND="
@@ -22,3 +22,11 @@ DEPEND="
 	dev-qt/qtwidgets:5
 "
 RDEPEND="${DEPEND}"
+
+src_configure() {
+	local mycmakeargs=(
+		$(cmake-utils_use_find_package doc Doxygen)
+		-DCMAKE_INSTALL_DOCDIR="${EPREFIX}"/usr/share/doc/${PF}/html
+	)
+	cmake-utils_src_configure
+}
