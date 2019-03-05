@@ -12,7 +12,7 @@ HOMEPAGE="https://launchpad.net/libdbusmenu-qt/"
 LICENSE="LGPL-2"
 SLOT="0"
 KEYWORDS=""
-IUSE="doc"
+IUSE="doc test"
 
 BDEPEND="kde-frameworks/extra-cmake-modules:5"
 DEPEND="
@@ -26,7 +26,17 @@ RDEPEND="${DEPEND}"
 src_configure() {
 	local mycmakeargs=(
 		$(cmake-utils_use_find_package doc Doxygen)
-		-DCMAKE_INSTALL_DOCDIR="${EPREFIX}"/usr/share/doc/${PF}/html
+		-DBUILD_TESTING=$(usex test)
 	)
 	cmake-utils_src_configure
+}
+
+src_compile() {
+	cmake-utils_src_compile
+	use doc && cmake-utils_src_compile doc
+}
+
+src_install() {
+	use doc && local HTML_DOCS=( "${BUILD_DIR}"/html/. )
+	cmake-utils_src_install
 }
