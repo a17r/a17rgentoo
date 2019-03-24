@@ -1,4 +1,4 @@
-# Copyright 1999-2015 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 # @ECLASS: font.eclass
@@ -7,11 +7,10 @@
 # @BLURB: Eclass to make font installation uniform
 
 case ${EAPI:-0} in
-	0|1|2|3|4|5|6) ;;
-	*)             die "EAPI ${EAPI} is not supported by font.eclass." ;;
+	0|1|2|3|4|5|6) inherit eutils ;;
+	7) ;;
+	*) die "EAPI ${EAPI} is not supported by font.eclass." ;;
 esac
-
-inherit eutils
 
 EXPORT_FUNCTIONS pkg_setup src_install pkg_postinst pkg_postrm
 
@@ -68,12 +67,12 @@ font_xfont_config() {
 	if has X ${IUSE//+} && use X ; then
 		dir_name="${1:-${FONT_PN}}"
 		ebegin "Creating fonts.scale & fonts.dir in ${dir_name##*/}"
-		rm -f "${ED}${FONTDIR}/${1//${S}/}"/{fonts.{dir,scale},encodings.dir}
-		mkfontscale "${ED}${FONTDIR}/${1//${S}/}"
+		rm -f "${ED%/}/${FONTDIR}/${1//${S}/}"/{fonts.{dir,scale},encodings.dir}
+		mkfontscale "${ED%/}/${FONTDIR}/${1//${S}/}"
 		mkfontdir \
 			-e ${EPREFIX}/usr/share/fonts/encodings \
 			-e ${EPREFIX}/usr/share/fonts/encodings/large \
-			"${ED}${FONTDIR}/${1//${S}/}"
+			"${ED%/}/${FONTDIR}/${1//${S}/}"
 		eend $?
 		if [[ -e fonts.alias ]] ; then
 			doins fonts.alias
@@ -103,7 +102,7 @@ font_cleanup_dirs() {
 	local d f g generated candidate otherfile
 
 	ebegin "Cleaning up font directories"
-	find -L "${EROOT}"usr/share/fonts/ -type d -print0 | while read -d $'\0' d; do
+	find -L "${EROOT%/}"/usr/share/fonts/ -type d -print0 | while read -d $'\0' d; do
 		candidate=false
 		otherfile=false
 		for f in "${d}"/*; do
@@ -160,7 +159,7 @@ font_pkg_setup() {
 
 	# make sure we get no collisions
 	# setup is not the nicest place, but preinst doesn't cut it
-	[[ -e "${EROOT}/${FONTDIR}/fonts.cache-1" ]] && rm -f "${EROOT}/${FONTDIR}/fonts.cache-1"
+	[[ -e "${EROOT%/}/${FONTDIR}/fonts.cache-1" ]] && rm -f "${EROOT%/}/${FONTDIR}/fonts.cache-1"
 }
 
 # @FUNCTION: font_src_install
@@ -202,36 +201,47 @@ font_src_install() {
 	done
 }
 
+# @FUNCTION: _update_fontcache
+# @DESCRIPTION:
+# Updates fontcache if !prefix and media-libs/fontconfig installed
+_update_fontcache() {
+	# unreadable font files = fontconfig segfaults
+	find "${EROOT%/}"/usr/share/fonts/ -type f '!' -perm 0644 \
+		-exec chmod -v 0644 2>/dev/null {} + || die "failed to fix font files perms"
+
+	if [[ -z ${ROOT%/} ]] ; then
+		if has_version media-libs/fontconfig ; then
+			ebegin "Updating global fontcache"
+			fc-cache -fs
+			if ! eend $? ; then
+				die "failed to update global fontcache"
+			fi
+		else
+			einfo "Skipping fontcache update (media-libs/fontconfig not installed)"
+		fi
+	else
+		einfo "Skipping fontcache update (ROOT != /)"
+	fi
+}
+
 # @FUNCTION: font_pkg_postinst
 # @DESCRIPTION:
 # The font pkg_postinst function.
 font_pkg_postinst() {
-	# unreadable font files = fontconfig segfaults
-	find "${EROOT}"usr/share/fonts/ -type f '!' -perm 0644 -print0 \
-		| xargs -0 chmod -v 0644 2>/dev/null
-
 	if [[ -n ${FONT_CONF[@]} ]]; then
 		local conffile
-		echo
 		elog "The following fontconfig configuration files have been installed:"
 		elog
 		for conffile in "${FONT_CONF[@]}"; do
-			if [[ -e ${EROOT}etc/fonts/conf.avail/$(basename ${conffile}) ]]; then
-				elog "  $(basename ${conffile})"
+			if [[ -e "${EROOT%/}"/etc/fonts/conf.avail/${conffile##*/} ]]; then
+				elog "  ${conffile##*/}"
 			fi
 		done
 		elog
 		elog "Use \`eselect fontconfig\` to enable/disable them."
-		echo
 	fi
 
-	if has_version media-libs/fontconfig && [[ ${ROOT} == / ]]; then
-		ebegin "Updating global fontcache"
-		fc-cache -fs
-		eend $?
-	else
-		einfo "Skipping fontcache update (media-libs/fontconfig is not installed or ROOT != /)"
-	fi
+	_update_fontcache
 }
 
 # @FUNCTION: font_pkg_postrm
@@ -239,16 +249,5 @@ font_pkg_postinst() {
 # The font pkg_postrm function.
 font_pkg_postrm() {
 	font_cleanup_dirs
-
-	# unreadable font files = fontconfig segfaults
-	find "${EROOT}"usr/share/fonts/ -type f '!' -perm 0644 -print0 \
-		| xargs -0 chmod -v 0644 2>/dev/null
-
-	if has_version media-libs/fontconfig && [[ ${ROOT} == / ]]; then
-		ebegin "Updating global fontcache"
-		fc-cache -fs
-		eend $?
-	else
-		einfo "Skipping fontcache update (media-libs/fontconfig is not installed or ROOT != /)"
-	fi
+	_update_fontcache
 }
