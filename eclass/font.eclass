@@ -66,17 +66,18 @@ font_xfont_config() {
 	local dir_name
 	if has X ${IUSE//+} && use X ; then
 		dir_name="${1:-${FONT_PN}}"
+		rm -f "${ED%/}/${FONTDIR}/${1//${S}/}"/{fonts.{dir,scale},encodings.dir} \
+			|| die "failed to prepare ${FONTDIR}/${1//${S}/}"
 		ebegin "Creating fonts.scale & fonts.dir in ${dir_name##*/}"
-		rm -f "${ED%/}/${FONTDIR}/${1//${S}/}"/{fonts.{dir,scale},encodings.dir}
-		mkfontscale "${ED%/}/${FONTDIR}/${1//${S}/}"
+		mkfontscale "${ED%/}/${FONTDIR}/${1//${S}/}" || eerror "failed to create fonts.scale"
 		mkfontdir \
 			-e ${EPREFIX}/usr/share/fonts/encodings \
 			-e ${EPREFIX}/usr/share/fonts/encodings/large \
-			"${ED%/}/${FONTDIR}/${1//${S}/}"
-		eend $?
-		if [[ -e fonts.alias ]] ; then
-			doins fonts.alias
+			"${ED%/}/${FONTDIR}/${1//${S}/}" || eerror "failed to create fonts.dir"
+		if ! eend $? ; then
+			die "failed to run mkfontscale or mkfontdir"
 		fi
+		[[ -e fonts.alias ]] && doins fonts.alias
 	fi
 }
 
@@ -130,11 +131,12 @@ font_cleanup_dirs() {
 			# media-fonts/font-alias. any other fonts.alias files will have
 			# already been unmerged with their packages.
 			for g in ${genfiles}; do
-				[[ ${g} != fonts.alias && ( -e ${d}/${g} || -L ${d}/${g} ) ]] \
-					&& rm "${d}"/${g}
+				if [[ ${g} != fonts.alias && ( -e ${d}/${g} || -L ${d}/${g} ) ]] ; then
+					rm "${d}"/${g} || eerror "failed to remove ${d}/${g}"
+				fi
 			done
 			# if there's nothing left remove the directory
-			find "${d}" -maxdepth 0 -type d -empty -exec rmdir '{}' \;
+			find "${d}" -maxdepth 0 -type d -empty -delete || eerror "failed to purge ${d}"
 		fi
 	done
 	eend 0
@@ -159,7 +161,9 @@ font_pkg_setup() {
 
 	# make sure we get no collisions
 	# setup is not the nicest place, but preinst doesn't cut it
-	[[ -e "${EROOT%/}/${FONTDIR}/fonts.cache-1" ]] && rm -f "${EROOT%/}/${FONTDIR}/fonts.cache-1"
+	if [[ -e "${EROOT%/}/${FONTDIR}/fonts.cache-1" ]] ; then
+		rm "${EROOT%/}/${FONTDIR}/fonts.cache-1" || die "failed to remove fonts.cache-1"
+	fi
 }
 
 # @FUNCTION: font_src_install
@@ -193,7 +197,7 @@ font_src_install() {
 
 	font_fontconfig
 
-	[[ -n ${DOCS} ]] && { dodoc ${DOCS} || die "docs installation failed" ; }
+	[[ -n ${DOCS} ]] && dodoc ${DOCS}
 
 	# install common docs
 	for commondoc in COPYRIGHT README{,.txt} NEWS AUTHORS BUGS ChangeLog FONTLOG.txt; do
