@@ -1,0 +1,42 @@
+From 00221089800c29aa71079d72d81e11fc889a7054 Mon Sep 17 00:00:00 2001
+From: Jan-Marek Glogowski <glogow@fbihome.de>
+Date: Sat, 4 May 2019 13:58:24 +0000
+Subject: Qt5 IM allow committing empty strings
+
+This is a really nasty bug, which is mainly triggered by focus
+change. It happens because Qt tries to delete the surrounding text
+on the first key press after focusing in, sending an empty commit
+string via QInputMethodEvent.
+
+To reproduce:
+* type some dummy word in Writer
+* select a part of the word
+* Alt+Tab to a different window to switch focus
+* Alt+Tab back to Writer
+* Press Alt => deletes the selected text
+
+Instead of Alt+Tab you can also switch the IM via hotkey.
+
+Change-Id: I0ce4c64aebf93a422bd3067f204da1d8f326a327
+Reviewed-on: https://gerrit.libreoffice.org/71796
+Tested-by: Jenkins
+Reviewed-by: Jan-Marek Glogowski <glogow@fbihome.de>
+---
+ vcl/qt5/Qt5Widget.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vcl/qt5/Qt5Widget.cxx b/vcl/qt5/Qt5Widget.cxx
+index b25d260..0b22cbb 100644
+--- a/vcl/qt5/Qt5Widget.cxx
++++ b/vcl/qt5/Qt5Widget.cxx
+@@ -478,7 +478,7 @@ void Qt5Widget::inputMethodEvent(QInputMethodEvent* pEvent)
+     aInputEvent.mpTextAttr = nullptr;
+     aInputEvent.mnCursorFlags = 0;
+ 
+-    if (!pEvent->commitString().isEmpty())
++    if (!pEvent->commitString().isNull())
+     {
+         vcl::DeletionListener aDel(m_pFrame);
+         aInputEvent.maText = toOUString(pEvent->commitString());
+-- 
+cgit v1.1

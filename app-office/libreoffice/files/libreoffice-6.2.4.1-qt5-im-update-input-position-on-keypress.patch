@@ -1,0 +1,42 @@
+From acbab790126ddeea7ec6b72cffac68b9d01f756d Mon Sep 17 00:00:00 2001
+From: Jan-Marek Glogowski <glogow@fbihome.de>
+Date: Sat, 4 May 2019 00:55:24 +0000
+Subject: Qt5 IM update input position on keypress
+
+At least my ibus installation doesn't ask for the current input
+position (Qt::ImCursorRectangle), in comparison to fcitx. So just
+as gtk3, we now actively updates the IM position on every
+keypress. Fixes the ibus hint window position for me, which would
+otherwise be displayed in the top-left screen corner.
+
+Change-Id: I9e5f0fb6b134615bc00cdd169ce8592f01239d20
+Reviewed-on: https://gerrit.libreoffice.org/71785
+Tested-by: Jenkins
+Reviewed-by: Jan-Marek Glogowski <glogow@fbihome.de>
+---
+ vcl/qt5/Qt5Widget.cxx | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/vcl/qt5/Qt5Widget.cxx b/vcl/qt5/Qt5Widget.cxx
+index bef3c61..b25d260 100644
+--- a/vcl/qt5/Qt5Widget.cxx
++++ b/vcl/qt5/Qt5Widget.cxx
+@@ -27,6 +27,7 @@
+ #include <QtCore/QMimeData>
+ #include <QtGui/QDrag>
+ #include <QtGui/QFocusEvent>
++#include <QtGui/QGuiApplication>
+ #include <QtGui/QImage>
+ #include <QtGui/QKeyEvent>
+ #include <QtGui/QMouseEvent>
+@@ -394,6 +395,8 @@ bool Qt5Widget::handleKeyEvent(QKeyEvent* pEvent, bool bDown)
+     aEvent.mnCode = GetKeyCode(pEvent->key(), pEvent->modifiers());
+     aEvent.mnCode |= GetKeyModCode(pEvent->modifiers());
+ 
++    QGuiApplication::inputMethod()->update(Qt::ImCursorRectangle);
++
+     bool bStopProcessingKey;
+     if (bDown)
+         bStopProcessingKey = m_pFrame->CallCallback(SalEvent::KeyInput, &aEvent);
+-- 
+cgit v1.1

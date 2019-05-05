@@ -1,0 +1,56 @@
+From 110fd705ad3ae35144aaa6e5d8249b7e35f2825f Mon Sep 17 00:00:00 2001
+From: Jan-Marek Glogowski <glogow@fbihome.de>
+Date: Fri, 3 May 2019 21:16:49 +0200
+Subject: tdf#123956 Qt5 IM update cursor position
+
+This sets the cursor position to the one provided by the
+QInputMethodEvent::Cursor attribute.
+
+Change-Id: I4a99f9939b53c69631e45d41102bf9c7f53f0ff5
+Reviewed-on: https://gerrit.libreoffice.org/71782
+Tested-by: Jenkins
+Reviewed-by: Jan-Marek Glogowski <glogow@fbihome.de>
+---
+ vcl/qt5/Qt5Widget.cxx | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/vcl/qt5/Qt5Widget.cxx b/vcl/qt5/Qt5Widget.cxx
+index f2c574a..1b5030f 100644
+--- a/vcl/qt5/Qt5Widget.cxx
++++ b/vcl/qt5/Qt5Widget.cxx
+@@ -470,10 +470,32 @@ void Qt5Widget::inputMethodEvent(QInputMethodEvent* pEvent)
+     {
+         aInputEvent.maText = toOUString(pEvent->preeditString());
+         aInputEvent.mnCursorPos = 0;
+-        sal_Int32 nLength = aInputEvent.maText.getLength();
++
++        const sal_Int32 nLength = aInputEvent.maText.getLength();
++        const QList<QInputMethodEvent::Attribute>& rAttrList = pEvent->attributes();
+         std::vector<ExtTextInputAttr> aTextAttrs(nLength, ExtTextInputAttr::Underline);
++
++        for (int i = 0; i < rAttrList.size(); ++i)
++        {
++            const QInputMethodEvent::Attribute& rAttr = rAttrList.at(i);
++            switch (rAttr.type)
++            {
++                case QInputMethodEvent::Cursor:
++                {
++                    aInputEvent.mnCursorPos = rAttr.start;
++                    if (rAttr.length == 0)
++                        aInputEvent.mnCursorFlags |= EXTTEXTINPUT_CURSOR_INVISIBLE;
++                    break;
++                }
++                default:
++                    SAL_WARN("vcl.qt5", "Unhandled QInputMethodEvent attribute: "
++                                            << static_cast<int>(rAttr.type));
++                    break;
++            }
++        }
+         if (nLength)
+             aInputEvent.mpTextAttr = &aTextAttrs[0];
++
+         m_pFrame->CallCallback(SalEvent::ExtTextInput, &aInputEvent);
+         pEvent->accept();
+     }
+-- 
+cgit v1.1
