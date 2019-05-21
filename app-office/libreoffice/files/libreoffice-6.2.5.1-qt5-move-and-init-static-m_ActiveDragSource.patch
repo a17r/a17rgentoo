@@ -1,0 +1,47 @@
+From af8266b4d371ffbc14609686259546642b167755 Mon Sep 17 00:00:00 2001
+From: Jan-Marek Glogowski <glogow@fbihome.de>
+Date: Fri, 14 Jun 2019 02:30:01 +0200
+Subject: Qt5 move and init static m_ActiveDragSource
+
+Change-Id: Iab82151b8d1a8281c9999983b9de5f35dfb0442e
+Reviewed-on: https://gerrit.libreoffice.org/74013
+Tested-by: Jenkins
+Reviewed-by: Jan-Marek Glogowski <glogow@fbihome.de>
+(cherry picked from commit 5195c5bcd8be5f3b183659ead272cd86b8774cc1)
+Reviewed-on: https://gerrit.libreoffice.org/74091
+(cherry picked from commit bf1a7feb2b871409e61512b8faf415fc87d4c631)
+Reviewed-on: https://gerrit.libreoffice.org/74096
+Reviewed-by: Michael Weghorn <m.weghorn@posteo.de>
+---
+ vcl/qt5/Qt5DragAndDrop.cxx | 1 +
+ vcl/qt5/Qt5Frame.cxx       | 2 --
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/vcl/qt5/Qt5DragAndDrop.cxx b/vcl/qt5/Qt5DragAndDrop.cxx
+index 42e6107..001302f 100644
+--- a/vcl/qt5/Qt5DragAndDrop.cxx
++++ b/vcl/qt5/Qt5DragAndDrop.cxx
+@@ -96,6 +96,7 @@ std::vector<css::datatransfer::DataFlavor> Qt5DnDTransferable::getTransferDataFl
+ 
+ bool Qt5DragSource::m_bDropSuccessSet = false;
+ bool Qt5DragSource::m_bDropSuccess = false;
++Qt5DragSource* Qt5DragSource::m_ActiveDragSource = nullptr;
+ 
+ Qt5DragSource::~Qt5DragSource()
+ {
+diff --git a/vcl/qt5/Qt5Frame.cxx b/vcl/qt5/Qt5Frame.cxx
+index 6b738f1..f5f7e52 100644
+--- a/vcl/qt5/Qt5Frame.cxx
++++ b/vcl/qt5/Qt5Frame.cxx
+@@ -1166,8 +1166,6 @@ void Qt5Frame::SetApplicationID(const OUString&)
+ 
+ // Drag'n'drop foo
+ 
+-Qt5DragSource* Qt5DragSource::m_ActiveDragSource;
+-
+ void Qt5Frame::registerDragSource(Qt5DragSource* pDragSource)
+ {
+     assert(!m_pDragSource);
+-- 
+cgit v1.1
+
