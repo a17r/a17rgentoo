@@ -247,10 +247,10 @@ fi
 PATCHES=(
 	# master branch
 	"${FILESDIR}/${PN}-6.2-ldap-optional.patch"
-	"${FILESDIR}/${P}-qt5-im-update-cursor-position.patch"
-	"${FILESDIR}/${P}-qt5-im-generate-correct-formating.patch"
-	"${FILESDIR}/${P}-qt5-im-update-input-position-on-keypress.patch"
-	"${FILESDIR}/${P}-qt5-im-allow-committing-empty-strings.patch"
+	"${FILESDIR}/${PN}-6.2.4.1-qt5-im-update-cursor-position.patch"
+	"${FILESDIR}/${PN}-6.2.4.1-qt5-im-generate-correct-formating.patch"
+	"${FILESDIR}/${PN}-6.2.4.1-qt5-im-update-input-position-on-keypress.patch"
+	"${FILESDIR}/${PN}-6.2.4.1-qt5-im-allow-committing-empty-strings.patch"
 	# "${WORKDIR}"/${PATCHSET/.tar.xz/}
 
 	# not upstreamable stuff
