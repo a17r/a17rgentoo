@@ -21,7 +21,7 @@ BRANDING="${PN}-branding-gentoo-0.8.tar.xz"
 # PATCHSET="${P}-patchset-01.tar.xz"
 
 [[ ${MY_PV} == *9999* ]] && inherit git-r3
-inherit autotools bash-completion-r1 check-reqs flag-o-matic java-pkg-opt-2 multiprocessing python-single-r1 qmake-utils toolchain-funcs xdg
+inherit autotools bash-completion-r1 check-reqs flag-o-matic java-pkg-opt-2 multiprocessing python-single-r1 qmake-utils toolchain-funcs xdg-utils
 
 DESCRIPTION="A full office productivity suite"
 HOMEPAGE="https://www.libreoffice.org"
@@ -63,7 +63,7 @@ unset ADDONS_SRC
 LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 
 IUSE="accessibility bluetooth +branding coinmp +cups dbus debug eds firebird
-googledrive gstreamer +gtk gtk2 kde ldap +mariadb odk pdfimport postgres test vlc
+googledrive gstreamer +gtk gtk2 kde ldap +mariadb odk pdfimport postgres test
 $(printf 'libreoffice_extensions_%s ' ${LO_EXTS})"
 
 REQUIRED_USE="${PYTHON_REQUIRED_USE}
@@ -109,7 +109,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	>=app-text/libwps-0.4
 	app-text/mythes
 	>=dev-cpp/clucene-2.3.3.4-r2
-	=dev-cpp/libcmis-0.5*
+	>=dev-cpp/libcmis-0.5.2
 	dev-db/unixODBC
 	dev-lang/perl
 	dev-libs/boost:=[nls]
@@ -234,7 +234,6 @@ RDEPEND="${COMMON_DEPEND}
 	|| ( x11-misc/xdg-utils kde-plasma/kde-cli-tools )
 	java? ( >=virtual/jre-1.6 )
 	kde? ( kde-frameworks/breeze-icons:* )
-	vlc? ( media-video/vlc )
 "
 if [[ ${MY_PV} != *9999* ]] && [[ ${PV} != *_* ]]; then
 	PDEPEND="=app-office/libreoffice-l10n-$(ver_cut 1-2)*"
@@ -245,10 +244,6 @@ else
 fi
 
 PATCHES=(
-	# master branch
-	"${FILESDIR}/${PN}-6.2-ldap-optional.patch"
-	# 6.2 branch
-	"${FILESDIR}/${P}-qt5-move-and-init-static-m_ActiveDragSource.patch"
 	# "${WORKDIR}"/${PATCHSET/.tar.xz/}
 
 	# not upstreamable stuff
@@ -285,6 +280,7 @@ pkg_pretend() {
 pkg_setup() {
 	java-pkg-opt-2_pkg_setup
 	python-single-r1_pkg_setup
+	xdg_environment_reset
 
 	[[ ${MERGE_TYPE} != binary ]] && _check_reqs pkg_setup
 }
@@ -308,7 +304,7 @@ src_unpack() {
 }
 
 src_prepare() {
-	xdg_src_prepare
+	default
 
 	# sandbox violations on many systems, we don't need it. Bug #646406
 	sed -i \
@@ -410,10 +406,12 @@ src_configure() {
 		--disable-epm
 		--disable-fetch-external
 		--disable-gstreamer-0-10
+		--disable-gtk3-kde5
 		--disable-online-update
 		--disable-openssl
 		--disable-pdfium
 		--disable-report-builder
+		--disable-vlc
 		--with-build-version="${gentoo_buildid}"
 		--enable-extension-integration
 		--with-external-dict-dir="${EPREFIX}/usr/share/myspell"
@@ -448,7 +446,6 @@ src_configure() {
 		$(use_enable odk)
 		$(use_enable pdfimport)
 		$(use_enable postgres postgresql-sdbc)
-		$(use_enable vlc)
 		$(use_with accessibility lxml)
 		$(use_with coinmp system-coinmp)
 		$(use_with googledrive gdrive-client-id ${google_default_client_id})
@@ -456,10 +453,6 @@ src_configure() {
 		$(use_with java)
 		$(use_with odk doxygen)
 	)
-
-	if use gtk && use kde; then
-		myeconfargs+=( --enable-gtk3-kde5 )
-	fi
 
 	if use eds || use gtk; then
 		myeconfargs+=( --enable-dconf --enable-gio )
@@ -541,7 +534,14 @@ src_install() {
 	fi
 }
 
-pkg_preinst() {
-	java-utils-2_pkg_preinst
-	xdg_pkg_preinst
+pkg_postinst() {
+	xdg_icon_cache_update
+	xdg_desktop_database_update
+	xdg_mimeinfo_database_update
+}
+
+pkg_postrm() {
+	xdg_icon_cache_update
+	xdg_desktop_database_update
+	xdg_mimeinfo_database_update
 }
