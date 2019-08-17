@@ -1,0 +1,1181 @@
+From 7ff3d704a984673d5e5856c828de1adae0b2aef5 Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <asturm@gentoo.org>
+Date: Sat, 17 Aug 2019 16:29:20 +0200
+Subject: [PATCH 1/3] Big CMake cleanup
+
+Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
+---
+ CMakeLists.txt                              | 271 +++++++++++++-------
+ data/CMakeLists.txt                         |   9 +-
+ doc/CMakeLists.txt                          |  14 +-
+ src/CMakeLists.txt                          |  23 +-
+ src/apps/CMakeLists.txt                     |   8 +-
+ src/apps/marble-kde/CMakeLists.txt          |  30 ---
+ src/bindings/CMakeLists.txt                 |  20 +-
+ src/lib/marble/CMakeLists.txt               |  12 +-
+ src/lib/marble/declarative/CMakeLists.txt   |   1 -
+ src/plasma/CMakeLists.txt                   |  23 --
+ src/plasmarunner/CMakeLists.txt             |  19 --
+ src/plugins/CMakeLists.txt                  |   4 +-
+ src/plugins/designer/CMakeLists.txt         |  29 +--
+ src/plugins/positionprovider/CMakeLists.txt |  22 +-
+ src/plugins/render/routing/CMakeLists.txt   |  12 +-
+ src/plugins/runner/CMakeLists.txt           |   8 +-
+ src/plugins/runner/gpx/CMakeLists.txt       |  37 +--
+ src/plugins/runner/json/CMakeLists.txt      |  37 +--
+ src/plugins/runner/kml/CMakeLists.txt       |  43 ++--
+ src/plugins/runner/osm/CMakeLists.txt       |  25 +-
+ src/plugins/runner/shp/CMakeLists.txt       |  37 +--
+ src/thumbnailer/CMakeLists.txt              |  14 -
+ 22 files changed, 265 insertions(+), 433 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ae8d42c6b..5b1400bbe 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -5,57 +5,6 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.9)
+ 
+ project(marble)
+ 
+-####################################################
+-# CMake Settings
+-SET(CMAKE_COLOR_MAKEFILE ON)
+-# SET(CMAKE_SKIP_RPATH ON)
+-
+-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+-
+-# Let CMake find the correct library dir instead of
+-# relying on the obsolete LIB_SUFFIX parameter
+-include(GNUInstallDirs)
+-
+-# Taken from KDECompilerSettings.cmake:
+-# Pick sensible versions of the C and C++ standards.
+-# Note that MSVC does not have equivalent flags; the features are either
+-# supported or they are not.
+-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+-    # We use the C89 standard because that is what is common to all our
+-    # compilers (in particular, MSVC 2010 does not support C99)
+-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -std=iso9899:1990")
+-endif()
+-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND NOT WIN32)
+-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+-endif()
+-# Default to hidden visibility for symbols
+-set(CMAKE_C_VISIBILITY_PRESET hidden)
+-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+-if (POLICY CMP0063)
+-    cmake_policy(SET CMP0063 NEW)
+-endif()
+-
+-# RPATH/RUNPATH settings
+-if (UNIX)
+-    # Add CMAKE_INSTALL_FULL_LIBDIR to the RPATH to be used when installing,
+-    # but only if it isn't a standard system directory.
+-    list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemLibDir)
+-    list(FIND CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES      "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemCxxLibDir)
+-    list(FIND CMAKE_C_IMPLICIT_LINK_DIRECTORIES        "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemCLibDir)
+-    if("${isSystemLibDir}" STREQUAL "-1"  AND  "${isSystemCxxLibDir}" STREQUAL "-1"  AND  "${isSystemCLibDir}" STREQUAL "-1")
+-        set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+-    endif()
+-
+-    # Add directories which are in the linker search path (but outside the project)
+-    # to the RPATH to be used when installing
+-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+-    # no libs or plugins are designed to be used from the build dir, so directly link with install rpath
+-    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+-endif (UNIX)
+-
+ ####################################################
+ # Where to look first for cmake modules,
+ # before ${CMAKE_ROOT}/Modules/ is checked
+@@ -70,14 +19,28 @@ set ( CMAKE_MODULE_PATH
+ 
+ # add cmake macros
+ include(GenerateExportHeader)
+-include( MarbleMacros )
++include(MarbleMacros)
++
++####################################################
++# Minimum versions
++
++if(CMAKE_SYSTEM_NAME STREQUAL Android)
++    set(REQUIRED_QT_VERSION 5.7.0)
++else()
++    set(REQUIRED_QT_VERSION 5.7.0)
++endif()
++
++set(KF5_MIN_VERSION 5.7.0)
++set(KDE_INSTALL_DIRS_NO_DEPRECATED TRUE)
++set(KDE_SKIP_UNINSTALL_TARGET ON CACHE BOOL "KDE uninstall target must be disabled")
+ 
+ ####################################################
++# Build options
++
+ # Generate the tiles with the tilecreator at compile time
+ # if this option is set, srtm.jpg will not be installed but the generated tiles instead
+ option(MOBILE "Create a Marble version optimized for handheld devices")
+ 
+-####################################################
+ # Build a D-Bus interface for the Marble widget
+ # This is disabled by default for all win32, apple and Android
+ if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL Android)
+@@ -86,26 +49,127 @@ else()
+     option(BUILD_WITH_DBUS "Build the D-Bus interface for the Marble widget" ON)
+ endif()
+ 
++set (WITH_DESIGNER_PLUGIN TRUE CACHE BOOL "Build plugins for Qt Designer")
++add_feature_info("Qt Designer plugins" WITH_DESIGNER_PLUGIN "Marble widget support in Qt Designer. Toggle with WITH_DESIGNER_PLUGIN=YES/NO")
+ 
+-#######################################################
+-# Specific options for building for different platforms
++option(MARBLE_NO_WEBKITWIDGETS "Build without WebEngineWidgets" OFF)
+ 
+-if(CMAKE_SYSTEM_NAME STREQUAL Android)
+-   add_definitions(-DANDROID)
++option(BUILD_MARBLE_APPS "Build Marble Desktop/Mobile applications" ON)
++add_feature_info("Marble Desktop/Mobile applications" BUILD_MARBLE_APPS "Build Marble Desktop/Mobile applications. Toggle with BUILD_MARBLE_APPS=YES/NO.")
++
++option(BUILD_MARBLE_TOOLS "Build various tools related to Marble" OFF)
++add_feature_info("Marble tools" BUILD_MARBLE_TOOLS "Build various Marble tools for e.g. file format conversion. Toggle with BUILD_MARBLE_TOOLS=YES/NO.")
++
++option(BUILD_MARBLE_EXAMPLES "Build C++ examples showing how to use the Marble library" OFF)
++add_feature_info("Marble library C++ examples" BUILD_MARBLE_EXAMPLES "Build C++ examples showing how to use the Marble library. Toggle with BUILD_MARBLE_EXAMPLES=YES/NO.")
++
++option(BUILD_MARBLE_TESTS "Build unit tests" ON )
++add_feature_info("Unit tests" BUILD_MARBLE_TESTS "Build unit tests. Toggle with BUILD_MARBLE_TESTS=YES/NO. 'make test' will run all.")
++
++set (PEDANTIC FALSE CACHE BOOL "Determines if we should compile with -Wall -Werror.")
++
++macro_optional_find_package(ECM ${KF5_MIN_VERSION} QUIET)
++if(ECM_FOUND)
++    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
++    include(KDECompilerSettings)
++    include(ECMPoQmTools)
++    include(ECMInstallIcons)
++    include(KDEInstallDirs)
++    include(KDECMakeSettings)
++
++    # marble-kde
++    find_package(KF5 ${KF5_MIN_VERSION} QUIET OPTIONAL_COMPONENTS Crash NewStuff Parts CoreAddons I18n)
++    # plasmarunner
++    find_package(KF5 ${KF5_MIN_VERSION} QUIET OPTIONAL_COMPONENTS I18n Runner)
++    # thumbnailer, register plugins as handlers
++    find_package(KF5 ${KF5_MIN_VERSION} QUIET OPTIONAL_COMPONENTS KIO)
++
++    if (WITH_DESIGNER_PLUGIN)
++        find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED COMPONENTS Designer UiPlugin)
++        marble_set_package_properties( Qt5Designer PROPERTIES TYPE OPTIONAL PURPOSE "Required to build Qt Designer plugins" )
++        set_package_properties(Qt5UiPlugin PROPERTIES TYPE OPTIONAL
++            PURPOSE "Required to build Qt Designer plugins"
++        )
++        # for some reason, Qt5UiPlugin does not set its _INCLUDE_DIRS variable. Fill it manually
++        get_target_property(Qt5UiPlugin_INCLUDE_DIRS Qt5::UiPlugin INTERFACE_INCLUDE_DIRECTORIES)
++    endif()
++
++    find_package(KF5DocTools ${KF5_MIN_VERSION} QUIET)
++else()
++    # Let CMake find the correct library dir instead of
++    # relying on the obsolete LIB_SUFFIX parameter
++    include(GNUInstallDirs)
++
++    # Taken from KDECompilerSettings.cmake:
++    # Pick sensible versions of the C and C++ standards.
++    # Note that MSVC does not have equivalent flags; the features are either
++    # supported or they are not.
++    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
++        # We use the C89 standard because that is what is common to all our
++        # compilers (in particular, MSVC 2010 does not support C99)
++        set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -std=iso9899:1990")
++    endif()
++    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
++        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
++   # TODO: still needed with ECM toolchain?
++   SET(QT_QMAKE_EXECUTABLE "$ENV{Qt5_android}/bin/qmake")
++    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND NOT WIN32)
++        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
++    endif()
++    # Default to hidden visibility for symbols
++    set(CMAKE_C_VISIBILITY_PRESET hidden)
++    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
++    set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
++    if (POLICY CMP0063)
++        cmake_policy(SET CMP0063 NEW)
++    endif()
+ endif()
+ 
++# RPATH/RUNPATH settings
++if (UNIX)
++    # Add CMAKE_INSTALL_FULL_LIBDIR to the RPATH to be used when installing,
++    # but only if it isn't a standard system directory.
++    list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemLibDir)
++    list(FIND CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES      "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemCxxLibDir)
++    list(FIND CMAKE_C_IMPLICIT_LINK_DIRECTORIES        "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemCLibDir)
++    if("${isSystemLibDir}" STREQUAL "-1"  AND  "${isSystemCxxLibDir}" STREQUAL "-1"  AND  "${isSystemCLibDir}" STREQUAL "-1")
++        set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
++    endif()
++
++    # Add directories which are in the linker search path (but outside the project)
++    # to the RPATH to be used when installing
++    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
++    # no libs or plugins are designed to be used from the build dir, so directly link with install rpath
++    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
++endif()
+ 
+ #######################################################
+-# Find Qt dependencies
++# CMake Settings
++SET(CMAKE_COLOR_MAKEFILE ON)
++# SET(CMAKE_SKIP_RPATH ON)
++
++set(CMAKE_POSITION_INDEPENDENT_CODE ON)
++
++SET(CMAKE_AUTOMOC TRUE)
++
++#######################################################
++# Specific options for building for different platforms
+ 
+ if(CMAKE_SYSTEM_NAME STREQUAL Android)
+-    set(REQUIRED_QT_VERSION 5.7.0)
+    # TODO: still needed with ECM toolchain?
+    SET(QT_QMAKE_EXECUTABLE "$ENV{Qt5_android}/bin/qmake")
+-else()
+-    set(REQUIRED_QT_VERSION 5.7.0)
++   add_definitions(-DANDROID)
++   set (MARBLE_NO_WEBKITWIDGETS TRUE)
+ endif()
+ 
++# Use M_PI under Windows
++if( WIN32 )
++    add_definitions( -D_USE_MATH_DEFINES )
++endif( WIN32 )
++
++#######################################################
++# Find Qt dependencies
++
+ find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED
+     COMPONENTS
+         Core
+@@ -123,15 +187,15 @@ find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED
+ if(CMAKE_SYSTEM_NAME STREQUAL Android)
+     find_package(Qt5Positioning ${REQUIRED_QT_VERSION} REQUIRED)
+     find_package(Qt5Multimedia ${REQUIRED_QT_VERSION} REQUIRED)
+-
+-   set ( MARBLE_NO_WEBKITWIDGETS TRUE )
+ else()
++    # optional use in libmarbledeclarative
++    find_package(Qt5Positioning ${REQUIRED_QT_VERSION})
++    marble_set_package_properties( Qt5Positioning PROPERTIES TYPE OPTIONAL PURPOSE "Position information via Qt5Positioning" )
++endif()
++
++if(NOT MARBLE_NO_WEBKITWIDGETS)
+     find_package(Qt5WebEngine ${REQUIRED_QT_VERSION})
+     find_package(Qt5WebEngineWidgets ${REQUIRED_QT_VERSION})
+-
+-   if ( NOT Qt5WebEngineWidgets_FOUND )
+-     set ( MARBLE_NO_WEBKITWIDGETS TRUE )
+-   endif()
+ endif()
+ 
+ if (BUILD_WITH_DBUS)
+@@ -143,12 +207,39 @@ else()
+   set(MARBLE_NO_DBUS TRUE)
+ endif()
+ 
+-SET(CMAKE_AUTOMOC TRUE)
++####################################################
++# more dependencies
++
++macro_optional_find_package(Phonon4Qt5 QUIET)
++marble_set_package_properties( Phonon4Qt5 PROPERTIES
++    DESCRIPTION "Qt-based audio library"
++    URL "https://phonon.kde.org/"
++    PURPOSE "Support for playback of soundcue elements, voice navigation (sound or human speakers)"
++    TYPE OPTIONAL
++)
++if(Phonon4Qt5_FOUND)
++    set(HAVE_PHONON TRUE)
++endif()
+ 
+-# Use M_PI under Windows
+-if( WIN32 )
+-    add_definitions( -D_USE_MATH_DEFINES )
+-endif( WIN32 )
++macro_optional_find_package(ZLIB QUIET)
++marble_set_package_properties(ZLIB PROPERTIES DESCRIPTION "General-purpose lossless data-compression library")
++marble_set_package_properties(ZLIB PROPERTIES URL "http://www.zlib.net/")
++marble_set_package_properties(ZLIB PROPERTIES TYPE OPTIONAL PURPOSE "When found, system zlib is used. When not found, a Marble internal zlib is used.")
++
++macro_optional_find_package(libgps)
++marble_set_package_properties( libgps PROPERTIES DESCRIPTION "Communicating with the GPS daemon" )
++marble_set_package_properties( libgps PROPERTIES URL "http://catb.org/gpsd/" )
++marble_set_package_properties( libgps PROPERTIES TYPE OPTIONAL PURPOSE "Position information via gpsd" )
++
++macro_optional_find_package(libwlocate)
++marble_set_package_properties( libwlocate PROPERTIES DESCRIPTION "WLAN-based geolocation" )
++marble_set_package_properties( libwlocate PROPERTIES URL "http://www.openwlanmap.org/" )
++marble_set_package_properties( libwlocate PROPERTIES TYPE OPTIONAL PURPOSE "Position information based on neighboring WLAN networks" )
++
++macro_optional_find_package(libshp)
++marble_set_package_properties( libshp PROPERTIES DESCRIPTION "Reading and writing of ESRI Shapefiles (.shp)" )
++marble_set_package_properties( libshp PROPERTIES URL "http://shapelib.maptools.org/" )
++marble_set_package_properties( libshp PROPERTIES TYPE OPTIONAL PURPOSE "Reading and displaying .shp files" )
+ 
+ ####################################################
+ # build unit tests
+@@ -156,9 +247,6 @@ endif( WIN32 )
+ INCLUDE (CTest)
+ ENABLE_TESTING()
+ 
+-option( BUILD_MARBLE_TESTS "Build unit tests" ON )
+-add_feature_info("Unit tests" BUILD_MARBLE_TESTS "Build unit tests. Toggle with BUILD_MARBLE_TESTS=YES/NO. 'make test' will run all.")
+-
+ if( BUILD_MARBLE_TESTS )
+ #  SET (TEST_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_data")
+   #where unit test binaries should be installed to and run from
+@@ -166,9 +254,6 @@ if( BUILD_MARBLE_TESTS )
+ endif( BUILD_MARBLE_TESTS )
+ 
+ ####################################################
+-set (PEDANTIC FALSE CACHE BOOL "Determines if we should compile with -Wall -Werror.")
+-set (WITH_DESIGNER_PLUGIN TRUE CACHE BOOL "Build plugins for Qt Designer")
+-add_feature_info("Qt Designer plugins" WITH_DESIGNER_PLUGIN "Marble widget support in Qt Designer. Toggle with WITH_DESIGNER_PLUGIN=YES/NO")
+ 
+ set(EXEC_INSTALL_PREFIX  ${CMAKE_INSTALL_PREFIX} CACHE PATH  "Base directory for executables and libraries" FORCE)
+ if (NOT QT_PLUGINS_DIR)
+@@ -286,15 +371,6 @@ if(WIN32)
+   # distinguish between debug and release plugin
+   SET(CMAKE_DEBUG_POSTFIX "d")
+ endif(WIN32)
+-####################################################
+-
+-
+-####################################################
+-# Add global ECM & KF5 settings
+-set(REQUIRED_ECM_VERSION 1.7.0)
+-set(KDE_INSTALL_DIRS_NO_DEPRECATED TRUE)
+-set(KDE_SKIP_UNINSTALL_TARGET ON CACHE BOOL "KDE uninstall target must be disabled")
+-set(REQUIRED_KF5_MIN_VERSION 5.7.0)
+ 
+ 
+ ####################################################
+@@ -317,22 +393,19 @@ include_directories(
+ )
+ ####################################################
+ # Descend into subdirectories
+-add_subdirectory(doc)
++if(KF5DocTools_FOUND)
++    add_subdirectory(doc)
++endif()
+ add_subdirectory(src)
+ add_subdirectory(data)
+ 
+ include(DistTarget)
+ 
+ add_subdirectory(tests)
+-
+-option(BUILD_MARBLE_TOOLS "Build various tools related to Marble" OFF)
+-add_feature_info("Marble tools" BUILD_MARBLE_TOOLS "Build various Marble tools for e.g. file format conversion. Toggle with BUILD_MARBLE_TOOLS=YES/NO.")
+ if(BUILD_MARBLE_TOOLS)
+   add_subdirectory(tools)
+ endif()
+ 
+-option(BUILD_MARBLE_EXAMPLES "Build C++ examples showing how to use the Marble library" OFF)
+-add_feature_info("Marble library C++ examples" BUILD_MARBLE_EXAMPLES "Build C++ examples showing how to use the Marble library. Toggle with BUILD_MARBLE_EXAMPLES=YES/NO.")
+ if(BUILD_MARBLE_EXAMPLES)
+   add_subdirectory(examples/cpp)
+ endif()
+@@ -350,11 +423,6 @@ marble_install_po_files_as_qm(poqm)
+ # Those are used by app and plugin code building against KI18n.
+ # So the respective macro ki18n_install can be used.
+ # Likewise, it contains the translated user documentation, which is handled by kdoctools_install.
+-# Just, the macros are not available here in the toplevel CMakeLists.txt file.
+-# As a temporary hack (your task to improve it, dear reader :) ) the macros
+-# are called only from src/apps/marble-kde/CMakeLists.txt.
+-# That should catch 99.9 % cases of builds from released tarball, where all the
+-# KF5-dependant apps and plugins will be built and installed together.
+ # Currently these are:
+ # src/apps/marble-kde
+ # src/plasmarunner
+@@ -364,6 +432,13 @@ marble_install_po_files_as_qm(poqm)
+ # Let releaseme know about this:
+ # SKIP_PO_INSTALL
+ 
++if (KF5I18n_FOUND)
++    ki18n_install(po)
++endif()
++if (KF5DocTools_FOUND)
++    kdoctools_install(po)
++endif()
++
+ 
+ ####################################################
+ # Install extra files
+diff --git a/data/CMakeLists.txt b/data/CMakeLists.txt
+index 6f88faa4b..b76a4cb3b 100644
+--- a/data/CMakeLists.txt
++++ b/data/CMakeLists.txt
+@@ -286,13 +286,7 @@ DESTINATION ${MARBLE_DATA_INSTALL_PATH}/audio)
+ 
+ add_subdirectory(lang)
+ 
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET) # for FindSharedMimeInfo
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-include(KDEInstallDirs) # for KDE_INSTALL_MIMEDIR
++if(ECM_FOUND)
+ # shared-mime-info 0.40 is mandatory for generic-icon
+ set( SHARED_MIME_INFO_MINIMUM_VERSION "0.40" )
+ find_package( SharedMimeInfo QUIET )
+@@ -300,3 +294,4 @@ if(SharedMimeInfo_FOUND)
+     install(FILES mimetypes/geo.xml  DESTINATION ${KDE_INSTALL_MIMEDIR})
+     update_xdg_mimetypes( ${KDE_INSTALL_MIMEDIR} )
+ endif()
++endif()
+diff --git a/doc/CMakeLists.txt b/doc/CMakeLists.txt
+index d6175fdf7..7d6c2d7be 100644
+--- a/doc/CMakeLists.txt
++++ b/doc/CMakeLists.txt
+@@ -1,16 +1,4 @@
+ ########### install files ###############
+ #
+ 
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-include(KDEInstallDirs)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS DocTools)
+-
+-if(KF5_FOUND)
+-    kdoctools_create_handbook(index.docbook INSTALL_DESTINATION ${KDE_INSTALL_DOCBUNDLEDIR}/en SUBDIR marble)
+-endif()
++kdoctools_create_handbook(index.docbook INSTALL_DESTINATION ${KDE_INSTALL_DOCBUNDLEDIR}/en SUBDIR marble)
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index af0a716a3..71d986490 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -41,10 +41,6 @@ if( Qt5Quick_FOUND )
+ ENDIF()
+ endif()
+ 
+-macro_optional_find_package(ZLIB QUIET)
+-marble_set_package_properties(ZLIB PROPERTIES DESCRIPTION "general-purpose lossless data-compression library")
+-marble_set_package_properties(ZLIB PROPERTIES URL "http://www.zlib.net/")
+-marble_set_package_properties(ZLIB PROPERTIES TYPE OPTIONAL PURPOSE "When found, system zlib is used. When not found, a Marble internal zlib is used.")
+ if(NOT ZLIB_FOUND)
+   add_subdirectory( 3rdparty/zlib )
+   set(ZLIB_LIBRARIES zlibstatic)
+@@ -59,13 +55,14 @@ add_subdirectory( lib/marble/declarative )
+ 
+ add_subdirectory( plugins )
+ 
+-option(BUILD_MARBLE_APPS "Build Marble Desktop/Mobile applications" ON)
+-add_feature_info("Marble Desktop/Mobile applications" BUILD_MARBLE_APPS "Build Marble Desktop/Mobile applications. Toggle with BUILD_MARBLE_APPS=YES/NO.")
+ if(BUILD_MARBLE_APPS)
+   add_subdirectory( apps )
+ endif()
+ 
+-add_subdirectory( bindings )
++if(EXPERIMENTAL_PYTHON_BINDINGS)
++  MESSAGE(WARNING "Marble's Python bindings lack a maintainer and therefore had to be disabled. Do you need them? Please contact us at https://marble.kde.org/support.php")
++  # add_subdirectory( bindings )
++endif()
+ 
+ configure_file(
+   ${CMAKE_CURRENT_SOURCE_DIR}/config-marble.h.cmake
+@@ -76,6 +73,12 @@ if(APPLE)
+   add_subdirectory( mac )
+ endif(APPLE)
+ 
+-add_subdirectory( plasma )
+-add_subdirectory( plasmarunner )
+-add_subdirectory( thumbnailer )
++if(KF5Plasma_FOUND)
++  add_subdirectory( plasma )
++endif()
++if(KF5Runner_FOUND)
++  add_subdirectory( plasmarunner )
++endif()
++if(KF5KIO_FOUND)
++  add_subdirectory( thumbnailer )
++endif()
+diff --git a/src/apps/CMakeLists.txt b/src/apps/CMakeLists.txt
+index 4879a8538..4525c1309 100644
+--- a/src/apps/CMakeLists.txt
++++ b/src/apps/CMakeLists.txt
+@@ -3,11 +3,11 @@ if(BUILD_MARBLE_APPS)
+     if (NOT CMAKE_SYSTEM_NAME STREQUAL Android)
+         add_subdirectory(marble-ui)
+         add_subdirectory(marble-qt)
+-        add_subdirectory(marble-kde)
++        if(ECM_FOUND)
++            add_subdirectory(marble-kde)
++        endif()
+     endif()
+ 
+     add_subdirectory(behaim)
+-    if (NOT Qt5_VERSION VERSION_LESS 5.7.0)
+-        add_subdirectory(marble-maps)
+-    endif()
++    add_subdirectory(marble-maps)
+ endif()
+diff --git a/src/apps/marble-kde/CMakeLists.txt b/src/apps/marble-kde/CMakeLists.txt
+index 32d20bb08..09607a2ff 100644
+--- a/src/apps/marble-kde/CMakeLists.txt
++++ b/src/apps/marble-kde/CMakeLists.txt
+@@ -1,22 +1,3 @@
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-
+-include(KDEInstallDirs)
+-# KDECMakeSettings expexts LIB_INSTALL_DIR set
+-set(LIB_INSTALL_DIR ${KDE_INSTALL_LIBDIR})
+-include(KDECMakeSettings)
+-include(ECMInstallIcons)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS Crash NewStuff Parts CoreAddons I18n)
+-
+-if(NOT KF5_FOUND)
+-    return()
+-endif()
+-
+ set(marble_kde_SRCS 
+   kdemain.cpp 
+   KdeMainWindow.cpp 
+@@ -80,14 +61,3 @@ install(FILES marble.kcfg DESTINATION ${KDE_INSTALL_KCFGDIR})
+ # register marble app as schemehandler
+ install(FILES marble_geo.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+ install(FILES marble_worldwind.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+-
+-# Handle mo-targetted translation catalogs and translated user documentation
+-# as added for release tarballs.
+-# See toplevel CMakeLists.txt for further explanation why it is done here
+-ki18n_install(${CMAKE_SOURCE_DIR}/po)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS DocTools)
+-
+-if (KF5DocTools_FOUND)
+-    kdoctools_install(${CMAKE_SOURCE_DIR}/po)
+-endif()
+diff --git a/src/bindings/CMakeLists.txt b/src/bindings/CMakeLists.txt
+index 353b9f31d..229a4598f 100644
+--- a/src/bindings/CMakeLists.txt
++++ b/src/bindings/CMakeLists.txt
+@@ -1,22 +1,4 @@
+-if(EXPERIMENTAL_PYTHON_BINDINGS)
+-  MESSAGE(WARNING "Marble's Python bindings lack a maintainer and therefore had to be disabled. Do you need them? Please contact us at https://marble.kde.org/support.php")
+-  return()
+-endif()
+-
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-
+-include(KDEInstallDirs)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS Wallet NewStuff Parts)
+-
+-if(NOT KF5_FOUND)
+-  return()
+-endif()
++find_package(KF5 ${KF5_MIN_VERSION} QUIET OPTIONAL_COMPONENTS Wallet NewStuff Parts)
+ 
+ #### Python support ####
+ set(PythonSupport_FOUND FALSE)
+diff --git a/src/lib/marble/CMakeLists.txt b/src/lib/marble/CMakeLists.txt
+index 3a681af0f..9334f4422 100644
+--- a/src/lib/marble/CMakeLists.txt
++++ b/src/lib/marble/CMakeLists.txt
+@@ -1,15 +1,5 @@
+ PROJECT(marblewidget)
+ 
+-macro_optional_find_package(Phonon4Qt5 QUIET)
+-marble_set_package_properties( Phonon4Qt5 PROPERTIES
+-    DESCRIPTION "Qt-based audio library"
+-    URL "https://phonon.kde.org/"
+-    PURPOSE "Support for playback of soundcue elements"
+-    TYPE OPTIONAL
+-)
+-if(Phonon4Qt5_FOUND)
+-    set(HAVE_PHONON TRUE)
+-endif()
+ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config-phonon.h.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/config-phonon.h)
+ 
+@@ -404,7 +394,7 @@ if (NOT MARBLE_NO_DBUS)
+             Qt5::DBus
+     )
+ endif ()
+-if (Phonon4Qt5_FOUND)
++if (HAVE_PHONON)
+     target_link_libraries(marblewidget
+         LINK_PRIVATE
+             Phonon::phonon4qt5
+diff --git a/src/lib/marble/declarative/CMakeLists.txt b/src/lib/marble/declarative/CMakeLists.txt
+index 4fa8f1b94..f99dfa33c 100644
+--- a/src/lib/marble/declarative/CMakeLists.txt
++++ b/src/lib/marble/declarative/CMakeLists.txt
+@@ -1,6 +1,5 @@
+ PROJECT( MarbleDeclarativePlugin )
+ 
+-find_package(Qt5 ${REQUIRED_QT_VERSION} COMPONENTS Positioning)
+ if(Qt5Positioning_FOUND)
+     add_definitions(-DHAVE_QT5_POSITIONING)
+ endif(Qt5Positioning_FOUND)
+diff --git a/src/plasma/CMakeLists.txt b/src/plasma/CMakeLists.txt
+index 279941e90..b0d949642 100644
+--- a/src/plasma/CMakeLists.txt
++++ b/src/plasma/CMakeLists.txt
+@@ -1,26 +1,3 @@
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-
+-include(KDEInstallDirs)
+-# KDECMakeSettings expexts LIB_INSTALL_DIR set
+-set(LIB_INSTALL_DIR ${KDE_INSTALL_LIBDIR})
+-# Plasma macros assume SERVICES_INSTALL_DIR, DATA_INSTALL_DIR
+-set(SERVICES_INSTALL_DIR ${KDE_INSTALL_KSERVICES5DIR})
+-set(DATA_INSTALL_DIR ${KDE_INSTALL_DATADIR})
+-include(KDECMakeSettings)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS Plasma)
+-
+-if (NOT KF5_FOUND)
+-  return()
+-endif()
+-
+-
+ add_subdirectory(qmlplugin)
+-
+ add_subdirectory(applets)
+ add_subdirectory(wallpapers)
+diff --git a/src/plasmarunner/CMakeLists.txt b/src/plasmarunner/CMakeLists.txt
+index fd780e8b7..765ff4a89 100644
+--- a/src/plasmarunner/CMakeLists.txt
++++ b/src/plasmarunner/CMakeLists.txt
+@@ -1,24 +1,5 @@
+ project(MarblePlasmaRunner)
+ 
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-
+-include(ECMPoQmTools)
+-include(KDEInstallDirs)
+-# KDECMakeSettings expexts LIB_INSTALL_DIR set
+-set(LIB_INSTALL_DIR ${KDE_INSTALL_LIBDIR})
+-include(KDECMakeSettings)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS Runner I18n)
+-
+-if(NOT KF5_FOUND)
+-  return()
+-endif()
+-
+ set(plasmaRunner_SRCS
+   main.cpp
+   plasmarunner.cpp
+diff --git a/src/plugins/CMakeLists.txt b/src/plugins/CMakeLists.txt
+index cb5915f61..0e9f4b1d3 100644
+--- a/src/plugins/CMakeLists.txt
++++ b/src/plugins/CMakeLists.txt
+@@ -1,5 +1,7 @@
+ if(NOT CMAKE_SYSTEM_NAME STREQUAL Android)
+-    add_subdirectory( designer )
++    if (WITH_DESIGNER_PLUGIN)
++        add_subdirectory( designer )
++    endif()
+     add_subdirectory( templates )
+ endif()
+ 
+diff --git a/src/plugins/designer/CMakeLists.txt b/src/plugins/designer/CMakeLists.txt
+index 02a9010da..589034b14 100644
+--- a/src/plugins/designer/CMakeLists.txt
++++ b/src/plugins/designer/CMakeLists.txt
+@@ -1,26 +1,3 @@
+-if (WITH_DESIGNER_PLUGIN)
+-
+-  # TODO: find why this is not listed in the feature_summary (same with Qt5UiPlugin)
+-  find_package(Qt5 ${REQUIRED_QT_VERSION} QUIET COMPONENTS Designer)
+-  marble_set_package_properties( Qt5Designer PROPERTIES TYPE OPTIONAL PURPOSE "Required to build Qt Designer plugins" )
+-
+-if(NOT Qt5Designer_VERSION VERSION_LESS 5.5.0)
+-    find_package(Qt5 ${REQUIRED_QT_VERSION} CONFIG QUIET COMPONENTS UiPlugin)
+-    set_package_properties(Qt5UiPlugin PROPERTIES TYPE OPTIONAL
+-        PURPOSE "Required to build Qt Designer plugins"
+-    )
+-    if (Qt5UiPlugin_FOUND)
+-        # for some reason, Qt5UiPlugin does not set its _INCLUDE_DIRS variable. Fill it manually
+-        get_target_property(Qt5UiPlugin_INCLUDE_DIRS Qt5::UiPlugin INTERFACE_INCLUDE_DIRECTORIES)
+-    endif()
+-    set(DesignerPluginDeps_FOUND ${Qt5UiPlugin_FOUND})
+-else()
+-    set(DesignerPluginDeps_FOUND ${Qt5Designer_FOUND})
+-endif()
+-
+-  if (DesignerPluginDeps_FOUND)
+-    add_subdirectory( marblewidget )
+-    add_subdirectory( latloneditwidget )
+-    add_subdirectory( navigator )
+-  endif()
+-endif (WITH_DESIGNER_PLUGIN)
++add_subdirectory( marblewidget )
++add_subdirectory( latloneditwidget )
++add_subdirectory( navigator )
+diff --git a/src/plugins/positionprovider/CMakeLists.txt b/src/plugins/positionprovider/CMakeLists.txt
+index df66854b1..9ff3af43a 100644
+--- a/src/plugins/positionprovider/CMakeLists.txt
++++ b/src/plugins/positionprovider/CMakeLists.txt
+@@ -1,31 +1,15 @@
+ ADD_SUBDIRECTORY( flightgear )
+ 
+-macro_optional_find_package(libgps)
+-marble_set_package_properties( libgps PROPERTIES DESCRIPTION "communicating with the GPS daemon" )
+-marble_set_package_properties( libgps PROPERTIES URL "http://catb.org/gpsd/" )
+-marble_set_package_properties( libgps PROPERTIES TYPE OPTIONAL PURPOSE "position information via gpsd" )
+ IF(LIBGPS_FOUND)
+-     ADD_SUBDIRECTORY( gpsd )
++    ADD_SUBDIRECTORY( gpsd )
+ ENDIF(LIBGPS_FOUND)
+ 
+-find_package(Qt5 ${REQUIRED_QT_VERSION}
+-    COMPONENTS
+-        Positioning
+-)
+-marble_set_package_properties( Qt5Positioning PROPERTIES DESCRIPTION "a collection of APIs and frameworks" )
+-marble_set_package_properties( Qt5Positioning PROPERTIES URL "http://qt.digia.com/" )
+-marble_set_package_properties( Qt5Positioning PROPERTIES TYPE OPTIONAL PURPOSE "position information via Qt5Positioning" )
+ if(Qt5Positioning_FOUND)
+-   ADD_SUBDIRECTORY( qtpositioning )
++    ADD_SUBDIRECTORY( qtpositioning )
+ endif()
+ 
+-
+-macro_optional_find_package(libwlocate)
+-marble_set_package_properties( libwlocate PROPERTIES DESCRIPTION "WLAN-based geolocation" )
+-marble_set_package_properties( libwlocate PROPERTIES URL "http://www.openwlanmap.org/" )
+-marble_set_package_properties( libwlocate PROPERTIES TYPE OPTIONAL PURPOSE "Position information based on neighboring WLAN networks" )
+ IF(LIBWLOCATE_FOUND)
+-     ADD_SUBDIRECTORY( wlocate )
++    ADD_SUBDIRECTORY( wlocate )
+ ENDIF()
+ 
+ # experimental implementation
+diff --git a/src/plugins/render/routing/CMakeLists.txt b/src/plugins/render/routing/CMakeLists.txt
+index 544ee2955..16a4c5044 100644
+--- a/src/plugins/render/routing/CMakeLists.txt
++++ b/src/plugins/render/routing/CMakeLists.txt
+@@ -1,19 +1,11 @@
+ PROJECT(RoutingPlugin)
+ 
+-macro_optional_find_package(Phonon4Qt5 QUIET)
+-marble_set_package_properties( Phonon4Qt5 PROPERTIES
+-    DESCRIPTION "Qt-based audio library"
+-    URL "https://phonon.kde.org/"
+-    PURPOSE "Voice navigation (sound or human speakers)"
+-    TYPE OPTIONAL
+-)
+-
+ INCLUDE_DIRECTORIES(
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+ )
+ 
+-if(Phonon4Qt5_FOUND)
++if(HAVE_PHONON)
+   set( routing_SRCS RoutingPlugin.cpp AudioOutput.cpp )
+ ELSE()
+   set( routing_SRCS RoutingPlugin.cpp NullAudioOutput.cpp )
+@@ -23,6 +15,6 @@ qt_wrap_ui( routing_SRCS ${routing_UI} )
+ qt_add_resources(routing_SRCS routing.qrc)
+ 
+ marble_add_plugin( RoutingPlugin ${routing_SRCS} )
+-if(Phonon4Qt5_FOUND)
++if(HAVE_PHONON)
+     target_link_libraries(RoutingPlugin Phonon::phonon4qt5)
+ endif()
+diff --git a/src/plugins/runner/CMakeLists.txt b/src/plugins/runner/CMakeLists.txt
+index 2ba751979..3338d1822 100644
+--- a/src/plugins/runner/CMakeLists.txt
++++ b/src/plugins/runner/CMakeLists.txt
+@@ -32,10 +32,6 @@ add_subdirectory( pnt )
+ add_subdirectory( log )
+ add_subdirectory( gpsbabel )
+ 
+-macro_optional_find_package( libshp )
+-marble_set_package_properties( libshp PROPERTIES DESCRIPTION "reading and writing of ESRI Shapefiles (.shp)" )
+-marble_set_package_properties( libshp PROPERTIES URL "http://shapelib.maptools.org/" )
+-marble_set_package_properties( libshp PROPERTIES TYPE OPTIONAL PURPOSE "reading and displaying .shp files" )
+-if( LIBSHP_FOUND )
++if(LIBSHP_FOUND)
+   add_subdirectory( shp )
+-endif( LIBSHP_FOUND )
++endif()
+diff --git a/src/plugins/runner/gpx/CMakeLists.txt b/src/plugins/runner/gpx/CMakeLists.txt
+index 7d2b0c78f..f686d2965 100644
+--- a/src/plugins/runner/gpx/CMakeLists.txt
++++ b/src/plugins/runner/gpx/CMakeLists.txt
+@@ -47,29 +47,16 @@ if( BUILD_MARBLE_TESTS )
+ 		    add_test( NAME TestTrack COMMAND TestTrack )
+ endif( BUILD_MARBLE_TESTS )
+ 
+-
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-
+-include(KDEInstallDirs)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS KIO)
+-if(NOT KF5_FOUND)
+-    return()
+-endif()
+-
+-# register marble part as handler
+-# install again once part is fixed to load and show the passed file
+-# install(FILES marble_part_gpx.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+-# register thumbnail plugin as handler
+-install(FILES marble_thumbnail_gpx.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+-if(NOT WIN32 AND NOT APPLE)
+-    # register marble app as handler
+-    install(FILES marble_gpx.desktop DESTINATION ${KDE_INSTALL_APPDIR})
++if(KF5KIO_FOUND)
++    # register marble part as handler
++    # install again once part is fixed to load and show the passed file
++    # install(FILES marble_part_gpx.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++
++    # register thumbnail plugin as handler
++    install(FILES marble_thumbnail_gpx.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++
++    if(NOT WIN32 AND NOT APPLE)
++        # register marble app as handler
++        install(FILES marble_gpx.desktop DESTINATION ${KDE_INSTALL_APPDIR})
++    endif()
+ endif()
+diff --git a/src/plugins/runner/json/CMakeLists.txt b/src/plugins/runner/json/CMakeLists.txt
+index 4ae9759a7..e64793e3b 100644
+--- a/src/plugins/runner/json/CMakeLists.txt
++++ b/src/plugins/runner/json/CMakeLists.txt
+@@ -9,29 +9,16 @@ set( json_SRCS JsonRunner.cpp JsonPlugin.cpp JsonParser.cpp )
+ 
+ marble_add_plugin( JsonPlugin ${json_SRCS} )
+ 
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
++if(KF5KIO_FOUND)
++    # register marble part as handler
++    # install again once part is fixed to load and show the passed file
++    # install(FILES marble_part_geojson.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++
++    # register thumbnail plugin as handler
++    install(FILES marble_thumbnail_geojson.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++
++    if(NOT WIN32 AND NOT APPLE)
++        # register marble app as handler
++        install(FILES marble_geojson.desktop DESTINATION ${KDE_INSTALL_APPDIR})
++    endif()
+ endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-
+-include(KDEInstallDirs)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS KIO)
+-if(NOT KF5_FOUND)
+-    return()
+-endif()
+-
+-# register marble part as handler
+-# install again once part is fixed to load and show the passed file
+-# install(FILES marble_part_geojson.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+-# register thumbnail plugin as handler
+-install(FILES marble_thumbnail_geojson.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+-if(NOT WIN32 AND NOT APPLE)
+-    # register marble app as handler
+-    install(FILES marble_geojson.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+-endif()
+-
+diff --git a/src/plugins/runner/kml/CMakeLists.txt b/src/plugins/runner/kml/CMakeLists.txt
+index 2422202df..05704f2d2 100644
+--- a/src/plugins/runner/kml/CMakeLists.txt
++++ b/src/plugins/runner/kml/CMakeLists.txt
+@@ -10,32 +10,19 @@ set( kml_SRCS KmlDocument.cpp KmlParser.cpp KmlPlugin.cpp KmlRunner.cpp KmzHandl
+ 
+ marble_add_plugin( KmlPlugin ${kml_SRCS} )
+ 
+-
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-
+-include(KDEInstallDirs)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS KIO)
+-if(NOT KF5_FOUND)
+-    return()
+-endif()
+-
+-# register marble part as handler
+-# install again once part is fixed to load and show the passed file
+-# install(FILES marble_part_kml.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-# install(FILES marble_part_kmz.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+-# register thumbnail plugin as handler
+-install(FILES marble_thumbnail_kml.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-install(FILES marble_thumbnail_kmz.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+-if(NOT WIN32 AND NOT APPLE)
+-    # register marble app as handler
+-    install(FILES marble_kml.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+-    install(FILES marble_kmz.desktop DESTINATION ${KDE_INSTALL_APPDIR})
++if(KF5KIO_FOUND)
++    # register marble part as handler
++    # install again once part is fixed to load and show the passed file
++    # install(FILES marble_part_kml.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++    # install(FILES marble_part_kmz.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++
++    # register thumbnail plugin as handler
++    install(FILES marble_thumbnail_kml.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++    install(FILES marble_thumbnail_kmz.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++
++    if(NOT WIN32 AND NOT APPLE)
++        # register marble app as handler
++        install(FILES marble_kml.desktop DESTINATION ${KDE_INSTALL_APPDIR})
++        install(FILES marble_kmz.desktop DESTINATION ${KDE_INSTALL_APPDIR})
++    endif()
+ endif()
+diff --git a/src/plugins/runner/osm/CMakeLists.txt b/src/plugins/runner/osm/CMakeLists.txt
+index 483e676df..5c44b764f 100644
+--- a/src/plugins/runner/osm/CMakeLists.txt
++++ b/src/plugins/runner/osm/CMakeLists.txt
+@@ -35,24 +35,11 @@ set( osm_SRCS
+ marble_add_plugin( OsmPlugin ${osm_SRCS} ${osm_writers_SRCS} ${osm_translators_SRCS} )
+ target_link_libraries(OsmPlugin o5mreader)
+ 
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-
+-include(KDEInstallDirs)
++if(KF5KIO_FOUND)
++  # register marble part as handler
++  # install again once part is fixed to load and show the passed file
++  # install(FILES marble_part_osm.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+ 
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS KIO)
+-if(NOT KF5_FOUND)
+-    return()
++  # register thumbnail plugin as handler
++  install(FILES marble_thumbnail_osm.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+ endif()
+-
+-# register marble part as handler
+-# install again once part is fixed to load and show the passed file
+-# install(FILES marble_part_osm.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+-# register thumbnail plugin as handler
+-install(FILES marble_thumbnail_osm.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+diff --git a/src/plugins/runner/shp/CMakeLists.txt b/src/plugins/runner/shp/CMakeLists.txt
+index bdf2e9453..5ee1463de 100644
+--- a/src/plugins/runner/shp/CMakeLists.txt
++++ b/src/plugins/runner/shp/CMakeLists.txt
+@@ -12,29 +12,16 @@ set( ShpPlugin_LIBS ${LIBSHP_LIBRARIES} )
+ 
+ marble_add_plugin( ShpPlugin ${shp_SRCS} )
+ 
+-
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-
+-include(KDEInstallDirs)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS KIO)
+-if(NOT KF5_FOUND)
+-    return()
+-endif()
+-
+-# register marble part as handler
+-# install again once part is fixed to load and show the passed file
+-# install(FILES marble_part_shp.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+-# register thumbnail plugin as handler
+-install(FILES marble_thumbnail_shp.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+-
+-if(NOT WIN32 AND NOT APPLE)
+-    # register marble app as handler
+-    install(FILES marble_shp.desktop DESTINATION ${KDE_INSTALL_APPDIR})
++if(KF5KIO_FOUND)
++    # register marble part as handler
++    # install again once part is fixed to load and show the passed file
++    # install(FILES marble_part_shp.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++
++    # register thumbnail plugin as handler
++    install(FILES marble_thumbnail_shp.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
++
++    if(NOT WIN32 AND NOT APPLE)
++        # register marble app as handler
++        install(FILES marble_shp.desktop DESTINATION ${KDE_INSTALL_APPDIR})
++    endif()
+ endif()
+diff --git a/src/thumbnailer/CMakeLists.txt b/src/thumbnailer/CMakeLists.txt
+index 2cf81fec4..c066dc703 100644
+--- a/src/thumbnailer/CMakeLists.txt
++++ b/src/thumbnailer/CMakeLists.txt
+@@ -1,19 +1,5 @@
+ project(MarbleThumbnailer)
+ 
+-find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+-if(NOT ECM_FOUND)
+-    return()
+-endif()
+-
+-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+-include(KDEInstallDirs)
+-
+-macro_optional_find_package(KF5 ${REQUIRED_KF5_MIN_VERSION} QUIET COMPONENTS KIO)
+-
+-if (NOT KF5_FOUND)
+-  return()
+-endif()
+-
+ set(marblethumbnail_SRCS
+   thumbnailer.cpp
+   main.cpp
+-- 
+2.22.1
+
+
+From 6a2f080c7bc53ada0735e8a8265d5227fb2092f3 Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <asturm@gentoo.org>
+Date: Sat, 17 Aug 2019 18:32:41 +0200
+Subject: [PATCH 2/3] Drop obsolete Qt < 5.3.1 workaround
+
+Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
+---
+ MarbleMacros.cmake | 15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
+
+diff --git a/MarbleMacros.cmake b/MarbleMacros.cmake
+index 7c90d9430..dc161ff94 100644
+--- a/MarbleMacros.cmake
++++ b/MarbleMacros.cmake
+@@ -176,19 +176,6 @@ endfunction()
+ 
+ else()
+ 
+-if(TARGET Qt5::lconvert)
+-    set(lconvert_executable Qt5::lconvert)
+-else()
+-    # Qt < 5.3.1 does not define Qt5::lconvert
+-    get_target_property(lrelease_location Qt5::lrelease LOCATION)
+-    get_filename_component(lrelease_path ${lrelease_location} PATH)
+-    find_program(lconvert_executable
+-        NAMES lconvert-qt5 lconvert
+-        PATHS ${lrelease_path}
+-        NO_DEFAULT_PATH
+-    )
+-endif()
+-
+ function(marble_process_po_files_as_qm lang po_file)
+     set(options)
+     set(oneValueArgs TARGET)
+@@ -214,7 +201,7 @@ function(marble_process_po_files_as_qm lang po_file)
+ 
+     # lconvert from .po to .ts, then lrelease from .ts to .qm.
+     add_custom_command(OUTPUT ${qm_file}
+-        COMMAND ${lconvert_executable}
++        COMMAND Qt5::lconvert
+             ARGS -i ${po_file} -o ${ts_file} -target-language ${lang}
+         COMMAND Qt5::lrelease
+             ARGS -removeidentical -nounfinished -silent ${ts_file} -qm ${qm_file}
+-- 
+2.22.1
+
+
+From 533a4c2e4dc15ce05b766b803e0a01b8ba1a3dc0 Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <asturm@gentoo.org>
+Date: Sat, 17 Aug 2019 19:57:14 +0200
+Subject: [PATCH 3/3] Use CMakeFindDependencyMacro unconditionally
+
+---
+ src/lib/marble/MarbleConfig.cmake.in | 21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
+
+diff --git a/src/lib/marble/MarbleConfig.cmake.in b/src/lib/marble/MarbleConfig.cmake.in
+index ec39b79b2..3ada52a46 100644
+--- a/src/lib/marble/MarbleConfig.cmake.in
++++ b/src/lib/marble/MarbleConfig.cmake.in
+@@ -2,22 +2,13 @@
+ 
+ set(MARBLE_NO_WEBKITWIDGETS @MARBLE_NO_WEBKITWIDGETS@)
+ 
+-include(CMakeFindDependencyMacro OPTIONAL RESULT_VARIABLE _CMakeFindDependencyMacro_FOUND)
++include(CMakeFindDependencyMacro)
+ 
+-if (_CMakeFindDependencyMacro_FOUND)
+-    find_dependency(Qt5Xml @REQUIRED_QT_VERSION@)
+-    find_dependency(Qt5Widgets @REQUIRED_QT_VERSION@)
+-    if (NOT MARBLE_NO_WEBKITWIDGETS)
+-        find_dependency(Qt5WebEngine @REQUIRED_QT_VERSION@)
+-        find_dependency(Qt5WebEngineWidgets @REQUIRED_QT_VERSION@)
+-    endif()
+-else()
+-    find_package(Qt5Xml REQUIRED)
+-    find_package(Qt5Widgets REQUIRED)
+-    if (NOT MARBLE_NO_WEBKITWIDGETS)
+-        find_package(Qt5WebEngine REQUIRED)
+-        find_package(Qt5WebEngineWidgets REQUIRED)
+-    endif()
++find_dependency(Qt5Widgets @REQUIRED_QT_VERSION@)
++find_dependency(Qt5Xml @REQUIRED_QT_VERSION@)
++if (NOT MARBLE_NO_WEBKITWIDGETS)
++    find_dependency(Qt5WebEngine @REQUIRED_QT_VERSION@)
++    find_dependency(Qt5WebEngineWidgets @REQUIRED_QT_VERSION@)
+ endif()
+ 
+ include("${CMAKE_CURRENT_LIST_DIR}/@MARBLE_CMAKECONFIGNAME@Targets.cmake")
+-- 
+2.22.1
+
