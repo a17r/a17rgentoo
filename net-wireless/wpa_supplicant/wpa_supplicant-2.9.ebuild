@@ -3,7 +3,7 @@
 
 EAPI=6
 
-inherit eutils qmake-utils systemd toolchain-funcs readme.gentoo-r1
+inherit eutils linux-info qmake-utils systemd toolchain-funcs readme.gentoo-r1
 
 DESCRIPTION="IEEE 802.1X/WPA supplicant for secure wireless transfers"
 HOMEPAGE="https://w1.fi/wpa_supplicant/"
@@ -18,7 +18,7 @@ else
 fi
 
 SLOT="0"
-IUSE="ap bindist dbus eap-sim eapol_test fasteap +fils +hs2-0 libressl macsec p2p privsep ps3 qt5 readline selinux smartcard tdls uncommon-eap-types wimax wps kernel_linux kernel_FreeBSD"
+IUSE="ap bindist crda dbus eap-sim eapol_test fasteap +fils +hs2-0 libressl macsec p2p privsep ps3 qt5 readline selinux smartcard tdls uncommon-eap-types wimax wps kernel_linux kernel_FreeBSD"
 
 # CONFIG_PRIVSEP=y does not have sufficient support for the new driver
 # interface functions used for MACsec, so this combination cannot be used
@@ -28,10 +28,12 @@ REQUIRED_USE="
 	privsep? ( !macsec )
 "
 
-CDEPEND="dbus? ( sys-apps/dbus )
+CDEPEND="
+	crda? ( net-wireless/crda )
+	!crda? ( net-wireless/wireless-regdb )
+	dbus? ( sys-apps/dbus )
 	kernel_linux? (
 		dev-libs/libnl:3
-		net-wireless/crda
 		eap-sim? ( sys-apps/pcsc-lite )
 	)
 	!kernel_linux? ( net-libs/libpcap )
@@ -83,6 +85,15 @@ Kconfig_style_config() {
 			#ensure item commented out
 			sed -i "/^$CONFIG_PARAM/s/$CONFIG_PARAM/# $CONFIG_PARAM/" .config || echo "Kconfig_style_config error commenting $CONFIG_PARAM"
 		fi
+}
+
+pkg_setup() {
+	local CONFIG_CHECK="~CFG80211_USE_KERNEL_REGDB_KEYS"
+
+	if use kernel_linux && ! use crda; then
+		linux-info_pkg_setup
+		kernel_is lt 4 15 && ewarn "USE !crda requires at least Linux kernel version 4.15."
+	fi
 }
 
 src_prepare() {
@@ -170,6 +181,11 @@ src_configure() {
 	# Enabling background scanning.
 	Kconfig_style_config BGSCAN_SIMPLE
 	Kconfig_style_config BGSCAN_LEARN
+
+	# Non-CRDA depends on net-wireless/wireless-regdb
+	if use kernel_linux && ! use crda; then
+		Kconfig_style_config CONFIG_CFG80211_INTERNAL_REGDB
+	fi
 
 	if use dbus ; then
 		Kconfig_style_config CTRL_IFACE_DBUS
