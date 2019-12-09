@@ -20,7 +20,8 @@ KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~spa
 IUSE="bzip2 context debug doc icu lzma +nls mpi numpy python static-libs +threads tools zlib zstd"
 REQUIRED_USE="
 	mpi? ( threads )
-	python? ( ${PYTHON_REQUIRED_USE} )"
+	python? ( ${PYTHON_REQUIRED_USE} )
+	numpy? ( python || ( $(python_gen_useflags 'python3*') ) )"
 
 # the tests will never fail because these are not intended as sanity
 # tests at all. They are more a way for upstream to check their own code
@@ -37,13 +38,8 @@ RDEPEND="
 	!icu? ( virtual/libiconv[${MULTILIB_USEDEP}] )
 	lzma? ( app-arch/xz-utils:=[${MULTILIB_USEDEP}] )
 	mpi? ( >=virtual/mpi-2.0-r4[${MULTILIB_USEDEP},cxx,threads] )
-	python? (
-		${PYTHON_DEPS}
-		numpy? ( || (
-			$(python_gen_cond_dep '>=dev-python/numpy-1.14.5[${PYTHON_USEDEP}]' 'python3*')
-			$(python_gen_cond_dep '>=dev-python/numpy-1.14.5[${PYTHON_USEDEP}]' 'python2*' python3_{5,6,7})
-		) )
-	)
+	numpy? ( $(python_gen_cond_dep '>=dev-python/numpy-1.14.5[${PYTHON_USEDEP}]' -2) )
+	python? ( ${PYTHON_DEPS} )
 	zlib? ( sys-libs/zlib:=[${MULTILIB_USEDEP}] )
 	zstd? ( app-arch/zstd:=[${MULTILIB_USEDEP}] )"
 DEPEND="${RDEPEND}"
