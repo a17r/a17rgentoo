@@ -13,7 +13,7 @@ HOMEPAGE="http://www.pygtk.org/"
 LICENSE="LGPL-2.1"
 SLOT="2"
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sh ~sparc ~x86 ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~sparc-solaris ~x64-solaris ~x86-solaris"
-IUSE="doc examples test"
+IUSE="doc examples numpy test"
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 RESTRICT="!test? ( test )"
@@ -25,10 +25,10 @@ RDEPEND="${PYTHON_DEPS}
 	>=x11-libs/gtk+-2.24:2
 	>=dev-python/pycairo-1.0.2[${PYTHON_USEDEP}]
 	>=dev-python/pygobject-2.26.8-r53:2[${PYTHON_USEDEP}]
-	|| (
+	numpy? ( || (
 		>=dev-python/numpy-python2-1.16.5[${PYTHON_USEDEP}]
 		<dev-python/numpy-1.17.4[${PYTHON_USEDEP}]
-	)
+	) )
 	>=gnome-base/libglade-2.5:2.0
 "
 DEPEND="${RDEPEND}
@@ -76,6 +76,7 @@ src_configure() {
 	configure_pygtk() {
 		ECONF_SOURCE="${S}" gnome2_src_configure \
 			$(use_enable doc docs) \
+			$(use_enable numpy) \
 			--with-glade \
 			--enable-thread
 	}
