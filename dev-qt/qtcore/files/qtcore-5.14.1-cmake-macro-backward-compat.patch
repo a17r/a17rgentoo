@@ -1,6 +1,6 @@
 From: Andreas Sturmlechner <asturm@gentoo.org>
 Date: Sun, 9 Feb 2020 11:45:00 +0100
-Subject: [PATCH] qtcore: Allow standalone build
+Subject: [PATCH] qtcore: Fix cmake macro compat. for upgrade from <Qt-5.14
 
 In upstream commit:
 
@@ -29,15 +29,21 @@ From mkspecs/features/create_cmake.prf:
 qt5-build.eclass is configuring either as 'release' or as 'debug', so we hardcode to FALSE.
 
 --- a/mkspecs/features/data/cmake/Qt5BasicConfig.cmake.in	2020-01-23 13:37:32.000000000 +0100
-+++ b/mkspecs/features/data/cmake/Qt5BasicConfig.cmake.in	2020-02-09 11:35:41.996831074 +0100
-@@ -538,6 +538,10 @@
++++ b/mkspecs/features/data/cmake/Qt5BasicConfig.cmake.in	2020-02-09 15:15:21.156219814 +0100
+@@ -142,8 +142,14 @@
+ !!ENDIF
  
-     file(GLOB pluginTargets \"${CMAKE_CURRENT_LIST_DIR}/Qt5$${CMAKE_MODULE_NAME}_*Plugin.cmake\")
- 
-+    macro(_populate_$${CMAKE_MODULE_NAME}_plugin_properties Plugin Configuration PLUGIN_LOCATION)
-+        _populate_$${CMAKE_MODULE_NAME}_plugin_properties(${Plugin} ${Configuration} ${PLUGIN_LOCATION} FALSE)
-+    endmacro()
+ !!IF !equals(TEMPLATE, aux)
+-macro(_populate_$${CMAKE_MODULE_NAME}_target_properties Configuration LIB_LOCATION IMPLIB_LOCATION
+-      IsDebugAndRelease)
++macro(_populate_$${CMAKE_MODULE_NAME}_target_properties Configuration LIB_LOCATION IMPLIB_LOCATION)
++    set(IsDebugAndRelease FALSE)
++    set (list_var ${ARGN})
++    list(LENGTH list_var num_extra_arg)
++    if (${num_extra_arg} GREATER 0)
++        list(GET list_var 0 IsDebugAndRelease)
++    endif()
 +
-     macro(_populate_$${CMAKE_MODULE_NAME}_plugin_properties Plugin Configuration PLUGIN_LOCATION
-           IsDebugAndRelease)
-         set_property(TARGET Qt5::${Plugin} APPEND PROPERTY IMPORTED_CONFIGURATIONS ${Configuration})
+     set_property(TARGET Qt5::$${CMAKE_MODULE_NAME} APPEND PROPERTY IMPORTED_CONFIGURATIONS ${Configuration})
+ 
+ !!IF isEmpty(CMAKE_DLL_DIR_IS_ABSOLUTE)
