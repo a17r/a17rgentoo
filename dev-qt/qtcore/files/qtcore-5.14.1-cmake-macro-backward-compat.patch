@@ -30,20 +30,20 @@ qt5-build.eclass is configuring either as 'release' or as 'debug', so we hardcod
 
 --- a/mkspecs/features/data/cmake/Qt5BasicConfig.cmake.in	2020-01-23 13:37:32.000000000 +0100
 +++ b/mkspecs/features/data/cmake/Qt5BasicConfig.cmake.in	2020-02-09 15:15:21.156219814 +0100
-@@ -142,8 +142,14 @@
- !!ENDIF
+@@ -538,8 +538,14 @@
  
- !!IF !equals(TEMPLATE, aux)
--macro(_populate_$${CMAKE_MODULE_NAME}_target_properties Configuration LIB_LOCATION IMPLIB_LOCATION
--      IsDebugAndRelease)
-+macro(_populate_$${CMAKE_MODULE_NAME}_target_properties Configuration LIB_LOCATION IMPLIB_LOCATION)
-+    set(IsDebugAndRelease FALSE)
-+    set (list_var ${ARGN})
-+    list(LENGTH list_var num_extra_arg)
-+    if (${num_extra_arg} GREATER 0)
-+        list(GET list_var 0 IsDebugAndRelease)
-+    endif()
+     file(GLOB pluginTargets \"${CMAKE_CURRENT_LIST_DIR}/Qt5$${CMAKE_MODULE_NAME}_*Plugin.cmake\")
+ 
+-    macro(_populate_$${CMAKE_MODULE_NAME}_plugin_properties Plugin Configuration PLUGIN_LOCATION
+-          IsDebugAndRelease)
++    macro(_populate_$${CMAKE_MODULE_NAME}_plugin_properties Plugin Configuration PLUGIN_LOCATION)
++        set(IsDebugAndRelease FALSE)
++        set (list_var ${ARGN})
++        list(LENGTH list_var num_extra_arg)
++        if (${num_extra_arg} GREATER 0)
++            list(GET list_var 0 IsDebugAndRelease)
++        endif()
 +
-     set_property(TARGET Qt5::$${CMAKE_MODULE_NAME} APPEND PROPERTY IMPORTED_CONFIGURATIONS ${Configuration})
+         set_property(TARGET Qt5::${Plugin} APPEND PROPERTY IMPORTED_CONFIGURATIONS ${Configuration})
  
- !!IF isEmpty(CMAKE_DLL_DIR_IS_ABSOLUTE)
+ !!IF isEmpty(CMAKE_PLUGIN_DIR_IS_ABSOLUTE)
