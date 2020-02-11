@@ -274,7 +274,6 @@ PATCHES=(
 
 	# master branch
 	"${FILESDIR}/${PN}-6.3.3.2-mysql-connector-c-8.patch" # bug #692422
-	"${FILESDIR}/${P}-poppler-0.83.patch"
 )
 
 S="${WORKDIR}/${PN}-${MY_PV}"
