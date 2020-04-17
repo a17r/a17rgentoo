@@ -1,8 +1,8 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index f5b3e77..4c5fd3f 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -313,14 +313,16 @@ else()
+diff --git a/CMakeLists_Directories.cmake b/CMakeLists_Directories.cmake
+index db6133f..faf85ce 100644
+--- a/CMakeLists_Directories.cmake
++++ b/CMakeLists_Directories.cmake
+@@ -36,14 +36,16 @@ else()
  endif()
  
  #SHARE - use the default on Apple as TAG_VERSION is empty

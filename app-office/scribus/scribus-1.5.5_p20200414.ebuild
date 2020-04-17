@@ -1,19 +1,20 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
-PYTHON_COMPAT=( python3_{6,7} )
+PYTHON_COMPAT=( python3_{6,7,8} )
 PYTHON_REQ_USE="tk?"
-inherit cmake-utils desktop flag-o-matic python-single-r1 xdg
+COMMIT=55f4c235b12feb283a64f23afd46f2379d51360a
+inherit cmake desktop flag-o-matic python-single-r1 xdg
 
 DESCRIPTION="Desktop publishing (DTP) and layout program"
 HOMEPAGE="https://www.scribus.net/"
-SRC_URI="mirror://sourceforge/project/${PN}/${PN}-devel/${PV}/${P}.tar.xz"
+SRC_URI="https://github.com/${PN}project/${PN}/archive/${COMMIT}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS=""
+KEYWORDS="~amd64 ~ppc ~ppc64 ~x86"
 IUSE="+boost debug examples graphicsmagick hunspell +minimal osg +pdf scripts +templates tk"
 
 REQUIRED_USE="${PYTHON_REQUIRED_USE}
@@ -34,7 +35,7 @@ DEPEND="${PYTHON_DEPS}
 	dev-libs/librevenge
 	dev-libs/libxml2
 	dev-qt/qtcore:5
-	dev-qt/qtgui:5[-gles2]
+	dev-qt/qtgui:5[-gles2-only]
 	dev-qt/qtnetwork:5
 	dev-qt/qtopengl:5
 	dev-qt/qtprintsupport:5
@@ -56,38 +57,37 @@ DEPEND="${PYTHON_DEPS}
 	virtual/jpeg:0=
 	>=x11-libs/cairo-1.10.0[X,svg]
 	boost? ( >=dev-libs/boost-1.67:= )
-	hunspell? ( app-text/hunspell:= )
 	graphicsmagick? ( media-gfx/graphicsmagick:= )
+	hunspell? ( app-text/hunspell:= )
 	osg? ( dev-games/openscenegraph:= )
 	pdf? ( app-text/podofo:0= )
-	scripts? ( dev-python/pillow[tk?,${PYTHON_USEDEP}] )
+	scripts? (
+		$(python_gen_cond_dep '
+			dev-python/pillow[tk?,${PYTHON_MULTI_USEDEP}]
+		')
+	)
 "
 RDEPEND="${DEPEND}
 	app-text/ghostscript-gpl
 "
 
 PATCHES=(
-	# upstream svn trunk
-	"${FILESDIR}"/${P}-poppler-0.82.patch
-	"${FILESDIR}"/${P}-python3.patch
 	# non(?)-upstreamable
 	"${FILESDIR}"/${PN}-1.5.3-fpic.patch
-	"${FILESDIR}"/${P}-docdir.patch
-	"${FILESDIR}"/${P}-findhyphen.patch
+	"${FILESDIR}"/${PN}-1.5.6-docdir.patch
+	"${FILESDIR}"/${PN}-1.5.5-findhyphen-1.patch
+	"${FILESDIR}"/${PN}-1.5.6-findhyphen.patch
 )
 
+CMAKE_BUILD_TYPE="Release"
+
+S="${WORKDIR}"/${PN}-${COMMIT}
+
 src_prepare() {
-	cmake-utils_src_prepare
+	cmake_src_prepare
 
 	rm -r codegen/cheetah scribus/third_party/hyphen || die
 
-	cat > cmake/modules/FindZLIB.cmake <<- EOF || die
-	find_package(PkgConfig)
-	pkg_check_modules(ZLIB minizip zlib)
-	SET( ZLIB_LIBRARY \${ZLIB_LIBRARIES} )
-	SET( ZLIB_INCLUDE_DIR \${ZLIB_INCLUDE_DIRS} )
-	MARK_AS_ADVANCED( ZLIB_LIBRARY ZLIB_INCLUDE_DIR )
-	EOF
 	sed \
 		-e "/^\s*unzip\.[ch]/d" \
 		-e "/^\s*ioapi\.[ch]/d" \
@@ -109,10 +109,9 @@ src_configure() {
 
 	local mycmakeargs=(
 		-DHAVE_PYTHON=ON
-		-DPYTHON_INCLUDE_PATH=$(python_get_includedir)
-		-DPYTHON_LIBRARY=$(python_get_library_path)
 		-DWANT_DISTROBUILD=ON
 		-DDOCDIR="${EPREFIX}"/usr/share/doc/${PF}/
+		-DPython3_EXECUTABLE="${PYTHON}"
 		-DWITH_BOOST=$(usex boost)
 		-DWANT_DEBUG=$(usex debug)
 		-DWANT_NOEXAMPLES=$(usex !examples)
@@ -123,11 +122,11 @@ src_configure() {
 		-DWITH_PODOFO=$(usex pdf)
 		-DWANT_NOTEMPLATES=$(usex !templates)
 	)
-	cmake-utils_src_configure
+	cmake_src_configure
 }
 
 src_install() {
-	cmake-utils_src_install
+	cmake_src_install
 
 	if ! use tk; then
 		rm "${ED}"/usr/share/scribus/scripts/{FontSample,CalendarWizard}.py || die
