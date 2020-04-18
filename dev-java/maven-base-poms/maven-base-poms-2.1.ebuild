@@ -1,20 +1,22 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 JAVA_MAVEN_BOOTSTRAP="Y"
 inherit java-maven-2
+
 DESCRIPTION="base poms for maven"
-HOMEPAGE="http://maven.apache.org"
+HOMEPAGE="https://maven.apache.org"
 
 LICENSE="Apache-2.0"
 SLOT="0"
-KEYWORDS="~x86 ~amd64"
+KEYWORDS="~amd64 ~x86"
 IUSE="source"
 
 DEPEND=">virtual/jdk-1.7"
 RDEPEND=">virtual/jre-1.7"
 
 S="${WORKDIR}"
+
 src_unpack() {
 	for i in "${FILESDIR}"/*xml; do
 		cp $i "${S}" || die
