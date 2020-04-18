@@ -1,33 +1,38 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
-EAPI=5
+EAPI=7
 
-inherit xorg-2
+inherit xorg-3
 
 DESCRIPTION="Intel GPU userland tools"
-KEYWORDS="~amd64 ~x86"
+
+KEYWORDS=""
 IUSE="doc test video_cards_nouveau"
+
 RESTRICT="test"
 
-CDEPEND="dev-libs/glib:2
+BDEPEND="
+	doc? ( dev-util/gtk-doc )
+	test? ( sys-libs/libunwind )
+"
+RDEPEND="
+	dev-libs/glib:2
 	>=x11-libs/cairo-1.12.0
 	>=x11-libs/libdrm-2.4.47[video_cards_intel,video_cards_nouveau?]
 	>=x11-libs/libpciaccess-0.10
 "
-DEPEND="${CDEPEND}
-	doc? ( dev-util/gtk-doc )
-	test? ( sys-libs/libunwind )
-"
-RDEPEND="${CDEPEND}"
+DEPEND="${RDEPEND}"
 
 src_prepare() {
 	# automake expects gtk-doc.make, but file is in .gitignore
 	# replicate autogen.sh output
-	use doc || echo -e "EXTRA_DIST =\nCLEANFILES =" > ./gtk-doc.make
+	if ! use doc; then
+		echo -e "EXTRA_DIST =\nCLEANFILES =" > ./gtk-doc.make || die
+	fi
 
-	xorg-2_src_prepare
+	xorg-3_src_prepare
 }
 
 src_configure() {
@@ -36,5 +41,5 @@ src_configure() {
 		$(use_enable video_cards_nouveau nouveau)
 		$(use_with test libunwind)
 	)
-	xorg-2_src_configure
+	xorg-3_src_configure
 }
