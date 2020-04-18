@@ -1,11 +1,12 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
 
-inherit versionator
+inherit eapi7-ver
 
-MY_PV=$(replace_version_separator 3 '-')
+MY_PV=$(ver_rs 3 '-')
+
 DESCRIPTION="Brothers brscan4 scanner driver"
 HOMEPAGE="http://welcome.solutions.brother.com/bsc/public_s/id/linux/en/download_scn.html#brscan4"
 SRC_URI="
@@ -17,10 +18,8 @@ LICENSE="Brother"
 SLOT="0"
 KEYWORDS="amd64 x86"
 IUSE=""
-RESTRICT="fetch strip"
 
-DEPEND=""
-RDEPEND="${DEPEND}"
+RESTRICT="fetch strip"
 
 S="$WORKDIR"
 
