@@ -1,12 +1,13 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=5
 
-inherit versionator
+inherit eapi7-ver
 
-MY_PV=$(replace_version_separator 3 '-')
-DESCRIPTION="This tool enables you to scan documents using the Scan key on the Brother MFC through the network"
+MY_PV=$(ver_rs 3 '-')
+
+DESCRIPTION="Scan documents over the network using the Scan key on Brother MFC devices"
 HOMEPAGE="http://welcome.solutions.brother.com/bsc/public_s/id/linux/en/download_scn.html"
 SRC_URI="
 	amd64? ( http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.amd64.deb )
@@ -17,10 +18,8 @@ LICENSE="Brother"
 SLOT="0"
 KEYWORDS="amd64 x86"
 IUSE=""
-RESTRICT="fetch strip"
 
-DEPEND=""
-RDEPEND="${DEPEND}"
+RESTRICT="fetch strip"
 
 S="$WORKDIR"
 
