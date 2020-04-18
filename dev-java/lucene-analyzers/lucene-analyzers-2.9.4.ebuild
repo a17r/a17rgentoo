@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 JAVA_PKG_IUSE="source"
@@ -8,12 +8,14 @@ MY_PN="${PN/lucene-}"
 MY_P="${P/-${MY_PN}}"
 
 DESCRIPTION="Lucene Analyzers additions"
-HOMEPAGE="http://lucene.apache.org/java"
+HOMEPAGE="https://lucene.apache.org/java"
 SRC_URI="mirror://apache/lucene/java/${MY_P}-src.tar.gz"
+
 LICENSE="Apache-2.0"
 SLOT="2.9"
-KEYWORDS="~amd64 ~x86 ~x86-fbsd ~x86-linux ~amd64-linux"
+KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-linux"
 IUSE=""
+
 DEPEND=">=virtual/jdk-1.7"
 RDEPEND=">=virtual/jre-1.7"
 
