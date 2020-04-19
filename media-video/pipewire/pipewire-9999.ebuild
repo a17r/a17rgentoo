@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -17,9 +17,9 @@ fi
 DESCRIPTION="Multimedia processing graphs"
 HOMEPAGE="https://pipewire.org/"
 
-LICENSE="LGPL-2.1"
-SLOT="0"
-IUSE="+alsa bluetooth debug doc ffmpeg gstreamer jack pulseaudio realtime systemd +testplugins v4l"
+LICENSE="LGPL-2.1+"
+SLOT="0/0.3"
+IUSE="+alsa bluetooth debug doc ffmpeg gstreamer jack libav pulseaudio realtime sdl systemd +testplugins v4l vaapi vulkan X"
 
 BDEPEND="
 	app-doc/xmltoman
@@ -28,17 +28,17 @@ BDEPEND="
 		media-gfx/graphviz
 	)
 "
+# 	dev-libs/glib:2[dbus]
+# 	media-libs/speexdsp
 RDEPEND="
-	dev-libs/glib:2[dbus]
 	media-libs/alsa-lib
-	media-libs/libsdl2
-	media-libs/libv4l
-	media-libs/sbc
-	media-libs/speexdsp
 	sys-apps/dbus
 	virtual/libudev
-	x11-libs/libX11
-	ffmpeg? ( virtual/ffmpeg:= )
+	bluetooth? ( media-libs/sbc )
+	ffmpeg? (
+		!libav? ( media-video/ffmpeg:= )
+		libav? ( media-video/libav:= )
+	)
 	gstreamer? (
 		media-libs/gstreamer:1.0
 		media-libs/gst-plugins-base:1.0
@@ -46,9 +46,36 @@ RDEPEND="
 	jack? ( virtual/jack )
 	pulseaudio? ( media-sound/pulseaudio )
 	realtime? ( sys-auth/rtkit )
+	sdl? ( media-libs/libsdl2 )
 	systemd? ( sys-apps/systemd )
+	vaapi? ( x11-libs/libva )
+	v4l? ( media-libs/libv4l )
+	X? ( x11-libs/libX11 )
 "
-DEPEND="${RDEPEND}"
+DEPEND="${RDEPEND}
+	vulkan? (
+		dev-util/vulkan-headers
+		media-libs/vulkan-loader
+	)
+"
+
+src_prepare() {
+	spa_use() {
+		if ! use ${1}; then
+			sed -e "/.*dependency.*'${2-$1}'/s/'${2-$1}'/'${2-$1}-disabled-by-USE-no-${1}'/" \
+				-i spa/meson.build || die
+		fi
+	}
+
+	default
+	spa_use bluetooth sbc
+	spa_use ffmpeg libavcodec
+	spa_use ffmpeg libavformat
+	spa_use ffmpeg libavfilter
+	spa_use vaapi libva
+	spa_use sdl sdl2
+	spa_use X x11
+}
 
 src_configure() {
 	local emesonargs=(
@@ -58,6 +85,7 @@ src_configure() {
 		$(meson_use doc docs)
 		$(meson_use ffmpeg)
 		$(meson_use gstreamer)
+		$(meson_use jack)
 		$(meson_use jack pipewire-jack)
 		$(meson_use pulseaudio pipewire-pulseaudio)
 		$(meson_use systemd)
@@ -65,6 +93,7 @@ src_configure() {
 		$(meson_use testplugins test)
 		$(meson_use testplugins videotestsrc)
 		$(meson_use v4l v4l2)
+		$(meson_use vulkan)
 		-Daudioconvert=true
 		-Daudiomixer=true
 		-Dman=true
@@ -77,49 +106,7 @@ src_configure() {
 	meson_src_configure
 }
 
-# # ?: how on earth are we supposed to do this properly using doheader?!
-# deepheader() {
-# 	local aheader
-# 	for aheader in "$@"; do
-# 		[[ -f "${aheader}" ]] || die "header \"${aheader}\" not found (pwd=${PWD})"
-# 		insopts -m 0644
-# 		dodir /usr/include/${aheader%/*}
-# 		insinto /usr/include/${aheader%/*}
-# 		doins "${aheader}"
-# 	done
-# }
-# 
-# src_install() {
-# 	meson_src_install
-# 	# note: omitting for now but we might want to do this if problems occur.
-# 	# An environment variable, DISABLE_RTKIT, can achieve this at runtime
-# 
-# 	# if use '!realtime'; then
-# 	# 	rm "${ED%/}"/usr/$(get_libdir)/pipewire-*/libpipewire-module-rtkit.so || die
-# 	# 	sed -e '/^load-module\slibpipewire-module-rtkit$/s/^/#/' -i "${ED%/}"/etc/pipewire/pipewire.conf 
-# 	# fi
-# 
-# 	sed -e 's|^exec\sbuild/src/|exec |g' -i "${ED}"/etc/pipewire/pipewire.conf || die "build/src removal"
-# 
-# 	if use doc; then
-# 		mv "${ED}"/usr/share/doc/pipewire/html "${ED}"/usr/share/doc/${PN}-${PVR}/html || die "moving html"
-# 		rmdir "${ED}"/usr/share/doc/pipewire || die "removing usr/share/doc/pipewire dir"
-# 	fi
-# 	if use alsa; then
-# 		dodir /usr/share/alsa/alsa.conf.d
-# 		insinto /usr/share/alsa/alsa.conf.d
-# 		doins pipewire-alsa/conf/50-pipewire.conf
-# 		dodir /etc/alsa/conf.d
-# 		dosym "${EPREFIX}"/usr/share/alsa/alsa.conf.d/50-pipewire.conf /etc/alsa/conf.d/50-pipewire.conf
-# 	fi
-# 	cd ${S}/spa/include
-# 	deepheader spa/utils/result.h
-# 	cd "${BUILD_DIR}"/src/examples
-# 	dodir /usr/$(get_libdir)/pipewire-0.3/examples
-# 	exeinto /usr/$(get_libdir)/pipewire-0.3/examples
-# 	doexe audio-src
-# 	doexe export-{sink,source,spa}
-# 	doexe media-session
-# 	doexe video-{play,src}
-# 	use v4l && doexe local-v4l2
-# }
+pkg_postinst() {
+	elog "Package has optional sys-auth/rtkit RUNTIME support that may be"
+	elog "disabled by setting DISABLE_RTKIT env var."
+}

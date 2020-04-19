@@ -10,6 +10,7 @@
 	</upstream>
 	<use>
 		<flag name="realtime">Pull in <pkg>sys-auth/rtkit</pkg> for low-latency support</flag>
+		<flag name="vulkan">Enable vulkan spa plugin integration</flag>
 		<flag name="testplugins">ehwhat?</flag>
 	</use>
 </pkgmetadata>
