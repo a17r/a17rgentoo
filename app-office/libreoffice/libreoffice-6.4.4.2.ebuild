@@ -254,7 +254,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-6.1-nomancompress.patch"
 
 	# git master
-	"${FILESDIR}/${P}-boost-1.73.patch" # bug 721806
+	"${FILESDIR}/${PN}-6.4.3.2-boost-1.73.patch" # bug 721806
 
 	# TODO: upstream (for now taken from Arch Linux)
 	"${FILESDIR}/${PN}-6.4.2.2-poppler-0.86.patch" # bug 711102
