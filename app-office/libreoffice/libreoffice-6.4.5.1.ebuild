@@ -44,20 +44,8 @@ unset DEV_URI
 # These are bundles that can't be removed for now due to huge patchsets.
 # If you want them gone, patches are welcome.
 ADDONS_SRC=(
-	"base? (
-		${ADDONS_URI}/commons-logging-1.2-src.tar.gz
-		${ADDONS_URI}/ba2930200c9f019c2d93a8c88c651a0f-flow-engine-0.9.4.zip
-		${ADDONS_URI}/d8bd5eed178db6e2b18eeed243f85aa8-flute-1.1.6.zip
-		${ADDONS_URI}/eeb2c7ddf0d302fba4bfc6e97eac9624-libbase-1.1.6.zip
-		${ADDONS_URI}/3bdf40c0d199af31923e900d082ca2dd-libfonts-1.1.6.zip
-		${ADDONS_URI}/3404ab6b1792ae5f16bbd603bd1e1d03-libformula-1.1.7.zip
-		${ADDONS_URI}/db60e4fde8dd6d6807523deb71ee34dc-liblayout-0.2.10.zip
-		${ADDONS_URI}/97b2d4dba862397f446b217e2b623e71-libloader-1.1.6.zip
-		${ADDONS_URI}/8ce2fcd72becf06c41f7201d15373ed9-librepository-1.1.6.zip
-		${ADDONS_URI}/f94d9870737518e3b597f9265f4e9803-libserializer-1.1.6.zip
-		${ADDONS_URI}/ace6ab49184e329db254e454a010f56d-libxml-1.1.7.zip
-		${ADDONS_URI}/39bb3fcea1514f1369fcfc87542390fd-sacjava-1.3.zip
-	)"
+	# QR code generating library for >=libreoffice-6.4
+	"${ADDONS_URI}/QR-Code-generator-1.4.0.tar.gz"
 	"java? ( ${ADDONS_URI}/17410483b5b5f267aa18b7e00b65e6e0-hsqldb_1_8_0.zip )"
 	# no release for 8 years, should we package it?
 	"libreoffice_extensions_wiki-publisher? ( ${ADDONS_URI}/a7983f859eafb2677d7ff386a023bc40-xsltml_2.1.2.zip )"
@@ -76,13 +64,13 @@ unset ADDONS_SRC
 # Extensions that need extra work:
 LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 
-IUSE="accessibility base bluetooth +branding coinmp +cups dbus debug eds firebird
-googledrive gstreamer +gtk gtk2 kde ldap +mariadb odk pdfimport postgres test
+IUSE="accessibility bluetooth +branding coinmp +cups +dbus debug eds firebird
+googledrive gstreamer +gtk kde ldap +mariadb odk pdfimport postgres test
 $(printf 'libreoffice_extensions_%s ' ${LO_EXTS})"
 
 REQUIRED_USE="${PYTHON_REQUIRED_USE}
-	base? ( firebird java )
 	bluetooth? ( dbus )
+	gtk? ( dbus )
 	libreoffice_extensions_nlpsolver? ( java )
 	libreoffice_extensions_scripting-beanshell? ( java )
 	libreoffice_extensions_scripting-javascript? ( java )
@@ -93,6 +81,7 @@ RESTRICT="!test? ( test )"
 
 LICENSE="|| ( LGPL-3 MPL-1.1 )"
 SLOT="0"
+
 [[ ${MY_PV} == *9999* ]] || \
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86 ~amd64-linux ~x86-linux"
 
@@ -129,13 +118,13 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	>=dev-cpp/libcmis-0.5.2
 	dev-db/unixODBC
 	dev-lang/perl
-	dev-libs/boost:=[nls]
+	>=dev-libs/boost-1.72.0:=[nls]
 	dev-libs/expat
 	dev-libs/hyphen
 	dev-libs/icu:=
 	dev-libs/libassuan
 	dev-libs/libgpg-error
-	>=dev-libs/liborcus-0.14.0
+	>=dev-libs/liborcus-0.15.0
 	dev-libs/librevenge
 	dev-libs/libxml2
 	dev-libs/libxslt
@@ -168,9 +157,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	x11-libs/libXrandr
 	x11-libs/libXrender
 	accessibility? (
-		$(python_gen_cond_dep '
-			dev-python/lxml[${PYTHON_MULTI_USEDEP}]
-		')
+		$(python_gen_cond_dep 'dev-python/lxml[${PYTHON_MULTI_USEDEP}]')
 	)
 	bluetooth? (
 		dev-libs/glib:2
@@ -178,7 +165,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	)
 	coinmp? ( sci-libs/coinor-mp )
 	cups? ( net-print/cups )
-	dbus? ( sys-apps/dbus )
+	dbus? ( sys-apps/dbus[X] )
 	eds? (
 		dev-libs/glib:2
 		gnome-base/dconf
@@ -195,11 +182,6 @@ COMMON_DEPEND="${PYTHON_DEPS}
 		gnome-base/dconf
 		media-libs/mesa[egl]
 		x11-libs/gtk+:3
-		x11-libs/pango
-	)
-	gtk2? (
-		x11-libs/gdk-pixbuf
-		>=x11-libs/gtk+-2.24:2
 		x11-libs/pango
 	)
 	kde? (
@@ -230,7 +212,7 @@ DEPEND="${COMMON_DEPEND}
 	dev-perl/Archive-Zip
 	>=dev-util/cppunit-1.14.0
 	>=dev-util/gperf-3.1
-	>=dev-util/mdds-1.4.1:1=
+	dev-util/mdds:1/1.5
 	media-libs/glm
 	sys-devel/ucpp
 	x11-base/xorg-proto
@@ -238,7 +220,7 @@ DEPEND="${COMMON_DEPEND}
 	x11-libs/libXtst
 	java? (
 		dev-java/ant-core
-		>=virtual/jdk-1.6
+		>=virtual/jdk-1.8
 	)
 	test? (
 		app-crypt/gnupg
@@ -253,7 +235,7 @@ RDEPEND="${COMMON_DEPEND}
 	!app-office/openoffice
 	media-fonts/liberation-fonts
 	|| ( x11-misc/xdg-utils kde-plasma/kde-cli-tools )
-	java? ( >=virtual/jre-1.6 )
+	java? ( >=virtual/jre-1.8 )
 	kde? ( kde-frameworks/breeze-icons:* )
 "
 if [[ ${MY_PV} != *9999* ]] && [[ ${PV} != *_* ]]; then
@@ -272,8 +254,11 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.3.4.2-kioclient5.patch"
 	"${FILESDIR}/${PN}-6.1-nomancompress.patch"
 
-	# master branch
-	"${FILESDIR}/${PN}-6.3.3.2-mysql-connector-c-8.patch" # bug #692422
+	# git master
+	"${FILESDIR}/${PN}-6.4.3.2-boost-1.73.patch" # bug 721806
+
+	# TODO: upstream (for now taken from Arch Linux)
+	"${FILESDIR}/${PN}-6.4.2.2-poppler-0.86.patch" # bug 711102
 )
 
 S="${WORKDIR}/${PN}-${MY_PV}"
@@ -289,10 +274,11 @@ _check_reqs() {
 }
 
 pkg_pretend() {
-	use base ||
-		ewarn "If you plan to use Base application you must enable USE base."
-	use java ||
-		ewarn "Without USE java, several wizards are not going to be available."
+	if ! use java && ! use firebird; then
+		ewarn "If you plan to use Base application you must enable either firebird or java."
+	fi
+
+	use java || ewarn "Without java, several wizards are not going to be available."
 
 	[[ ${MERGE_TYPE} != binary ]] && _check_reqs pkg_pretend
 }
@@ -405,6 +391,7 @@ src_configure() {
 	# --without-system-sane: just sane.h header that is used for scan in writer,
 	#   not linked or anything else, worthless to depend on
 	# --disable-pdfium: not yet packaged
+	# --without-system-qrencode: has no real build system and LO is the only user
 	local myeconfargs=(
 		--with-system-dicts
 		--with-system-epoxy
@@ -422,14 +409,13 @@ src_configure() {
 		--disable-breakpad
 		--disable-bundle-mariadb
 		--disable-ccache
-		--disable-dependency-tracking
 		--disable-epm
 		--disable-fetch-external
-		--disable-gstreamer-0-10
 		--disable-gtk3-kde5
 		--disable-online-update
 		--disable-openssl
 		--disable-pdfium
+		--disable-report-builder
 		--disable-vlc
 		--with-build-version="${gentoo_buildid}"
 		--enable-extension-integration
@@ -448,10 +434,8 @@ src_configure() {
 		--with-help="html"
 		--without-helppack-integration
 		--with-system-gpgmepp
-		--without-system-jfreereport
-		--without-system_apache_commons
 		--without-system-sane
-		$(use_enable base report-builder)
+		--without-system-qrcodegen
 		$(use_enable bluetooth sdremote-bluetooth)
 		$(use_enable coinmp)
 		$(use_enable cups)
@@ -461,8 +445,7 @@ src_configure() {
 		$(use_enable firebird firebird-sdbc)
 		$(use_enable gstreamer gstreamer-1-0)
 		$(use_enable gtk gtk3)
-		$(use_enable gtk2 gtk)
-		$(use_enable kde kde5)
+		$(use_enable kde kf5)
 		$(use_enable kde qt5)
 		$(use_enable ldap)
 		$(use_enable odk)
@@ -535,7 +518,7 @@ src_test() {
 
 src_install() {
 	# This is not Makefile so no buildserver
-	make DESTDIR="${D}" distro-pack-install -o build -o check || die
+	emake DESTDIR="${D}" distro-pack-install -o build -o check
 
 	# bug 593514
 	if use gtk; then
