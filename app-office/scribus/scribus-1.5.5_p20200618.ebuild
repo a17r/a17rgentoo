@@ -5,7 +5,7 @@ EAPI=7
 
 PYTHON_COMPAT=( python3_{6,7,8,9} )
 PYTHON_REQ_USE="tk?"
-COMMIT=8118e91d0995dc59d4f44b43cb4a95639283e3fb
+COMMIT=d1a31a03d12425ac54bb2a1b335183b72ea9c17e
 inherit cmake desktop flag-o-matic python-single-r1 xdg
 
 DESCRIPTION="Desktop publishing (DTP) and layout program"
