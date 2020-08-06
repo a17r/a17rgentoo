@@ -265,7 +265,6 @@ PATCHES=(
 	# "${WORKDIR}"/${PATCHSET/.tar.xz/}
 
 	# not upstreamable stuff
-	"${FILESDIR}/${PN}-5.4-system-pyuno.patch"
 	"${FILESDIR}/${PN}-5.3.4.2-kioclient5.patch"
 	"${FILESDIR}/${PN}-6.1-nomancompress.patch"
 
@@ -333,12 +332,6 @@ src_prepare() {
 	# hack in the autogen.sh
 	touch autogen.lastrun
 
-	# system pyuno mess
-	sed -i \
-		-e "s:%eprefix%:${EPREFIX}:g" \
-		-e "s:%libdir%:$(get_libdir):g" \
-		pyuno/source/module/uno.py \
-		pyuno/source/officehelper.py || die
 	# sed in the tests
 	sed -i \
 		-e "s#all : build unitcheck#all : build#g" \
@@ -555,6 +548,28 @@ src_install() {
 	# bug 703474
 	insinto /usr/include
 	doins -r include/LibreOfficeKit
+
+	local py lodir=/usr/$(get_libdir)/libreoffice
+	# patching this would break tests
+	cat <<-EOF > "${T}"/uno.py
+import sys, os
+sys.path.append('${EPREFIX}${lodir}/program')
+os.putenv('URE_BOOTSTRAP', 'vnd.sun.star.pathname:${EPREFIX}${lodir}/libreoffice/program/fundamentalrc')
+EOF
+	sed -e "/^import sys/d" -e "/^import os/d" \
+		-i "${D}"/${lodir}/program/uno.py || die "cleanup dupl imports failed"
+	cat "${D}"/${lodir}/program/uno.py >> "${T}"/uno.py || die
+	cp "${T}"/uno.py "${D}"/${lodir}/program/uno.py || die
+
+	# more system pyuno mess
+	sed -e "/sOffice = \"\" # lets hope for the best/s:\"\":\"${EPREFIX}${lodir}/program\":" \
+		-i pyuno/source/officehelper.py || die
+
+	python_optimize "${D}"/usr/$(get_libdir)/libreoffice/program
+	# link python bridge in site-packages, bug 667802
+	for py in uno.py unohelper.py officehelper.py; do
+		dosym ../../../$(get_libdir)/libreoffice/program/${py} $(python_get_sitedir)/${py}
+	done
 }
 
 pkg_postinst() {
