@@ -563,7 +563,7 @@ EOF
 
 	# more system pyuno mess
 	sed -e "/sOffice = \"\" # lets hope for the best/s:\"\":\"${EPREFIX}${lodir}/program\":" \
-		-i pyuno/source/officehelper.py || die
+		-i "${D}"/${lodir}/program/officehelper.py || die
 
 	python_optimize "${D}"/usr/$(get_libdir)/libreoffice/program
 	# link python bridge in site-packages, bug 667802
