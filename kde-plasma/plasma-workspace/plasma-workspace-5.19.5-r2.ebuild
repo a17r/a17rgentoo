@@ -211,10 +211,12 @@ pkg_postinst () {
 	# Clean up pre-5.17.4 scripts
 	if [[ -e "${EROOT}"/etc/plasma/startup/10-agent-startup.sh ]]; then
 		rm "${EROOT}"/etc/plasma/startup/10-agent-startup.sh || die
+		rmdir "${EROOT}"/etc/plasma{/startup,} 2> /dev/null
 		elog "Removed obsolete ${EPREFIX}/etc/plasma/startup/10-agent-startup.sh"
 	fi
 	if [[ -e "${EROOT}"/etc/plasma/shutdown/10-agent-shutdown.sh ]]; then
 		rm "${EROOT}"/etc/plasma/shutdown/10-agent-shutdown.sh || die
+		rmdir "${EROOT}"/etc/plasma{/shutdown,} 2> /dev/null
 		elog "Removed obsolete ${EPREFIX}/etc/plasma/shutdown/10-agent-shutdown.sh"
 	fi
 
