@@ -31,7 +31,7 @@ DEPEND="${RDEPEND}
 
 DOCS=( docs/README.kstartupinfo )
 
-PATCHES=( "${FILESDIR}/${P}-no-qtwidgets.patch" ) # not all tests were ported
+PATCHES=( "${FILESDIR}/${PN}-5.74.0-no-qtwidgets.patch" ) # not all tests were ported
 
 src_configure() {
 	local mycmakeargs=(
