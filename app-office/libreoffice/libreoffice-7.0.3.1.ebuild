@@ -82,8 +82,8 @@ unset ADDONS_SRC
 # Extensions that need extra work:
 LO_EXTS="nlpsolver scripting-beanshell scripting-javascript wiki-publisher"
 
-IUSE="accessibility base bluetooth +branding coinmp +cups +dbus debug eds firebird
-googledrive gstreamer +gtk kde ldap +mariadb odk pdfimport postgres test
+IUSE="accessibility base bluetooth +branding clang coinmp +cups +dbus debug eds firebird
+googledrive gstreamer +gtk kde ldap +mariadb odk pdfimport postgres test vulkan
 $(printf 'libreoffice_extensions_%s ' ${LO_EXTS})"
 
 REQUIRED_USE="${PYTHON_REQUIRED_USE}
@@ -182,6 +182,19 @@ COMMON_DEPEND="${PYTHON_DEPS}
 		dev-libs/glib:2
 		net-wireless/bluez
 	)
+	clang? (
+		|| (
+			(	sys-devel/clang:10
+				sys-devel/llvm:10
+				=sys-devel/lld-10*	)
+			(	sys-devel/clang:11
+				sys-devel/llvm:11
+				=sys-devel/lld-11*	)
+			(	sys-devel/clang:12
+				sys-devel/llvm:12
+				=sys-devel/lld-12*	)
+		)
+	)
 	coinmp? ( sci-libs/coinor-mp )
 	cups? ( net-print/cups )
 	dbus? ( sys-apps/dbus[X] )
@@ -279,8 +292,8 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.3.4.2-kioclient5.patch"
 	"${FILESDIR}/${PN}-6.1-nomancompress.patch"
 
-	# git master
-	"${FILESDIR}/${PN}-7.0.3.1-fix-non-pdfium-build.patch"
+	# 7.0 branch
+	"${FILESDIR}/${P}-fix-non-pdfium-build.patch"
 	"${FILESDIR}/${PN}-6.4.7.2-icu-68-1.patch" # bug 752021
 )
 
@@ -378,6 +391,50 @@ src_configure() {
 	local google_default_client_id="329227923882.apps.googleusercontent.com"
 	local google_default_client_secret="vgKG0NNv7GoDpbtoFNLxCUXu"
 
+	# Show flags set at the beginning
+	einfo "Current CFLAGS:    ${CFLAGS}"
+	einfo "Current LDFLAGS:   ${LDFLAGS}"
+
+	local have_switched_compiler=
+	if use clang && ! tc-is-clang ; then
+		# Force clang
+		einfo "Enforcing the use of clang due to USE=clang ..."
+		have_switched_compiler=yes
+		AR=llvm-ar
+		CC=${CHOST}-clang
+		CXX=${CHOST}-clang++
+		NM=llvm-nm
+		RANLIB=llvm-ranlib
+	elif ! use clang && ! tc-is-gcc ; then
+		# Force gcc
+		have_switched_compiler=yes
+		einfo "Enforcing the use of gcc due to USE=-clang ..."
+		AR=gcc-ar
+		CC=${CHOST}-gcc
+		CXX=${CHOST}-g++
+		NM=gcc-nm
+		RANLIB=gcc-ranlib
+	fi
+	export CLANG_CC=${CC}
+	export CLANG_CXX=${CXX}
+
+	if [[ -n "${have_switched_compiler}" ]] ; then
+		# Because we switched active compiler we have to ensure
+		# that no unsupported flags are set
+		strip-unsupported-flags
+	fi
+
+	# Show flags set at the beginning
+	einfo "   Used CFLAGS:    ${CFLAGS}"
+	einfo "   Used LDFLAGS:   ${LDFLAGS}"
+
+	# Ensure we use correct toolchain
+	tc-export CC CXX LD AR NM OBJDUMP RANLIB PKG_CONFIG
+
+	if use vulkan && ! use clang ; then
+		ewarn "Building skia with gcc may lead to performance issues. Disable vulkan or enable clang."
+	fi
+
 	# optimization flags
 	export GMAKE_OPTIONS="${MAKEOPTS}"
 	# System python enablement:
@@ -469,6 +526,7 @@ src_configure() {
 		$(use_enable odk)
 		$(use_enable pdfimport)
 		$(use_enable postgres postgresql-sdbc)
+		$(use_enable vulkan skia)
 		$(use_with accessibility lxml)
 		$(use_with coinmp system-coinmp)
 		$(use_with googledrive gdrive-client-id ${google_default_client_id})
