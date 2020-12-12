@@ -3,7 +3,7 @@
 
 EAPI=7
 
-QTMIN=5.14.2
+QTMIN=5.15.1
 VIRTUALX_REQUIRED="test"
 inherit ecm kde.org
 
@@ -31,7 +31,7 @@ DEPEND="${RDEPEND}
 
 DOCS=( docs/README.kstartupinfo )
 
-PATCHES=( "${FILESDIR}/${PN}-5.74.0-no-qtwidgets.patch" ) # not all tests were ported
+PATCHES=( "${FILESDIR}/${PN}-5.77.0-no-qtwidgets.patch" ) # not all tests were ported
 
 src_configure() {
 	local mycmakeargs=(
