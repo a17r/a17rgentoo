@@ -1,0 +1,107 @@
+#!/sbin/openrc-run
+# Copyright 2021 Gentoo Authors
+# Distributed under the terms of the GNU General Public License, v2
+
+depend() {
+    need localmount sddm-setup
+
+    # start as early as possible, but we can't do 'before *' as that breaks it
+    # (#139824) Start after ypbind and autofs for network authentication
+    # (#145219 #180163) Could use lirc mouse as input device
+    # (#70689 comment #92) Start after consolefont to avoid display corruption
+    # (#291269) Start after quota, since some dm need readable home
+    # (#390609) Will fail when dbus is not running
+    # (#366753) starting keymaps after X causes problems
+    after bootmisc consolefont modules netmount
+    after readahead-list ypbind autofs openvpn gpm lircmd
+    after quota keymaps
+    before alsasound
+
+    # Start before SDDM
+    use dbus xfs
+}
+
+# Check to see if something is defined on our VT
+vtstatic() {
+    if [ -e /etc/ttys ] ; then
+        grep -q "^ttyv$(($1 - 1))" /etc/ttys
+    else
+        return 1
+    fi
+}
+
+start() {
+    if [ -f /run/.nogui ]; then
+        einfo "Skipping SDDM, /run/.nogui found or \"nogui\" bootparam passed."
+        rm /run/.nogui
+        return 0
+    fi
+
+    # Bail out early if on a non-OpenRC system:
+    if [ ! -d /run/openrc ]; then
+        eerror "$0 should only be used on OpenRC systems"
+    fi
+
+    ebegin "Setting up SDDM"
+
+    if [ -n "${CHECKVT-y}" ] ; then
+        if vtstatic "${CHECKVT:-7}" ; then
+            if [ -x /sbin/telinit ] && [ "${SOFTLEVEL}" != "BOOT" ] && [ "${RC_SOFTLEVEL}" != "BOOT" ]; then
+                ewarn "Something is already defined on VT ${CHECKVT:-7}, will start X later"
+                telinit a >/dev/null 2>&1
+                return 0
+            else
+                eerror "Something is already defined on VT ${CHECKVT:-7}, not starting"
+                return 1
+            fi
+        fi
+    fi
+
+    # We need to source /etc/profile for stuff like $LANG to work, bug #10190.
+    . /etc/profile
+
+    start-stop-daemon --start --exec /usr/bin/sddm --pidfile /run/sddm.pid \
+        -m --background || eerror "ERROR: could not start SDDM"
+    eend 0
+}
+
+stop() {
+    local curvt retval
+
+    retval=0
+    if [ -t 0 ]; then
+        if type fgconsole >/dev/null 2>&1; then
+            curvt=$(fgconsole 2>/dev/null)
+        else
+            curvt=$(tty)
+            case "${curvt}" in
+                /dev/ttyv[0-9]*) curvt=${curvt#/dev/ttyv} ;;
+                *) curvt= ;;
+            esac
+        fi
+    fi
+    rc_cgroup_cleanup=no
+
+    [ -z /usr/bin/sddm ] && return 0
+
+    ebegin "Stopping SDDM"
+
+    if start-stop-daemon --quiet --test --stop --exec /usr/bin/sddm 2>/dev/null; then
+        start-stop-daemon --stop --exec /usr/bin/sddm --retry TERM/5/TERM/5 --pidfile /run/sddm.pid
+        retval=${?}
+    fi
+
+    # switch back to original vt
+    if [ -n "${curvt}" ]; then
+        if type chvt >/dev/null 2>&1; then
+            chvt "${curvt}"
+        else
+            vidcontrol -s "$((curvt + 1))"
+        fi
+    fi
+
+    eend ${retval} "Error stopping SDDM"
+    return ${retval}
+}
+
+# vim: set ts=4 :
