@@ -37,22 +37,17 @@ start() {
         return 0
     fi
 
-    # Bail out early if on a non-OpenRC system:
-    if [ ! -d /run/openrc ]; then
-        eerror "$0 should only be used on OpenRC systems"
-    fi
-
     ebegin "Setting up SDDM"
 
     if [ -n "${CHECKVT-y}" ] ; then
         if vtstatic "${CHECKVT:-7}" ; then
-            if [ -x /sbin/telinit ] && [ "${SOFTLEVEL}" != "BOOT" ] && [ "${RC_SOFTLEVEL}" != "BOOT" ]; then
+            if [ -x /sbin/init ] && [ "${SOFTLEVEL}" != "BOOT" ] && [ "${RC_SOFTLEVEL}" != "BOOT" ]; then
                 ewarn "Something is already defined on VT ${CHECKVT:-7}, will start X later"
-                telinit a >/dev/null 2>&1
+                init a >/dev/null 2>&1
                 return 0
             else
-                eerror "Something is already defined on VT ${CHECKVT:-7}, not starting"
-                return 1
+                eend $? "Something is already defined on VT ${CHECKVT:-7}, not starting"
+                return
             fi
         fi
     fi
@@ -61,8 +56,8 @@ start() {
     . /etc/profile
 
     start-stop-daemon --start --exec /usr/bin/sddm --pidfile /run/sddm.pid \
-        -m --background || eerror "ERROR: could not start SDDM"
-    eend 0
+        -m --background
+    eend $? "ERROR: could not start SDDM"
 }
 
 stop() {
@@ -101,7 +96,6 @@ stop() {
     fi
 
     eend ${retval} "Error stopping SDDM"
-    return ${retval}
 }
 
 # vim: set ts=4 :

@@ -3,7 +3,7 @@
 
 EAPI=7
 
-COMMIT=5825c89444626755ca7ce5eef454c4888131a12b
+COMMIT=e81dfcd6913c4fbd1801597168291b1e396633d8
 inherit cmake linux-info pam systemd tmpfiles
 
 DESCRIPTION="Simple Desktop Display Manager"
