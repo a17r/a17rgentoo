@@ -1,9 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-inherit eutils linux-info qmake-utils systemd toolchain-funcs readme.gentoo-r1
+inherit eutils linux-info qmake-utils systemd toolchain-funcs readme.gentoo-r1 desktop
 
 DESCRIPTION="IEEE 802.1X/WPA supplicant for secure wireless transfers"
 HOMEPAGE="https://w1.fi/wpa_supplicant/"
@@ -18,7 +18,7 @@ else
 fi
 
 SLOT="0"
-IUSE="ap bindist crda dbus eap-sim eapol_test fasteap +fils +hs2-0 libressl macsec p2p privsep ps3 qt5 readline selinux smartcard tdls uncommon-eap-types wimax wps kernel_linux kernel_FreeBSD"
+IUSE="ap bindist broadcom-sta crda dbus eap-sim eapol-test fasteap +fils +hs2-0 libressl macsec +mbo +mesh p2p privsep ps3 qt5 readline selinux smartcard tdls uncommon-eap-types wimax wps kernel_linux kernel_FreeBSD"
 
 # CONFIG_PRIVSEP=y does not have sufficient support for the new driver
 # interface functions used for MACsec, so this combination cannot be used
@@ -26,6 +26,7 @@ IUSE="ap bindist crda dbus eap-sim eapol_test fasteap +fils +hs2-0 libressl macs
 REQUIRED_USE="
 	macsec? ( !privsep )
 	privsep? ( !macsec )
+	broadcom-sta? ( !fils !mesh !mbo )
 "
 
 CDEPEND="
@@ -60,9 +61,9 @@ RDEPEND="${CDEPEND}
 DOC_CONTENTS="
 	If this is a clean installation of wpa_supplicant, you
 	have to create a configuration file named
-	${EROOT%/}/etc/wpa_supplicant/wpa_supplicant.conf
+	${EROOT}/etc/wpa_supplicant/wpa_supplicant.conf
 	An example configuration file is available for reference in
-	${EROOT%/}/usr/share/doc/${PF}/
+	${EROOT}/usr/share/doc/${PF}/
 "
 
 S="${WORKDIR}/${P}/${PN}"
@@ -161,7 +162,6 @@ src_configure() {
 	Kconfig_style_config TLSV11
 	Kconfig_style_config TLSV12
 	Kconfig_style_config GETRANDOM
-	Kconfig_style_config MBO
 
 	# Basic authentication methods
 	# NOTE: we don't set GPSK or SAKE as they conflict
@@ -171,6 +171,8 @@ src_configure() {
 	Kconfig_style_config EAP_OTP
 	Kconfig_style_config EAP_PAX
 	Kconfig_style_config EAP_PSK
+	Kconfig_style_config EAP_TLV
+	Kconfig_style_config EAP_EXE
 	Kconfig_style_config IEEE8021X_EAPOL
 	Kconfig_style_config PKCS12
 	Kconfig_style_config PEERKEY
@@ -200,7 +202,7 @@ src_configure() {
 		Kconfig_style_config CTRL_IFACE_DBUS_INTRO n
 	fi
 
-	if use eapol_test ; then
+	if use eapol-test ; then
 		Kconfig_style_config EAPOL_TEST
 	fi
 
@@ -211,6 +213,12 @@ src_configure() {
 	if use hs2-0 ; then
 		Kconfig_style_config INTERWORKING
 		Kconfig_style_config HS20
+	fi
+
+	if use mbo ; then
+		Kconfig_style_config MBO
+	else
+		Kconfig_style_config MBO n
 	fi
 
 	if use uncommon-eap-types; then
@@ -249,8 +257,11 @@ src_configure() {
 			Kconfig_style_config FILS
 			Kconfig_style_config FILS_SK_PFS
 		fi
-		# Enabling mesh networks.
-		Kconfig_style_config MESH
+		if use mesh; then
+			Kconfig_style_config MESH
+		else
+			Kconfig_style_config MESH n
+		fi
 		#WPA3
 		Kconfig_style_config OWE
 		Kconfig_style_config SAE
@@ -311,12 +322,20 @@ src_configure() {
 		Kconfig_style_config WPS_NFC
 	else
 		Kconfig_style_config WPS n
+		Kconfig_style_config WPS2 n
+		Kconfig_style_config WPS_UFD n
+		Kconfig_style_config WPS_ER n
+		Kconfig_style_config WPS_UPNP n
+		Kconfig_style_config WPS_NFC n
 	fi
 
 	# Wi-Fi Direct (WiDi)
 	if use p2p ; then
 		Kconfig_style_config P2P
 		Kconfig_style_config WIFI_DISPLAY
+	else
+		Kconfig_style_config P2P n
+		Kconfig_style_config WIFI_DISPLAY n
 	fi
 
 	# Access Point Mode
@@ -371,7 +390,7 @@ src_compile() {
 		emake -C "${S}"/wpa_gui-qt4
 	fi
 
-	if use eapol_test ; then
+	if use eapol-test ; then
 		emake eapol_test
 	fi
 }
@@ -430,7 +449,7 @@ src_install() {
 		systemd_dounit systemd/wpa_supplicant.service
 	fi
 
-	if use eapol_test ; then
+	if use eapol-test ; then
 		dobin eapol_test
 	fi
 
@@ -442,10 +461,10 @@ src_install() {
 pkg_postinst() {
 	readme.gentoo_print_elog
 
-	if [[ -e "${EROOT%/}"/etc/wpa_supplicant.conf ]] ; then
+	if [[ -e "${EROOT}"/etc/wpa_supplicant.conf ]] ; then
 		echo
-		ewarn "WARNING: your old configuration file ${EROOT%/}/etc/wpa_supplicant.conf"
-		ewarn "needs to be moved to ${EROOT%/}/etc/wpa_supplicant/wpa_supplicant.conf"
+		ewarn "WARNING: your old configuration file ${EROOT}/etc/wpa_supplicant.conf"
+		ewarn "needs to be moved to ${EROOT}/etc/wpa_supplicant/wpa_supplicant.conf"
 	fi
 
 	if use bindist; then
@@ -463,11 +482,11 @@ pkg_postinst() {
 	# Mea culpa, feel free to remove that after some time --mgorny.
 	local fn
 	for fn in wpa_supplicant{,@wlan0}.service; do
-		if [[ -e "${EROOT%/}"/etc/systemd/system/network.target.wants/${fn} ]]
+		if [[ -e "${EROOT}"/etc/systemd/system/network.target.wants/${fn} ]]
 		then
 			ebegin "Moving ${fn} to multi-user.target"
-			mv "${EROOT%/}"/etc/systemd/system/network.target.wants/${fn} \
-				"${EROOT%/}"/etc/systemd/system/multi-user.target.wants/ || die
+			mv "${EROOT}"/etc/systemd/system/network.target.wants/${fn} \
+				"${EROOT}"/etc/systemd/system/multi-user.target.wants/ || die
 			eend ${?} \
 				"Please try to re-enable ${fn}"
 		fi
