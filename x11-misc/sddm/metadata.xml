@@ -10,7 +10,6 @@
 		<name>Gentoo KDE Project</name>
 	</maintainer>
 	<use>
-		<flag name="kernel-randomness">Rely on the kernel's CONFIG_RANDOM_TRUST_CPU to generate entropy</flag>
 		<flag name="openrc-init">Install SDDM init.d and conf.d files for use with openrc-init</flag>
 	</use>
 	<longdescription lang="en">

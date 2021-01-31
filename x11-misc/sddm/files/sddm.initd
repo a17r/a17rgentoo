@@ -2,8 +2,13 @@
 # Copyright 2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License, v2
 
+command="/usr/bin/sddm"
+command_background="yes"
+pidfile="/run/sddm.pid"
+retry="TERM/5/TERM/5"
+
 depend() {
-    need localmount sddm-setup
+    need localmount elogind
 
     # start as early as possible, but we can't do 'before *' as that breaks it
     # (#139824) Start after ypbind and autofs for network authentication
@@ -28,42 +33,37 @@ vtstatic() {
     else
         return 1
     fi
+
+    return
 }
 
-start() {
-    if [ -f /run/.nogui ]; then
-        einfo "Skipping SDDM, /run/.nogui found or \"nogui\" bootparam passed."
-        rm /run/.nogui
-        return 0
+start_pre() {
+    # need eerror
+    . /lib/gentoo/functions.sh
+
+    if get_bootparam "nogui" ; then
+        einfo "Skipping SDDM, 'nogui' bootparam passed."
+        return 1
     fi
 
-    ebegin "Setting up SDDM"
-
-    if [ -n "${CHECKVT-y}" ] ; then
-        if vtstatic "${CHECKVT:-7}" ; then
-            if [ -x /sbin/init ] && [ "${SOFTLEVEL}" != "BOOT" ] && [ "${RC_SOFTLEVEL}" != "BOOT" ]; then
-                ewarn "Something is already defined on VT ${CHECKVT:-7}, will start X later"
-                init a >/dev/null 2>&1
-                return 0
-            else
-                eend $? "Something is already defined on VT ${CHECKVT:-7}, not starting"
-                return
-            fi
+    if vtstatic "${CHECKVT:-7}" ; then
+        if [ "${SOFTLEVEL}" != "BOOT" ] && [ "${RC_SOFTLEVEL}" != "BOOT" ]; then
+            ewarn "Something is already defined on VT ${CHECKVT:-7}, will start X later"
+            init a >/dev/null 2>&1
+            return 0
+        else
+            eerror "Something is already defined on VT ${CHECKVT:-7}, not starting"
+            return 1
         fi
     fi
 
-    # We need to source /etc/profile for stuff like $LANG to work, bug #10190.
-    . /etc/profile
+    # We need to source /etc/profile.env for stuff like $LANG to work, bug #10190.
+    . /etc/profile.env
 
-    start-stop-daemon --start --exec /usr/bin/sddm --pidfile /run/sddm.pid \
-        -m --background
-    eend $? "ERROR: could not start SDDM"
+    return 0
 }
 
-stop() {
-    local curvt retval
-
-    retval=0
+stop_pre() {
     if [ -t 0 ]; then
         if type fgconsole >/dev/null 2>&1; then
             curvt=$(fgconsole 2>/dev/null)
@@ -75,17 +75,11 @@ stop() {
             esac
         fi
     fi
-    rc_cgroup_cleanup=no
 
-    [ -z /usr/bin/sddm ] && return 0
+    return
+}
 
-    ebegin "Stopping SDDM"
-
-    if start-stop-daemon --quiet --test --stop --exec /usr/bin/sddm 2>/dev/null; then
-        start-stop-daemon --stop --exec /usr/bin/sddm --retry TERM/5/TERM/5 --pidfile /run/sddm.pid
-        retval=${?}
-    fi
-
+stop_post() {
     # switch back to original vt
     if [ -n "${curvt}" ]; then
         if type chvt >/dev/null 2>&1; then
@@ -95,7 +89,7 @@ stop() {
         fi
     fi
 
-    eend ${retval} "Error stopping SDDM"
+    return
 }
 
 # vim: set ts=4 :

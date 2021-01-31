@@ -3,7 +3,7 @@
 
 EAPI=7
 
-COMMIT=e81dfcd6913c4fbd1801597168291b1e396633d8
+COMMIT=bc5a18f34c0881929a6b2e5d3993971c4f692f4f
 inherit cmake linux-info pam systemd tmpfiles
 
 DESCRIPTION="Simple Desktop Display Manager"
@@ -14,7 +14,7 @@ S="${WORKDIR}/${PN}-${COMMIT}"
 LICENSE="GPL-2+ MIT CC-BY-3.0 CC-BY-SA-3.0 public-domain"
 SLOT="0"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
-IUSE="+elogind kernel-randomness openrc-init systemd test"
+IUSE="+elogind openrc-init systemd test"
 
 REQUIRED_USE="^^ ( elogind systemd )"
 RESTRICT="!test? ( test )"
@@ -44,10 +44,6 @@ DEPEND="${COMMON_DEPEND}
 RDEPEND="${COMMON_DEPEND}
 	acct-group/sddm
 	acct-user/sddm
-	!kernel-randomness? ( || (
-		sys-apps/haveged
-		sys-apps/rng-tools
-	) )
 "
 
 PATCHES=(
@@ -64,7 +60,6 @@ PATCHES=(
 
 pkg_setup() {
 	local CONFIG_CHECK="~DRM"
-	use kernel-randomness && CONFIG_CHECK+=" ~RANDOM_TRUST_CPU"
 	use kernel_linux && linux-info_pkg_setup
 
 	if [[ -f "${EROOT}"/etc/sddm.conf ]]; then
@@ -78,8 +73,8 @@ src_prepare() {
 cat <<-EOF >> "${S}"/01gentoo.conf
 [General]
 # Halt/Reboot command
-HaltCommand=$(usex elogind "/bin/loginctl" "/usr/bin/systemctl") poweroff
-RebootCommand=$(usex elogind "/bin/loginctl" "/usr/bin/systemctl") reboot
+HaltCommand=$(usex elogind "loginctl" "systemctl") poweroff
+RebootCommand=$(usex elogind "loginctl" "systemctl") reboot
 
 # Remove qtvirtualkeyboard as InputMethod default
 InputMethod=
@@ -124,7 +119,6 @@ src_install() {
 	[[ -f "${T}"/sddm.conf.old ]] && dodoc "${T}"/sddm.conf.old
 
 	if use openrc-init; then
-		newinitd "${FILESDIR}"/sddm-setup.initd sddm-setup
 		newinitd "${FILESDIR}"/sddm.initd sddm
 		newconfd "${FILESDIR}"/sddm.confd sddm
 	fi
@@ -137,19 +131,15 @@ src_install() {
 pkg_postinst() {
 	tmpfiles_process "${PN}.conf"
 
-	if use kernel-randomness; then
-		elog "NOTE: If SDDM startup appears to hang then entropy pool is too low."
-	else
-		if has_version sys-apps/haveged; then
-			elog "Make sure to configure sys-apps/haveged service."
-		else
-			elog "Make sure to configure sys-apps/rng-tools service."
-		fi
-	fi
+	elog "NOTE: If SDDM startup appears to hang then entropy pool is too low."
+	elog "This can be fixed by configuring one of the following:"
+	elog "  - Enable CONFIG_RANDOM_TRUST_CPU in linux kernel"
+	elog "  - # emerge sys-apps/haveged && rc-update add haveged boot"
+	elog "  - # emerge sys-apps/rng-tools && rc-update add rngd boot"
 	elog
 	elog "SDDM example config can be shown with:"
 	elog "  ${EROOT}/usr/bin/sddm --example-config"
-	elog "Use /etc/sddm.conf.d/ directory to override specific options."
+	elog "Use ${EROOT}/etc/sddm.conf.d/ directory to override specific options."
 	if [[ -f "${EROOT}"/etc/sddm.conf ]]; then
 		rm "${EROOT}"/etc/sddm.conf || die
 		ewarn "NOTE: SDDM config reset!"
