@@ -1,4 +1,4 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -11,7 +11,7 @@ if [[ ${PV} == 9999 ]]; then
 	inherit git-r3
 else
 	SRC_URI="https://github.com/PipeWire/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz"
-	KEYWORDS="~amd64 ~ppc64 ~x86"
+	KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~x86"
 fi
 
 DESCRIPTION="Multimedia processing graphs"
@@ -19,7 +19,9 @@ HOMEPAGE="https://pipewire.org/"
 
 LICENSE="LGPL-2.1+"
 SLOT="0/0.3"
-IUSE="+alsa bluetooth debug doc ffmpeg gstreamer jack pulseaudio systemd test vulkan X"
+IUSE="bluetooth debug doc ffmpeg gstreamer jack pulseaudio systemd test vulkan X"
+
+RESTRICT="!test? ( test )"
 
 BDEPEND="
 	app-doc/xmltoman
@@ -29,9 +31,9 @@ BDEPEND="
 	)
 "
 RDEPEND="
-	media-libs/alsa-lib
+	>=media-libs/alsa-lib-1.1.7
 	media-libs/libsdl2
-	media-libs/libsndfile
+	>=media-libs/libsndfile-1.0.20
 	sys-apps/dbus
 	virtual/libudev
 	bluetooth? (
@@ -40,14 +42,14 @@ RDEPEND="
 	)
 	ffmpeg? ( media-video/ffmpeg:= )
 	gstreamer? (
-		dev-libs/glib:2
-		media-libs/gstreamer:1.0
+		>=dev-libs/glib-2.32.0:2
+		>=media-libs/gstreamer-1.10.0:1.0
 		media-libs/gst-plugins-base:1.0
 	)
 	jack? ( >=media-sound/jack2-1.9.10:2 )
 	pulseaudio? (
 		dev-libs/glib:2
-		media-sound/pulseaudio
+		>=media-sound/pulseaudio-11.1
 	)
 	systemd? ( sys-apps/systemd )
 	vulkan? ( media-libs/vulkan-loader )
@@ -80,11 +82,10 @@ src_configure() {
 	local emesonargs=(
 		-Dexamples=true # contains required pipewire-media-session
 		-Dman=true
-		-Dspa=true
 		-Dspa-plugins=true
 		--buildtype=$(usex debug debugoptimized plain)
 		# alsa plugin and jack/pulseaudio emulation
-		$(meson_use alsa pipewire-alsa)
+		-Dpipewire-alsa=true
 		$(meson_use jack pipewire-jack)
 		$(meson_use pulseaudio pipewire-pulseaudio)
 		# spa-plugins
@@ -97,6 +98,7 @@ src_configure() {
 		# misc
 		$(meson_use doc docs)
 		$(meson_use gstreamer)
+		$(meson_use gstreamer gstreamer-device-provider)
 		$(meson_use systemd)
 		$(meson_use test test)
 		$(meson_use test tests)
