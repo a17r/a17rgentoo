@@ -1,9 +1,7 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
-
-inherit eapi7-ver
+EAPI=7
 
 MY_PV=$(ver_rs 3 '-')
 
@@ -17,17 +15,17 @@ SRC_URI="
 LICENSE="Brother"
 SLOT="0"
 KEYWORDS="amd64 x86"
-IUSE=""
 
 RESTRICT="fetch strip"
 
 S="$WORKDIR"
 
 pkg_nofetch() {
-	use x86   && DOWNLOAD_URL="http://www.brother.com/cgi-bin/agreement/agreement.cgi?dlfile=http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.i386.deb&lang=English_lpr"
-	use amd64 && DOWNLOAD_URL="http://www.brother.com/cgi-bin/agreement/agreement.cgi?dlfile=http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.amd64.deb&lang=English_lpr"
+	local dluri
+	use x86   && dluri="https://www.brother.com/cgi-bin/agreement/agreement.cgi?dlfile=http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.i386.deb&lang=English_lpr"
+	use amd64 && dluri="https://www.brother.com/cgi-bin/agreement/agreement.cgi?dlfile=http://www.brother.com/pub/bsc/linux/dlf/brscan-skey-${MY_PV}.amd64.deb&lang=English_lpr"
 	einfo "Please download ${A} from:"
-	einfo "  ${DOWNLOAD_URL}"
+	einfo "  ${dluri}"
 	einfo "Select 'I Accept' and move the file to ${DISTDIR}."
 }
 
