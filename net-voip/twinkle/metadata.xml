@@ -6,6 +6,6 @@
 		<name>Andreas Sturmlechner</name>
 	</maintainer>
 	<use>
-		<flag name="g729">Enable support for G.729 codec via <pkg>net-libs/bcg729</pkg></flag>
+		<flag name="g729">Enable support for G.729 codec via <pkg>media-libs/bcg729</pkg></flag>
 	</use>
 </pkgmetadata>
