@@ -1,35 +1,34 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
-inherit eutils
+ICC_PROFILES="S2201W S2202W S2231W S2232W S2233W S2242W S2243W"
 
 DESCRIPTION="ICC profiles for EIZO monitors"
-HOMEPAGE="http://www.eizo.com/"
-BASE_SRC_URI="http://www.eizo.com/global/support/db/files/software/icc/lcd"
+HOMEPAGE="https://www.eizoglobal.com/"
+BASE_SRC_URI="https://www.eizoglobal.com/global/support/db/files/software/icc/lcd"
 
 LICENSE="Eizo"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
 
-ICC_PROFILES="S2201W S2202W S2231W S2232W S2233W S2242W S2243W"
-
-for profile in ${ICC_PROFILES}; do
-	SRC_URI+=" icc_profiles_${profile}? ( ${BASE_SRC_URI}/${profile}INF_W.zip -> ${profile}.zip )"
-	IUSE+=" icc_profiles_${profile}"
+for PROFILE in ${ICC_PROFILES}; do
+	SRC_URI+=" icc_profiles_${PROFILE}? ( ${BASE_SRC_URI}/${PROFILE}INF_W.zip -> ${PROFILE}.zip )"
+	IUSE+=" icc_profiles_${PROFILE}"
 done
-unset profile
+unset PROFILE
 
-RESTRICT="mirror"
+RESTRICT="bindist mirror"
 
 DEPEND="app-arch/unzip"
 
 S="${WORKDIR}"
 
 src_unpack() {
+	local profile
 	for profile in ${ICC_PROFILES}; do
-		use_if_iuse icc_profiles_${profile} || continue
+		use icc_profiles_${profile} || continue
 		echo ">>> Unpacking ${profile} to ${WORKDIR}"
 		unzip "${DISTDIR}/${profile}.zip" -x *html *cat *inf > /dev/null \
 			|| die "failed to unpack ${profile}.zip"
@@ -38,7 +37,6 @@ src_unpack() {
 
 src_install() {
 	[[ -n ${A} ]] || return
-	dodir /usr/share/color/icc/Eizo
 	insinto /usr/share/color/icc/Eizo
 	doins *.icm
 }
