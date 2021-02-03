@@ -1,0 +1,95 @@
+From 256f819efe314e859ee8b92260b358583f94622e Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <asturm@gentoo.org>
+Date: Wed, 3 Feb 2021 00:18:47 +0100
+Subject: [PATCH 1/2] Only run git when .git exists
+
+Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
+---
+ CMakeLists.txt | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7a1098f..f4027d0 100644
+--- a/CMakeLists.txt	2020-12-17 09:38:59.662073380 +0100
++++ b/CMakeLists.txt	2021-02-03 01:02:42.018048297 +0100
+@@ -5,25 +5,6 @@
+ set (VERSION "0.9.0")
+ 
+ set (CONFIG_VERSION ${VERSION})
+-execute_process (
+-  COMMAND git describe --tags --dirty --abbrev=6
+-  OUTPUT_VARIABLE GIT_DESCRIBE_OUTPUT
+-  RESULT_VARIABLE GIT_DESCRIBE_RESULT
+-  OUTPUT_STRIP_TRAILING_WHITESPACE)
+-if (GIT_DESCRIBE_RESULT EQUAL 0)
+-  set (VERSION "${GIT_DESCRIBE_OUTPUT}")
+-  string (REGEX REPLACE "^[^0-9]+" "" VERSION "${VERSION}")
+-  string (REGEX REPLACE "-g"   "git." VERSION "${VERSION}")
+-  string (REGEX REPLACE "[_|-]+"  "." VERSION "${VERSION}")
+-  execute_process (
+-    COMMAND git rev-parse --abbrev-ref HEAD
+-    OUTPUT_VARIABLE GIT_REVPARSE_OUTPUT
+-    RESULT_VARIABLE GIT_REVPARSE_RESULT
+-    OUTPUT_STRIP_TRAILING_WHITESPACE)
+-  if (GIT_REVPARSE_RESULT EQUAL 0 AND NOT GIT_REVPARSE_OUTPUT STREQUAL "master")
+-    set (VERSION "${VERSION} [${GIT_REVPARSE_OUTPUT}]")
+-  endif ()
+-endif ()
+ 
+ set (PACKAGE_NAME "QjackCtl")
+ set (PACKAGE_VERSION "${VERSION}")
+-- 
+2.30.0
+
+
+From 0316a13312791a1c2a64809e25cda9266fd773fc Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <asturm@gentoo.org>
+Date: Wed, 3 Feb 2021 00:25:24 +0100
+Subject: [PATCH 2/2] Use GNUInstallDirs properly
+
+CMAKE_INSTALL_<dir> paths may be relative or absolute including
+CMAKE_INSTALL_PREFIX so they must not be used to assemble paths.
+Just use CMAKE_INSTALL_FULL_<dir> directly.
+
+Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
+---
+ CMakeLists.txt        | 4 ----
+ src/cmake_config.h.in | 8 ++++----
+ 2 files changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f4027d0..fbd5dfd 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -50,10 +50,6 @@ endif ()
+ set (CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
+ 
+ include (GNUInstallDirs)
+-set (CONFIG_BINDIR  "${CONFIG_PREFIX}/${CMAKE_INSTALL_BINDIR}")
+-set (CONFIG_LIBDIR  "${CONFIG_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+-set (CONFIG_DATADIR "${CONFIG_PREFIX}/${CMAKE_INSTALL_DATADIR}")
+-set (CONFIG_MANDIR  "${CONFIG_PREFIX}/${CMAKE_INSTALL_MANDIR}")
+ 
+ 
+ # Disable system tray argument option.
+diff --git a/src/cmake_config.h.in b/src/cmake_config.h.in
+index dfbb3a2..c767dc1 100644
+--- a/src/cmake_config.h.in
++++ b/src/cmake_config.h.in
+@@ -26,10 +26,10 @@
+ #cmakedefine CONFIG_PREFIX "@CONFIG_PREFIX@"
+ 
+ /* Define to target installation dirs. */
+-#cmakedefine CONFIG_BINDIR "@CONFIG_BINDIR@"
+-#cmakedefine CONFIG_LIBDIR "@CONFIG_LIBDIR@"
+-#cmakedefine CONFIG_DATADIR "@CONFIG_DATADIR@"
+-#cmakedefine CONFIG_MANDIR "@CONFIG_MANDIR@"
++#cmakedefine CONFIG_BINDIR "@CMAKE_INSTALL_FULL_BINDIR@"
++#cmakedefine CONFIG_LIBDIR "@CMAKE_INSTALL_FULL_LIBDIR@"
++#cmakedefine CONFIG_DATADIR "@CMAKE_INSTALL_FULL_DATADIR@"
++#cmakedefine CONFIG_MANDIR "@CMAKE_INSTALL_FULL_MANDIR@"
+ 
+ /* Define if debugging is enabled. */
+ #cmakedefine CONFIG_DEBUG @CONFIG_DEBUG@
+-- 
+2.30.0
