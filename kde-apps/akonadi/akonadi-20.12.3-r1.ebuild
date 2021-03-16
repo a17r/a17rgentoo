@@ -16,7 +16,7 @@ HOMEPAGE="https://community.kde.org/KDE_PIM/akonadi"
 
 LICENSE="LGPL-2.1+"
 SLOT="5"
-KEYWORDS=""
+KEYWORDS="~amd64 ~arm64 ~ppc64 ~x86"
 IUSE="+kaccounts +mysql postgres sqlite tools xml"
 
 REQUIRED_USE="|| ( mysql postgres sqlite ) test? ( tools )"
@@ -64,7 +64,7 @@ RDEPEND="${COMMON_DEPEND}
 	postgres? ( dev-db/postgresql )
 "
 
-PATCHES=( "${FILESDIR}/${PN}-21.03.80-mysql56-crash.patch" )
+PATCHES=( "${FILESDIR}/${PN}-18.12.2-mysql56-crash.patch" )
 
 pkg_setup() {
 	# Set default storage backend in order: MySQL, PostgreSQL, SQLite
