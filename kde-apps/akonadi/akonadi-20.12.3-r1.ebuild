@@ -74,6 +74,7 @@ pkg_setup() {
 	use mysql && DRIVER="QMYSQL"
 
 	if use mysql && has_version "${CATEGORY}/${PN}[mysql]" && has_version "dev-db/mariadb"; then
+		ewarn
 		ewarn "Attention: Make sure to read README.gentoo after install."
 		ewarn "           This is not a drill."
 		ewarn
@@ -121,5 +122,6 @@ pkg_postinst() {
 	use postgres && elog "  QPSQL"
 	use sqlite && elog "  QSQLITE3"
 	elog "${DRIVER} has been set as your default akonadi storage backend."
-	use mysql && elog && readme.gentoo_print_elog
+	use mysql && elog
+	use mysql && readme.gentoo_print_elog
 }

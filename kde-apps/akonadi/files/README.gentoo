@@ -10,7 +10,7 @@ Note:
 
   1) Check if "mysql" system db is present:
      $ mysql -S /run/user/$(id -u)/akonadi/mysql.socket -e 'select schema_name \
-          from information_schema.schemata where schema_name = "mysql"'
+         from information_schema.schemata where schema_name = "mysql"'
 
      The output obtained should look like this:
         +-------------+
