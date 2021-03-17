@@ -123,5 +123,5 @@ pkg_postinst() {
 	use sqlite && elog "  QSQLITE3"
 	elog "${DRIVER} has been set as your default akonadi storage backend."
 	use mysql && elog
-	use mysql && readme.gentoo_print_elog
+	use mysql && FORCE_PRINT_ELOG=1 readme.gentoo_print_elog
 }
