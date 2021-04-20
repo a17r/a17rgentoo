@@ -3,7 +3,7 @@
 
 EAPI=7
 
-COMMIT=bc5a18f34c0881929a6b2e5d3993971c4f692f4f
+COMMIT=4c99b784a99db8028ca438edb1f4ddb03b3b6e8c
 inherit cmake linux-info pam systemd tmpfiles
 
 DESCRIPTION="Simple Desktop Display Manager"
@@ -14,27 +14,22 @@ S="${WORKDIR}/${PN}-${COMMIT}"
 LICENSE="GPL-2+ MIT CC-BY-3.0 CC-BY-SA-3.0 public-domain"
 SLOT="0"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
-IUSE="+elogind openrc-init systemd test"
+IUSE="+elogind openrc-init +pam systemd test"
 
-REQUIRED_USE="^^ ( elogind systemd )"
+REQUIRED_USE="?? ( elogind systemd )"
 RESTRICT="!test? ( test )"
 
-BDEPEND="
-	dev-python/docutils
-	dev-qt/linguist-tools:5
-	kde-frameworks/extra-cmake-modules:5
-	virtual/pkgconfig
-"
 COMMON_DEPEND="
 	dev-qt/qtcore:5
 	dev-qt/qtdbus:5
 	dev-qt/qtdeclarative:5
 	dev-qt/qtgui:5
 	dev-qt/qtnetwork:5
-	sys-libs/pam
 	x11-base/xorg-server
+	x11-libs/libXau
 	x11-libs/libxcb[xkb]
 	elogind? ( sys-auth/elogind )
+	pam? ( sys-libs/pam )
 	systemd? ( sys-apps/systemd:= )
 	!systemd? ( sys-power/upower )
 "
@@ -44,6 +39,13 @@ DEPEND="${COMMON_DEPEND}
 RDEPEND="${COMMON_DEPEND}
 	acct-group/sddm
 	acct-user/sddm
+	!systemd? ( !openrc-init? ( gui-libs/display-manager-init ) )
+"
+BDEPEND="
+	dev-python/docutils
+	dev-qt/linguist-tools:5
+	kde-frameworks/extra-cmake-modules:5
+	virtual/pkgconfig
 "
 
 PATCHES=(
@@ -51,6 +53,8 @@ PATCHES=(
 	# fix for groups: https://github.com/sddm/sddm/issues/1159
 	"${FILESDIR}"/${PN}-0.19.0-revert-honor-PAM-supplemental-groups.patch
 	"${FILESDIR}"/${PN}-0.18.1-honor-PAM-supplemental-groups-v2.patch
+	# ACK'd for merge but pending rebase: https://github.com/sddm/sddm/pull/1230
+	"${FILESDIR}"/${P}-redesign-Xauth.patch # by openSUSE, Fedora usage for >1y
 	# Downstream patches
 	"${FILESDIR}"/${PN}-0.18.1-respect-user-flags.patch
 	"${FILESDIR}"/${PN}-0.19.0-Xsession.patch # bug 611210
@@ -70,12 +74,17 @@ pkg_setup() {
 src_prepare() {
 	touch "${S}"/01gentoo.conf || die
 
+	if use elogind || use systemd; then
 cat <<-EOF >> "${S}"/01gentoo.conf
 [General]
 # Halt/Reboot command
 HaltCommand=$(usex elogind "loginctl" "systemctl") poweroff
 RebootCommand=$(usex elogind "loginctl" "systemctl") reboot
 
+EOF
+	fi
+
+cat <<-EOF >> "${S}"/01gentoo.conf
 # Remove qtvirtualkeyboard as InputMethod default
 InputMethod=
 
@@ -102,7 +111,7 @@ src_configure() {
 		-DBUILD_MAN_PAGES=ON
 		-DDBUS_CONFIG_FILENAME="org.freedesktop.sddm.conf"
 		-DINSTALL_PAM_EXAMPLES=OFF
-		-DENABLE_PAM=ON
+		-DENABLE_PAM=$(usex pam)
 		-DNO_SYSTEMD=$(usex !systemd)
 		-DUSE_ELOGIND=$(usex elogind)
 	)
@@ -123,9 +132,11 @@ src_install() {
 		newconfd "${FILESDIR}"/sddm.confd sddm
 	fi
 
-	newpamd "${FILESDIR}"/${PN}.pam ${PN} # bug 728550
-	newpamd services/${PN}-autologin.pam ${PN}-autologin
-	newpamd "${BUILD_DIR}"/services/${PN}-greeter.pam ${PN}-greeter
+	if use pam; then
+		newpamd "${FILESDIR}"/${PN}.pam ${PN} # bug 728550
+		newpamd services/${PN}-autologin.pam ${PN}-autologin
+		newpamd "${BUILD_DIR}"/services/${PN}-greeter.pam ${PN}-greeter
+	fi
 }
 
 pkg_postinst() {
@@ -142,12 +153,11 @@ pkg_postinst() {
 	elog "Use ${EROOT}/etc/sddm.conf.d/ directory to override specific options."
 	if [[ -f "${EROOT}"/etc/sddm.conf ]]; then
 		rm "${EROOT}"/etc/sddm.conf || die
+		ewarn
 		ewarn "NOTE: SDDM config reset!"
 		ewarn "${EROOT}/etc/sddm.conf was removed in favor of /etc/sddm.conf.d/"
-		if [[ -f "${EROOT}"/usr/share/doc/${PF}/sddm.conf.old.gz ]]; then
-			ewarn "A backup of your old config is in:"
-			ewarn "  ${EROOT}/usr/share/doc/${PF}/sddm.conf.old.gz"
-		fi
+		ewarn "A backup of your old config is in ${EROOT}/usr/share/doc/${PF}/"
+		ewarn "It will be removed the next time ${PN} is emerged."
 	fi
 	elog
 	elog "For more information on how to configure SDDM, please visit the wiki:"
