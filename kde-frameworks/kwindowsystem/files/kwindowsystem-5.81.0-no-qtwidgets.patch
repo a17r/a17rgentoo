@@ -1,4 +1,4 @@
-From dce3029c986982fc9d2edb93dbf8d24e2aff1bf3 Mon Sep 17 00:00:00 2001
+From 421e8f8c12eb7cab5e56eaca2f7565dff8353518 Mon Sep 17 00:00:00 2001
 From: Andreas Sturmlechner <asturm@gentoo.org>
 Date: Wed, 30 Sep 2020 00:42:28 +0200
 Subject: [PATCH] Remove Qt5::Widgets as dependency
@@ -10,13 +10,13 @@ Subject: [PATCH] Remove Qt5::Widgets as dependency
  3 files changed, 22 insertions(+), 12 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 23f46c0..5bed1f9 100644
+index fffa6a8..456e1e3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -47,7 +47,10 @@ ecm_setup_version(PROJECT VARIABLE_PREFIX KWINDOWSYSTEM
+@@ -48,7 +48,10 @@ ecm_setup_version(PROJECT VARIABLE_PREFIX KWINDOWSYSTEM
  
  # Dependencies
- set(REQUIRED_QT_VERSION 5.13.0)
+ set(REQUIRED_QT_VERSION 5.14.0)
 -find_package(Qt5 ${REQUIRED_QT_VERSION} CONFIG REQUIRED Gui Widgets)
 +find_package(Qt5Gui ${REQUIRED_QT_VERSION} CONFIG REQUIRED)
 +if(NOT KWINDOWSYSTEM_NO_WIDGETS)
@@ -25,7 +25,7 @@ index 23f46c0..5bed1f9 100644
  
  if (APPLE)
      cmake_find_frameworks(Carbon)
-@@ -85,7 +88,9 @@ add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050d00)
+@@ -84,7 +87,9 @@ add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050f00)
  add_subdirectory(src)
  if (BUILD_TESTING)
      add_subdirectory(autotests)
@@ -103,5 +103,5 @@ index c1121a7..51ed0c1 100644
          fixx11h_test
          fixx11h_test2
 -- 
-2.28.0
+2.31.1
 
