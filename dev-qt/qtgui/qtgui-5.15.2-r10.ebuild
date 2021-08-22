@@ -132,6 +132,8 @@ QT5_GENTOO_PRIVATE_CONFIG=(
 PATCHES=(
 	"${FILESDIR}/qt-5.12-gcc-avx2.patch" # bug 672946
 	"${FILESDIR}/${PN}-5.14.1-cmake-macro-backward-compat.patch" # bug 703306
+	# pending upstream: https://invent.kde.org/qt/qt/qtbase/-/merge_requests/47
+	"${FILESDIR}/${P}-CVE-2021-38593.patch" # bug 808531
 )
 
 src_prepare() {

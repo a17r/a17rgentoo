@@ -53,12 +53,12 @@ pkg_setup() {
 
 src_configure() {
 	local myconf=(
-		$(usex connman -dbus-linked '')
+		$(usev connman -dbus-linked)
 		$(usex gssapi -feature-gssapi -no-feature-gssapi)
 		$(qt_use libproxy)
-		$(usex networkmanager -dbus-linked '')
+		$(usev networkmanager -dbus-linked)
 		$(qt_use sctp)
-		$(usex ssl -openssl-linked '')
+		$(usev ssl -openssl-linked)
 	)
 	qt5-build_src_configure
 }

@@ -3,8 +3,8 @@
 
 EAPI=8
 
-KDE_ORG_COMMIT=6683c414c5cc6ab46197c41bb1361c518ca84d3e
-PYTHON_COMPAT=( python3_{6..10} )
+KDE_ORG_COMMIT=92225b72b9ca6b1efc9bc7bb0c12dd7487e900a7
+PYTHON_COMPAT=( python3_{8..10} )
 inherit python-any-r1 qt5-build
 
 DESCRIPTION="The QML and Quick modules for the Qt5 framework"
