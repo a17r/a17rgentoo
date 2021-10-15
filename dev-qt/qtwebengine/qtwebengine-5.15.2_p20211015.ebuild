@@ -170,13 +170,6 @@ src_prepare() {
 		done < <(find src/3rdparty/chromium/third_party/icu -type f "(" -name "*.c" -o -name "*.cpp" -o -name "*.h" ")" 2>/dev/null)
 	fi
 
-	if has_version ">=media-libs/harfbuzz-3.0.0-r1"; then
-		# We can get away with conditionally applying this with has_version
-		# because we have a := dep on harfbuzz and the subslot changed
-		# at 3.0.0.
-		eapply "${FILESDIR}/${PN}-5.15.2_p20210824-harfbuzz-3.0.0.patch"
-	fi
-
 	qt_use_disable_config alsa webengine-alsa src/buildtools/config/linux.pri
 	qt_use_disable_config pulseaudio webengine-pulseaudio src/buildtools/config/linux.pri
 
