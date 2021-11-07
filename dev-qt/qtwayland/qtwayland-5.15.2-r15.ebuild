@@ -3,7 +3,7 @@
 
 EAPI=8
 
-KDE_ORG_COMMIT=02f9585ca19c17ae0978b864195533dc527d825e
+KDE_ORG_COMMIT=992833ca741efe8f533c61abfaf129a1d8bfcfee
 inherit qt5-build
 
 DESCRIPTION="Wayland platform plugin for Qt"
@@ -21,7 +21,6 @@ DEPEND="
 	=dev-qt/qtdeclarative-${QT5_PV}*:5=
 	=dev-qt/qtgui-${QT5_PV}*:5=[egl,libinput,vulkan=,X?]
 	media-libs/libglvnd
-	x11-libs/libxkbcommon
 	vulkan? ( dev-util/vulkan-headers )
 	X? (
 		=dev-qt/qtgui-${QT5_PV}*[-gles2-only]
@@ -30,6 +29,9 @@ DEPEND="
 	)
 "
 RDEPEND="${DEPEND}"
+BDEPEND="
+	dev-util/wayland-scanner
+"
 
 src_configure() {
 	local myqmakeargs=(
