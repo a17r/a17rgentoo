@@ -3,7 +3,7 @@
 
 EAPI=8
 
-KDE_ORG_COMMIT=ede414baf7f5cc2004822d3f760ba827ed484a7a
+KDE_ORG_COMMIT=c9fde86b0a2440133bc08f4811b6ca793be47f0a
 QT5_MODULE="qtbase"
 inherit qt5-build
 
@@ -35,7 +35,7 @@ RDEPEND="
 	sys-libs/zlib:=
 	dbus? ( =dev-qt/qtdbus-${QT5_PV}* )
 	eglfs? (
-		media-libs/mesa[gbm]
+		media-libs/mesa[gbm(+)]
 		x11-libs/libdrm
 	)
 	evdev? ( sys-libs/mtdev )
