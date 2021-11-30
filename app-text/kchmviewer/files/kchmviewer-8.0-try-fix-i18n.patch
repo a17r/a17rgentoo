@@ -1,0 +1,30 @@
+From 86c06f5962937891332f2a354f5e0b55f5c184a0 Mon Sep 17 00:00:00 2001
+From: Andreas Sturmlechner <asturm@gentoo.org>
+Date: Tue, 30 Nov 2021 14:04:53 +0100
+Subject: [PATCH] Try to fix translations
+
+Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
+---
+ src/kde-qt.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/kde-qt.h b/src/kde-qt.h
+index d1e0845..a7cade2 100644
+--- a/src/kde-qt.h
++++ b/src/kde-qt.h
+@@ -56,10 +56,10 @@
+     #include <QPrinter>
+     #include <QPrintDialog>
+ 
+-	#define i18n(A)		tr(A)
+-
+ #endif /* USE_KDE */
+ 
++#define i18n(A)		tr(A)
++
+ // common non-wrapped UI classes
+ #include <QToolButton>
+ #include <QHeaderView>
+-- 
+2.34.1
+
