@@ -34,7 +34,11 @@ BDEPEND="
 "
 
 PATCHES=(
-	"${FILESDIR}/QTBUG-90037-QTBUG-91264.patch"
+	"${FILESDIR}/${P}-QTBUG-90037-QTBUG-91264.patch"
+	"${FILESDIR}/${P}-fix-qmake-deps.patch"
+	"${FILESDIR}/${P}-remove-mWaitingForUpdateDelivery.patch"
+	"${FILESDIR}/${P}-guard-mResizeDirty.patch"
+	"${FILESDIR}/${P}-fixup-mutexes.patch"
 )
 
 src_configure() {
