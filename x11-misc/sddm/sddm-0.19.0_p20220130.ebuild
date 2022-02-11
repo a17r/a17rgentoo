@@ -1,9 +1,10 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-COMMIT=4c99b784a99db8028ca438edb1f4ddb03b3b6e8c
+COMMIT=85cbf3f2cda66f8deadea5f1e2e627a466aba885
+QTMIN=5.15.2
 inherit cmake linux-info pam systemd tmpfiles
 
 DESCRIPTION="Simple Desktop Display Manager"
@@ -13,28 +14,27 @@ S="${WORKDIR}/${PN}-${COMMIT}"
 
 LICENSE="GPL-2+ MIT CC-BY-3.0 CC-BY-SA-3.0 public-domain"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~riscv ~x86"
 IUSE="+elogind openrc-init +pam systemd test"
 
 REQUIRED_USE="?? ( elogind systemd )"
 RESTRICT="!test? ( test )"
 
 COMMON_DEPEND="
-	dev-qt/qtcore:5
-	dev-qt/qtdbus:5
-	dev-qt/qtdeclarative:5
-	dev-qt/qtgui:5
-	dev-qt/qtnetwork:5
-	x11-base/xorg-server
-	x11-libs/libXau
+	>=dev-qt/qtcore-${QTMIN}:5
+	>=dev-qt/qtdbus-${QTMIN}:5
+	>=dev-qt/qtdeclarative-${QTMIN}:5
+	>=dev-qt/qtgui-${QTMIN}:5
+	>=dev-qt/qtnetwork-${QTMIN}:5
 	x11-libs/libxcb[xkb]
 	elogind? ( sys-auth/elogind )
 	pam? ( sys-libs/pam )
+	!pam? ( virtual/libcrypt:= )
 	systemd? ( sys-apps/systemd:= )
 	!systemd? ( sys-power/upower )
 "
 DEPEND="${COMMON_DEPEND}
-	test? ( dev-qt/qttest:5 )
+	test? ( >=dev-qt/qttest-${QTMIN}:5 )
 "
 RDEPEND="${COMMON_DEPEND}
 	acct-group/sddm
@@ -43,23 +43,22 @@ RDEPEND="${COMMON_DEPEND}
 "
 BDEPEND="
 	dev-python/docutils
-	dev-qt/linguist-tools:5
+	>=dev-qt/linguist-tools-${QTMIN}:5
 	kde-frameworks/extra-cmake-modules:5
 	virtual/pkgconfig
 "
 
 PATCHES=(
-	# Pending upstream
+	# Pending upstream:
 	# fix for groups: https://github.com/sddm/sddm/issues/1159
-	"${FILESDIR}"/${PN}-0.19.0-revert-honor-PAM-supplemental-groups.patch
-	"${FILESDIR}"/${PN}-0.18.1-honor-PAM-supplemental-groups-v2.patch
-	# ACK'd for merge but pending rebase: https://github.com/sddm/sddm/pull/1230
-	"${FILESDIR}"/${P}-redesign-Xauth.patch # by openSUSE, Fedora usage for >1y
-	# Downstream patches
+	"${FILESDIR}"/${P}-revert-honor-PAM-supplemental-groups.patch
+	"${FILESDIR}"/${P}-Honor-PAM-s-supplemental-groups-v2.patch
+	# TODO: add this: https://github.com/sddm/sddm/pull/1230 ...ACK'd
+	#  for merge but pending rebase. by openSUSE, Fedora usage for >1y
+	# Downstream patches:
+	"${FILESDIR}"/${P}-pam-examples.patch
 	"${FILESDIR}"/${PN}-0.18.1-respect-user-flags.patch
 	"${FILESDIR}"/${PN}-0.19.0-Xsession.patch # bug 611210
-	"${FILESDIR}"/${PN}-0.19.0-pam-examples.patch
-	"${FILESDIR}"/${PN}-0.19.0-no-pam_tally2.patch # PAM-1.4 woes, bug 728550
 )
 
 pkg_setup() {

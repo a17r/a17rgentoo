@@ -1,7 +1,7 @@
-From 75e6e00d9e1ecf25e3a9c8332530a1e40d737cdb Mon Sep 17 00:00:00 2001
+From d185bb7026f1742dcf4676ded5e3920a44945a82 Mon Sep 17 00:00:00 2001
 From: "J. Konrad Tegtmeier-Rottach" <jktr@0x16.de>
-Date: Thu, 9 May 2019 03:06:48 +0200
-Subject: [PATCH] Honor PAM's supplemental groups (v2) (#834, #1159)
+Date: Fri, 11 Feb 2022 15:21:56 +0100
+Subject: [PATCH 2/2] Honor PAM's supplemental groups (v2) (#834, #1159)
 
 This moves the supplemental group initialization step from
 UserSession.cpp to the Backend system, so that the Pam Backend can
@@ -12,18 +12,20 @@ supplemental group list. However, PamBackend calls
 pam_setcred(PAM_ESTABLISH_CRED) earlier, at the start
 PamBackend::openSession, so a pam_setcred(PAM_REINITIALIZE_CRED) call
 must be issued to repeat the injection of PAM's supplemental groups.
+
+Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
 ---
  src/helper/Backend.cpp            |  5 +++++
  src/helper/Backend.h              |  3 +++
  src/helper/HelperApp.cpp          |  4 ++++
  src/helper/HelperApp.h            |  1 +
- src/helper/UserSession.cpp        | 13 ++++++++-----
+ src/helper/UserSession.cpp        | 12 +++++++-----
  src/helper/backend/PamBackend.cpp | 18 ++++++++++++++++++
  src/helper/backend/PamBackend.h   |  2 ++
- 7 files changed, 41 insertions(+), 5 deletions(-)
+ 7 files changed, 40 insertions(+), 5 deletions(-)
 
 diff --git a/src/helper/Backend.cpp b/src/helper/Backend.cpp
-index d6bb4d0a..35ae2bdf 100644
+index 9a36a62..f1fe51e 100644
 --- a/src/helper/Backend.cpp
 +++ b/src/helper/Backend.cpp
 @@ -29,6 +29,7 @@
@@ -32,9 +34,9 @@ index d6bb4d0a..35ae2bdf 100644
  #include <pwd.h>
 +#include <grp.h>
  
- namespace SDDM {
-     Backend::Backend(HelperApp* parent)
-@@ -79,4 +80,8 @@ namespace SDDM {
+ #if defined(Q_OS_FREEBSD)
+ #include <sys/types.h>
+@@ -125,4 +126,8 @@ namespace SDDM {
      bool Backend::closeSession() {
          return true;
      }
@@ -44,7 +46,7 @@ index d6bb4d0a..35ae2bdf 100644
 +    }
  }
 diff --git a/src/helper/Backend.h b/src/helper/Backend.h
-index b790e001..3caf1592 100644
+index 915d09c..0a38210 100644
 --- a/src/helper/Backend.h
 +++ b/src/helper/Backend.h
 @@ -22,6 +22,7 @@
@@ -55,8 +57,8 @@ index b790e001..3caf1592 100644
  
  namespace SDDM {
      class HelperApp;
-@@ -38,6 +39,8 @@ namespace SDDM {
-         void setAutologin(bool on = true);
+@@ -39,6 +40,8 @@ namespace SDDM {
+         void setDisplayServer(bool on = true);
          void setGreeter(bool on = true);
  
 +        virtual bool setupSupplementalGroups(struct passwd *pw);
@@ -65,10 +67,10 @@ index b790e001..3caf1592 100644
          virtual bool start(const QString &user = QString()) = 0;
          virtual bool authenticate() = 0;
 diff --git a/src/helper/HelperApp.cpp b/src/helper/HelperApp.cpp
-index cad93bd8..d0891d75 100644
+index a05d7ed..a09bcbd 100644
 --- a/src/helper/HelperApp.cpp
 +++ b/src/helper/HelperApp.cpp
-@@ -253,6 +253,10 @@ namespace SDDM {
+@@ -285,6 +285,10 @@ namespace SDDM {
          return m_session;
      }
  
@@ -80,7 +82,7 @@ index cad93bd8..d0891d75 100644
          return m_user;
      }
 diff --git a/src/helper/HelperApp.h b/src/helper/HelperApp.h
-index 3742df12..cb5959a7 100644
+index 0e8c02a..c19f12e 100644
 --- a/src/helper/HelperApp.h
 +++ b/src/helper/HelperApp.h
 @@ -39,6 +39,7 @@ namespace SDDM {
@@ -92,18 +94,18 @@ index 3742df12..cb5959a7 100644
          const QString &cookie() const;
  
 diff --git a/src/helper/UserSession.cpp b/src/helper/UserSession.cpp
-index f71fd358..62fd4d70 100644
+index e012eff..41e7c98 100644
 --- a/src/helper/UserSession.cpp
 +++ b/src/helper/UserSession.cpp
-@@ -19,6 +19,7 @@
-  *
-  */
+@@ -21,6 +21,7 @@
+ 
+ #include <QSocketNotifier>
  
 +#include "Backend.h"
  #include "Configuration.h"
  #include "UserSession.h"
  #include "HelperApp.h"
-@@ -129,7 +130,8 @@ namespace SDDM {
+@@ -199,7 +200,8 @@ namespace SDDM {
  #endif
  
          // switch user
@@ -113,29 +115,32 @@ index f71fd358..62fd4d70 100644
          struct passwd pw;
          struct passwd *rpw;
          long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-@@ -146,12 +148,13 @@ namespace SDDM {
-                 qCritical() << "getpwnam_r(" << username << ") failed with error: " << strerror(err);
+@@ -226,16 +228,16 @@ namespace SDDM {
              exit(Auth::HELPER_OTHER_ERROR);
          }
--        if (setgid(pw.pw_gid) != 0) {
--            qCritical() << "setgid(" << pw.pw_gid << ") failed for user: " << username;
-+
+ #else
 +        if (!app->backend()->setupSupplementalGroups(&pw)) {
 +            qCritical() << "failed to set up supplemental groups for user: " << username;
++            exit(Auth::HELPER_OTHER_ERROR);
++        }
+         if (setgid(pw.pw_gid) != 0) {
+             qCritical() << "setgid(" << pw.pw_gid << ") failed for user: " << username;
              exit(Auth::HELPER_OTHER_ERROR);
          }
+         qputenv("XDG_RUNTIME_DIR", QByteArrayLiteral("/run/user/") + QByteArray::number(pw.pw_uid));
+ 
 -        if (initgroups(pw.pw_name, pw.pw_gid) != 0) {
 -            qCritical() << "initgroups(" << pw.pw_name << ", " << pw.pw_gid << ") failed for user: " << username;
-+        if (setgid(pw.pw_gid) != 0) {
-+            qCritical() << "setgid(" << pw.pw_gid << ") failed for user: " << username;
-             exit(Auth::HELPER_OTHER_ERROR);
-         }
+-            exit(Auth::HELPER_OTHER_ERROR);
+-        }
          if (setuid(pw.pw_uid) != 0) {
+             qCritical() << "setuid(" << pw.pw_uid << ") failed for user: " << username;
+             exit(Auth::HELPER_OTHER_ERROR);
 diff --git a/src/helper/backend/PamBackend.cpp b/src/helper/backend/PamBackend.cpp
-index f86d77d6..cccfa258 100644
+index c97056a..d8ffeba 100644
 --- a/src/helper/backend/PamBackend.cpp
 +++ b/src/helper/backend/PamBackend.cpp
-@@ -289,6 +289,24 @@ namespace SDDM {
+@@ -291,6 +291,24 @@ namespace SDDM {
          return QString::fromLocal8Bit((const char*) m_pam->getItem(PAM_USER));
      }
  
@@ -161,7 +166,7 @@ index f86d77d6..cccfa258 100644
          qDebug() << "[PAM] Conversation with" << n << "messages";
  
 diff --git a/src/helper/backend/PamBackend.h b/src/helper/backend/PamBackend.h
-index 4c8b4b35..5b079099 100644
+index 4c8b4b3..5b07909 100644
 --- a/src/helper/backend/PamBackend.h
 +++ b/src/helper/backend/PamBackend.h
 @@ -28,6 +28,7 @@
@@ -180,3 +185,6 @@ index 4c8b4b35..5b079099 100644
  
      public slots:
          virtual bool start(const QString &user = QString());
+-- 
+2.35.1
+

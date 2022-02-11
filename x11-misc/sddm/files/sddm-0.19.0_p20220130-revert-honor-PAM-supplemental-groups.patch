@@ -1,7 +1,7 @@
-From d3554a74948d722630fb293b3e3b22c6371e4ed2 Mon Sep 17 00:00:00 2001
+From ebfe0b263b4c4b5191d03d7bf47d0cb441c04c6c Mon Sep 17 00:00:00 2001
 From: Andreas Sturmlechner <asturm@gentoo.org>
 Date: Sun, 3 Jan 2021 21:57:18 +0100
-Subject: [PATCH] Revert "Honor PAM's ambient supplemental groups. (#834)"
+Subject: [PATCH 1/2] Revert "Honor PAM's ambient supplemental groups. (#834)"
 
 This reverts commit 1bc813d08b8130e458a6550ec47fb2bfbe6de080, which
 misuses PAM and leads to pulling in all of root's supplemental groups
@@ -10,18 +10,17 @@ groups. The problem was masked due to the root user not having any
 supplemental groups in some common contexts, like running sddm from a
 systemd unit.
 ---
- src/helper/UserSession.cpp | 57 --------------------------------------
- 1 file changed, 57 deletions(-)
+ src/helper/UserSession.cpp | 56 --------------------------------------
+ 1 file changed, 56 deletions(-)
 
 diff --git a/src/helper/UserSession.cpp b/src/helper/UserSession.cpp
-index dbf39fc..7175be7 100644
+index 29bd748..e012eff 100644
 --- a/src/helper/UserSession.cpp
 +++ b/src/helper/UserSession.cpp
-@@ -154,67 +154,10 @@ namespace SDDM {
-             qCritical() << "setgid(" << pw.pw_gid << ") failed for user: " << username;
-             exit(Auth::HELPER_OTHER_ERROR);
+@@ -232,66 +232,10 @@ namespace SDDM {
          }
--
+         qputenv("XDG_RUNTIME_DIR", QByteArrayLiteral("/run/user/") + QByteArray::number(pw.pw_uid));
+ 
 -#ifdef USE_PAM
 -
 -        // fetch ambient groups from PAM's environment;
@@ -86,5 +85,5 @@ index dbf39fc..7175be7 100644
              qCritical() << "setuid(" << pw.pw_uid << ") failed for user: " << username;
              exit(Auth::HELPER_OTHER_ERROR);
 -- 
-2.30.0
+2.35.1
 
