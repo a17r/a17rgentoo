@@ -3,7 +3,7 @@
 
 EAPI=8
 
-COMMIT=85cbf3f2cda66f8deadea5f1e2e627a466aba885
+COMMIT=4c97a3d81e8efa3bf1d9648514096b0908c824b8
 QTMIN=5.15.2
 inherit cmake linux-info pam systemd tmpfiles
 
