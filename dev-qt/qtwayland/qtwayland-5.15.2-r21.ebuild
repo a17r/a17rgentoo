@@ -3,7 +3,7 @@
 
 EAPI=8
 
-KDE_ORG_COMMIT=fc50f63b39c11c8323746bf7b6164cfd6d7e6b01
+KDE_ORG_COMMIT=8f0c9169310344c8f179311bae446239cdb61f68
 inherit qt5-build
 
 DESCRIPTION="Wayland platform plugin for Qt"
@@ -35,7 +35,6 @@ BDEPEND="
 
 PATCHES=(
 	"${FILESDIR}/${P}-QTBUG-90037-QTBUG-91264.patch"
-	"${FILESDIR}/${P}-fix-qmake-deps.patch"
 	"${FILESDIR}/${P}-guard-mResizeDirty.patch"
 	"${FILESDIR}/${P}-fixup-mutexes.patch"
 )
