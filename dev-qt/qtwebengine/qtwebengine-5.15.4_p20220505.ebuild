@@ -13,8 +13,8 @@ HOMEPAGE="https://www.qt.io/"
 if [[ ${QT5_BUILD_TYPE} == release ]]; then
 	KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
-		SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${P}.tar.xz"
-		S="${WORKDIR}/${P}"
+		SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${PN}-5.15.3_p20220505.tar.xz"
+		S="${WORKDIR}/${PN}-5.15.3_p20220505"
 		QT5_BUILD_DIR="${S}_build"
 	fi
 else
@@ -109,6 +109,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.15.2_p20210224-disable-git.patch" # downstream snapshot fix
 	"${FILESDIR}/${PN}-5.15.2_p20211015-pdfium-system-lcms2.patch" # by Debian, QTBUG-61746
 	"${FILESDIR}/${PN}-5.15.3_p20220329-clang14.patch" # by FreeBSD, bug 836604
+	"${FILESDIR}/${PN}-5.15.3_p20220406-gcc12-includes.patch" # by openSUSE, bug 840326
 	"${WORKDIR}/${PN}-5.15.2_p20211019-jumbo-build.patch" # bug 813957
 	"${WORKDIR}/${PN}-5.15.3_p20220406-patchset" # bug 698988 (py2--), pipewire-3
 )
@@ -263,8 +264,8 @@ src_install() {
 }
 
 pkg_preinst() {
-	elog "This version of Qt WebEngine is based on Chromium version 87.0.4280, with"
-	elog "additional security fixes from newer versions. Extensive as it is, the"
+	elog "This version of Qt WebEngine is based on Chromium version 87.0.4280.144,"
+	elog "with additional security fixes from newer versions. Extensive as it is, the"
 	elog "list of backports is impossible to evaluate, but always bound to be behind"
 	elog "Chromium's release schedule."
 	elog "In addition, various online services may deny service based on an outdated"
