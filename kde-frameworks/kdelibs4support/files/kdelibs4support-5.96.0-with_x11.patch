@@ -1,4 +1,4 @@
-From 026571f37c990007be3d7e536b335c19ab98009e Mon Sep 17 00:00:00 2001
+From 79d75faba840d79435ada3dbc874603ce5d02e50 Mon Sep 17 00:00:00 2001
 From: Andreas Sturmlechner <asturm@gentoo.org>
 Date: Sat, 6 Aug 2022 11:16:00 +0200
 Subject: [PATCH] Add CMake option to build WITH_X11
@@ -14,13 +14,13 @@ it was silently disabled if X11 was not found.
 
 Signed-off-by: Andreas Sturmlechner <asturm@gentoo.org>
 ---
- CMakeLists.txt       | 18 +++++++++++-------
- src/CMakeLists.txt   |  6 +++---
- tests/CMakeLists.txt |  2 +-
- 3 files changed, 15 insertions(+), 11 deletions(-)
+ CMakeLists.txt       | 8 ++++++--
+ src/CMakeLists.txt   | 6 +++---
+ tests/CMakeLists.txt | 2 +-
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index f577df45..378d23d4 100644
+index 7822de94..b9a2269f 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -51,14 +51,18 @@ if(WIN32)
@@ -30,21 +30,16 @@ index f577df45..378d23d4 100644
 -    find_package(X11)
 +    option(WITH_X11 "Build with X11 integration and session management" ON)
 +    if(WITH_X11)
-+        find_package(X11)
-+        set(HAVE_X11 ${X11_FOUND})
-+        if (HAVE_X11)
-+            add_feature_info("X11 Session Management (libSM)" X11_SM_FOUND "Support for session management in KApplication")
-+            find_package(Qt5 ${REQUIRED_QT_VERSION} CONFIG REQUIRED X11Extras)
-+            find_package(XCB REQUIRED COMPONENTS XCB)
-+        endif()
++        find_package(X11 REQUIRED)
++        set(HAVE_X11 1)
 +    endif()
  endif()
 -set(HAVE_X11 ${X11_FOUND})
--if (HAVE_X11)
--  add_feature_info("X11 Session Management (libSM)" X11_SM_FOUND "Support for session management in KApplication")
--  find_package(Qt5 ${REQUIRED_QT_VERSION} CONFIG REQUIRED X11Extras)
--  find_package(XCB REQUIRED COMPONENTS XCB)
--endif ()
+ if (HAVE_X11)
+   add_feature_info("X11 Session Management (libSM)" X11_SM_FOUND "Support for session management in KApplication")
+   find_package(Qt5 ${REQUIRED_QT_VERSION} CONFIG REQUIRED X11Extras)
+   find_package(XCB REQUIRED COMPONENTS XCB)
+ endif ()
 +
  if (APPLE)
      cmake_find_frameworks(CoreFoundation)
@@ -94,5 +89,5 @@ index 53f870ff..db4b28db 100644
    kdelibs4support_examples( kxerrorhandlertest )
  
 -- 
-2.35.1
+GitLab
 

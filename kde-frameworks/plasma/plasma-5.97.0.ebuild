@@ -59,10 +59,7 @@ DEPEND="${RDEPEND}
 "
 BDEPEND="man? ( >=kde-frameworks/kdoctools-${PVCUT}:5 )"
 
-PATCHES=(
-	"${FILESDIR}/${P}-fix-crash-in-WindowShadowTile.patch" # KDE-bug 443706
-	"${FILESDIR}/${P}-without_x11.patch"
-)
+PATCHES=( "${FILESDIR}/${PN}-5.96.0-without_x11.patch" )
 
 src_configure() {
 	local mycmakeargs=(

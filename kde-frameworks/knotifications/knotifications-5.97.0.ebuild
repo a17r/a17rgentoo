@@ -39,7 +39,7 @@ BDEPEND="
 	nls? ( >=dev-qt/linguist-tools-${QTMIN}:5 )
 "
 
-PATCHES=( "${FILESDIR}/${P}-without_x11.patch" )
+PATCHES=( "${FILESDIR}/${PN}-5.96.0-without_x11.patch" )
 
 src_configure() {
 	local mycmakeargs=(
