@@ -1,14 +1,15 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=8
 
-MODULE_AUTHOR=ANDREWF
-MODULE_VERSION=2.17
+DIST_AUTHOR=ANDREWF
+DIST_NAME=Template-Latex
+DIST_VERSION=2.17
 MY_PN=Template-Latex
 MY_P=${MY_PN}-${MODULE_VERSION}
 S=${WORKDIR}/${MY_P}
-inherit perl-module eutils
+inherit perl-module
 
 DESCRIPTION="Template::Latex - Latex support for the Template Toolkit"
 
@@ -26,4 +27,5 @@ DEPEND="${RDEPEND}
 	test? ( virtual/perl-Test-Harness )"
 
 SRC_TEST="do"
+
 PATCHES=( "${FILESDIR}/Makefile.patch" )

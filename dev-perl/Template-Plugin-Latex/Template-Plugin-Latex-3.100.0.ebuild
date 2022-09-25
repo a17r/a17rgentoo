@@ -1,11 +1,11 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=8
 
-MODULE_AUTHOR=EHUELS
-MODULE_VERSION=3.1
-inherit perl-module eutils
+DIST_AUTHOR=EHUELS
+DIST_VERSION=3.1
+inherit perl-module
 
 DESCRIPTION="LaTeX support for the Template Toolkit"
 
