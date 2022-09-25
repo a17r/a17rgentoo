@@ -3,8 +3,8 @@
 
 EAPI=7
 
-PYTHON_COMPAT=( python3_{6,7,8} )
-inherit desktop flag-o-matic java-pkg-opt-2 linux-info pax-utils python-single-r1 tmpfiles toolchain-funcs udev xdg
+PYTHON_COMPAT=( python3_{8,9} )
+inherit desktop java-pkg-opt-2 linux-info multilib pax-utils python-single-r1 tmpfiles toolchain-funcs udev xdg
 
 MY_PV="${PV/beta/BETA}"
 MY_PV="${MY_PV/rc/RC}"
@@ -14,24 +14,30 @@ DESCRIPTION="Family of powerful x86 virtualization products for enterprise and h
 HOMEPAGE="https://www.virtualbox.org/"
 SRC_URI="https://download.virtualbox.org/virtualbox/${MY_PV}/${MY_P}.tar.bz2
 	https://dev.gentoo.org/~polynomial-c/${PN}/patchsets/${PN}-6.0.24-patches-01.tar.xz"
+S="${WORKDIR}/${MY_P}"
 
 LICENSE="GPL-2 dtrace? ( CDDL )"
 SLOT="0/$(ver_cut 1-2)"
 [[ "${PV}" == *_beta* ]] || [[ "${PV}" == *_rc* ]] || \
 KEYWORDS="amd64 x86"
-IUSE="alsa debug doc dtrace headless java libressl lvm +opus pam pax_kernel pulseaudio +opengl python +qt5 +sdk +udev vboxwebsrv vnc"
+IUSE="alsa debug doc dtrace headless java lvm +opus pam pax_kernel pulseaudio +opengl python +qt5 +sdk +udev vboxwebsrv vnc"
 
-CDEPEND="
-	${PYTHON_DEPS}
-	!app-emulation/virtualbox-bin
+REQUIRED_USE="${PYTHON_REQUIRED_USE}
+	java? ( sdk )
+	python? ( sdk )
+	vboxwebsrv? ( java )
+"
+
+COMMON_DEPEND="${PYTHON_DEPS}
 	acct-group/vboxusers
 	~app-emulation/virtualbox-modules-${PV}
 	dev-libs/libIDL
 	>=dev-libs/libxslt-1.1.19
-	net-misc/curl
+	dev-libs/openssl:0=
 	dev-libs/libxml2
 	media-libs/libpng:0=
 	media-libs/libvpx:0=
+	net-misc/curl
 	sys-libs/zlib:=
 	!headless? (
 		media-libs/libsdl:0[X,video]
@@ -52,15 +58,12 @@ CDEPEND="
 			x11-libs/libXinerama
 		)
 	)
-	libressl? ( dev-libs/libressl:= )
-	!libressl? ( dev-libs/openssl:0= )
 	lvm? ( sys-fs/lvm2 )
 	opus? ( media-libs/opus )
 	udev? ( >=virtual/udev-171 )
 	vnc? ( >=net-libs/libvncserver-0.9.9 )
 "
-DEPEND="
-	${CDEPEND}
+DEPEND="${COMMON_DEPEND}
 	alsa? ( >=media-libs/alsa-lib-1.0.13 )
 	!headless? (
 		x11-libs/libXinerama
@@ -72,10 +75,9 @@ DEPEND="
 	qt5? ( dev-qt/linguist-tools:5 )
 	vboxwebsrv? ( net-libs/gsoap[-gnutls(-)] )
 "
-BDEPEND="
-	${PYTHON_DEPS}
-	>=dev-util/kbuild-0.1.9998.3127
+BDEPEND="${PYTHON_DEPS}
 	>=dev-lang/yasm-0.6.2
+	>=dev-util/kbuild-0.1.9998.3127
 	sys-devel/bin86
 	sys-libs/libcap
 	sys-power/iasl
@@ -91,8 +93,8 @@ BDEPEND="
 	)
 	java? ( >=virtual/jdk-1.6 )
 "
-RDEPEND="
-	${CDEPEND}
+RDEPEND="${COMMON_DEPEND}
+	!app-emulation/virtualbox-bin
 	java? ( >=virtual/jre-1.6 )
 "
 
@@ -127,15 +129,6 @@ QA_TEXTRELS_x86="usr/lib/virtualbox-ose/VBoxGuestPropSvc.so
 	usr/lib/virtualbox/VBoxOGLhostcrutil.so
 	usr/lib/virtualbox/VBoxNetDHCP.so
 	usr/lib/virtualbox/VBoxNetNAT.so"
-
-S="${WORKDIR}/${MY_P}"
-
-REQUIRED_USE="
-	java? ( sdk )
-	python? ( sdk )
-	vboxwebsrv? ( java )
-	${PYTHON_REQUIRED_USE}
-"
 
 pkg_pretend() {
 	if ! use headless && ! use qt5 ; then
