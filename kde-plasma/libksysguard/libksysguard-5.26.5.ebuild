@@ -1,12 +1,12 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 ECM_DESIGNERPLUGIN="true"
 ECM_TEST="true"
-KFMIN=5.92.0
-QTMIN=5.15.4
+KFMIN=5.99.0
+QTMIN=5.15.5
 VIRTUALX_REQUIRED="test"
 inherit ecm plasma.kde.org
 
@@ -14,7 +14,7 @@ DESCRIPTION="Task management and system monitoring library"
 
 LICENSE="LGPL-2+"
 SLOT="5/9"
-KEYWORDS="amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv ~x86"
 IUSE="webengine X"
 
 COMMON_DEPEND="
@@ -26,10 +26,9 @@ COMMON_DEPEND="
 	>=dev-qt/qtwidgets-${QTMIN}:5
 	>=kde-frameworks/kauth-${KFMIN}:5
 	>=kde-frameworks/kcompletion-${KFMIN}:5
-	>=kde-frameworks/kconfig-${KFMIN}:5
+	>=kde-frameworks/kconfig-${KFMIN}:5[qml]
 	>=kde-frameworks/kconfigwidgets-${KFMIN}:5
 	>=kde-frameworks/kcoreaddons-${KFMIN}:5
-	>=kde-frameworks/kdeclarative-${KFMIN}:5
 	>=kde-frameworks/ki18n-${KFMIN}:5
 	>=kde-frameworks/kjobwidgets-${KFMIN}:5
 	>=kde-frameworks/knewstuff-${KFMIN}:5
@@ -56,12 +55,14 @@ DEPEND="${COMMON_DEPEND}
 "
 RDEPEND="${COMMON_DEPEND}
 	!<kde-plasma/ksysguard-5.21.90:5
-	!<kde-plasma/plasma-workspace-5.18.80:5
 "
 
 PATCHES=(
+	# downstream patch
 	"${FILESDIR}/${PN}-5.22.80-no-detailed-mem-message.patch"
-	"${FILESDIR}/${P}-with_x11.patch"
+	# pending upstream:
+	# https://invent.kde.org/plasma/libksysguard/-/merge_requests/238
+	"${FILESDIR}/${PN}-5.26.0-with_x11.patch"
 )
 
 src_configure() {
