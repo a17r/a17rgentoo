@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>asturm@gentoo.org</email>
+		<name>Andreas Sturmlechner</name>
+	</maintainer>
+	<upstream>
+		<remote-id type="github">UltraStar-Deluxe/USDX</remote-id>
+	</upstream>
+	<use>
+		<flag name="midi">Enable MIDI support</flag>
+		<flag name="projectm">Enable projectm music visualization plugin</flag>
+		<flag name="webcam">Enable webcam support via opencv</flag>
+	</use>
+</pkgmetadata>
