@@ -27,6 +27,7 @@ RDEPEND="${DEPEND}"
 
 QT5_TARGET_SUBDIRS=(
 	src/network
+	src/plugins/bearer/generic
 )
 
 QT5_GENTOO_CONFIG=(
