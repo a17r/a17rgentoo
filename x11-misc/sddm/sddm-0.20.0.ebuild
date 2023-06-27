@@ -1,44 +1,49 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-COMMIT=4c97a3d81e8efa3bf1d9648514096b0908c824b8
+if [[ ${PV} == *9999* ]]; then
+	inherit git-r3
+	EGIT_REPO_URI="https://github.com/${PN}/${PN}.git"
+else
+	SRC_URI="https://github.com/${PN}/${PN}/archive/refs/tags/v${PV}.tar.gz -> ${P}.tar.gz"
+	KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv ~x86"
+fi
+
 QTMIN=5.15.2
-inherit cmake linux-info pam systemd tmpfiles
+inherit cmake linux-info optfeature systemd tmpfiles
 
 DESCRIPTION="Simple Desktop Display Manager"
 HOMEPAGE="https://github.com/sddm/sddm"
-SRC_URI="https://github.com/${PN}/${PN}/archive/${COMMIT}.tar.gz -> ${P}.tar.gz"
-S="${WORKDIR}/${PN}-${COMMIT}"
 
 LICENSE="GPL-2+ MIT CC-BY-3.0 CC-BY-SA-3.0 public-domain"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~riscv ~x86"
-IUSE="+elogind openrc-init +pam systemd test"
+IUSE="+elogind openrc-init systemd test"
 
-REQUIRED_USE="?? ( elogind systemd )"
+REQUIRED_USE="^^ ( elogind systemd )"
 RESTRICT="!test? ( test )"
 
 COMMON_DEPEND="
+	acct-group/sddm
+	acct-user/sddm
 	>=dev-qt/qtcore-${QTMIN}:5
 	>=dev-qt/qtdbus-${QTMIN}:5
 	>=dev-qt/qtdeclarative-${QTMIN}:5
 	>=dev-qt/qtgui-${QTMIN}:5
 	>=dev-qt/qtnetwork-${QTMIN}:5
-	x11-libs/libxcb[xkb]
-	elogind? ( sys-auth/elogind )
-	pam? ( sys-libs/pam )
-	!pam? ( virtual/libcrypt:= )
-	systemd? ( sys-apps/systemd:= )
+	sys-libs/pam
+	x11-libs/libXau
+	x11-libs/libxcb:=
+	elogind? ( sys-auth/elogind[pam] )
+	systemd? ( sys-apps/systemd:=[pam] )
 	!systemd? ( sys-power/upower )
 "
 DEPEND="${COMMON_DEPEND}
 	test? ( >=dev-qt/qttest-${QTMIN}:5 )
 "
 RDEPEND="${COMMON_DEPEND}
-	acct-group/sddm
-	acct-user/sddm
+	x11-base/xorg-server
 	!systemd? ( !openrc-init? ( gui-libs/display-manager-init ) )
 "
 BDEPEND="
@@ -49,52 +54,27 @@ BDEPEND="
 "
 
 PATCHES=(
-	# Pending upstream:
-	# fix for groups: https://github.com/sddm/sddm/issues/1159
-	"${FILESDIR}"/${P}-revert-honor-PAM-supplemental-groups.patch
-	"${FILESDIR}"/${P}-Honor-PAM-s-supplemental-groups-v2.patch
-	# TODO: add this: https://github.com/sddm/sddm/pull/1230 ...ACK'd
-	#  for merge but pending rebase. by openSUSE, Fedora usage for >1y
-	# Downstream patches:
-	"${FILESDIR}"/${P}-pam-examples.patch
-	"${FILESDIR}"/${PN}-0.18.1-respect-user-flags.patch
-	"${FILESDIR}"/${PN}-0.19.0-Xsession.patch # bug 611210
+	# Downstream patches
+	"${FILESDIR}/${P}-respect-user-flags.patch"
+	"${FILESDIR}/${PN}-0.18.1-Xsession.patch" # bug 611210
+	"${FILESDIR}/${P}-sddm.pam-use-substack.patch" # bug 728550
+	"${FILESDIR}/${P}-disable-etc-debian-check.patch"
+	"${FILESDIR}/${P}-no-default-pam_systemd-module.patch" # bug 669980
+	"${FILESDIR}/${P}-fix-use-development-sessions.patch" # git master
 )
 
 pkg_setup() {
 	local CONFIG_CHECK="~DRM"
 	use kernel_linux && linux-info_pkg_setup
-
-	if [[ -f "${EROOT}"/etc/sddm.conf ]]; then
-		cp -v "${EROOT}"/etc/sddm.conf "${T}"/sddm.conf.old || die
-	fi
 }
 
 src_prepare() {
-	touch "${S}"/01gentoo.conf || die
+	touch 01gentoo.conf || die
 
-	if use elogind || use systemd; then
-cat <<-EOF >> "${S}"/01gentoo.conf
+cat <<-EOF >> 01gentoo.conf
 [General]
-# Halt/Reboot command
-HaltCommand=$(usex elogind "loginctl" "systemctl") poweroff
-RebootCommand=$(usex elogind "loginctl" "systemctl") reboot
-
-EOF
-	fi
-
-cat <<-EOF >> "${S}"/01gentoo.conf
 # Remove qtvirtualkeyboard as InputMethod default
 InputMethod=
-
-[Users]
-ReuseSession=true
-
-[Wayland]
-EnableHiDPI=true
-
-[X11]
-EnableHiDPI=true
 EOF
 
 	cmake_src_prepare
@@ -109,8 +89,8 @@ src_configure() {
 	local mycmakeargs=(
 		-DBUILD_MAN_PAGES=ON
 		-DDBUS_CONFIG_FILENAME="org.freedesktop.sddm.conf"
-		-DINSTALL_PAM_EXAMPLES=OFF
-		-DENABLE_PAM=$(usex pam)
+		-DRUNTIME_DIR=/run/sddm
+		-DSYSTEMD_TMPFILES_DIR="/usr/lib/tmpfiles.d"
 		-DNO_SYSTEMD=$(usex !systemd)
 		-DUSE_ELOGIND=$(usex elogind)
 	)
@@ -120,21 +100,12 @@ src_configure() {
 src_install() {
 	cmake_src_install
 
-	newtmpfiles "${FILESDIR}/${PN}.tmpfiles" "${PN}.conf"
-
 	insinto /etc/sddm.conf.d/
 	doins "${S}"/01gentoo.conf
-	[[ -f "${T}"/sddm.conf.old ]] && dodoc "${T}"/sddm.conf.old
 
 	if use openrc-init; then
 		newinitd "${FILESDIR}"/sddm.initd sddm
 		newconfd "${FILESDIR}"/sddm.confd sddm
-	fi
-
-	if use pam; then
-		newpamd "${FILESDIR}"/${PN}.pam ${PN} # bug 728550
-		newpamd services/${PN}-autologin.pam ${PN}-autologin
-		newpamd "${BUILD_DIR}"/services/${PN}-greeter.pam ${PN}-greeter
 	fi
 }
 
@@ -150,14 +121,6 @@ pkg_postinst() {
 	elog "SDDM example config can be shown with:"
 	elog "  ${EROOT}/usr/bin/sddm --example-config"
 	elog "Use ${EROOT}/etc/sddm.conf.d/ directory to override specific options."
-	if [[ -f "${EROOT}"/etc/sddm.conf ]]; then
-		rm "${EROOT}"/etc/sddm.conf || die
-		ewarn
-		ewarn "NOTE: SDDM config reset!"
-		ewarn "${EROOT}/etc/sddm.conf was removed in favor of /etc/sddm.conf.d/"
-		ewarn "A backup of your old config is in ${EROOT}/usr/share/doc/${PF}/"
-		ewarn "It will be removed the next time ${PN} is emerged."
-	fi
 	elog
 	elog "For more information on how to configure SDDM, please visit the wiki:"
 	elog "  https://wiki.gentoo.org/wiki/SDDM"
@@ -166,6 +129,9 @@ pkg_postinst() {
 		elog "  Nvidia GPU owners in particular should pay attention"
 		elog "  to the troubleshooting section."
 	fi
+
+	optfeature "Weston DisplayServer support (EXPERIMENTAL)" dev-libs/weston
+	optfeature "KWin DisplayServer support (EXPERIMENTAL)" kde-plasma/kwin
 
 	systemd_reenable sddm.service
 }
