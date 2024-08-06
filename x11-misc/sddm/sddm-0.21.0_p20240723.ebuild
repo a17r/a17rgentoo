@@ -8,7 +8,9 @@ if [[ ${PV} == *9999* ]]; then
 	inherit git-r3
 	EGIT_REPO_URI="https://github.com/${PN}/${PN}.git"
 else
-	SRC_URI="https://github.com/${PN}/${PN}/archive/refs/tags/v${PV}.tar.gz -> ${P}.tar.gz"
+	COMMIT=4ec29a8bba033d475f197693fac6cb0c383a1da2
+	SRC_URI="https://github.com/${PN}/${PN}/archive/${COMMIT}.tar.gz -> ${P}.tar.gz"
+	S="${WORKDIR}/${PN}-${COMMIT}"
 	KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv ~x86"
 fi
 
@@ -21,7 +23,7 @@ SRC_URI+=" https://dev.gentoo.org/~asturm/distfiles/${PAM_TAR}.tar.xz"
 
 LICENSE="GPL-2+ MIT CC-BY-3.0 CC-BY-SA-3.0 public-domain"
 SLOT="0"
-IUSE="+elogind openrc-init systemd test"
+IUSE="+elogind openrc-init systemd test +X"
 
 REQUIRED_USE="^^ ( elogind systemd )"
 RESTRICT="!test? ( test )"
@@ -37,19 +39,22 @@ COMMON_DEPEND="
 	sys-libs/pam
 	x11-libs/libXau
 	x11-libs/libxcb:=
-	elogind? ( sys-auth/elogind[pam] )
+	elogind? (
+		sys-auth/elogind[pam]
+		sys-power/upower
+	)
 	systemd? ( sys-apps/systemd:=[pam] )
-	!systemd? ( sys-power/upower )
 "
 DEPEND="${COMMON_DEPEND}
 	test? ( >=dev-qt/qttest-${QTMIN}:5 )
 "
 RDEPEND="${COMMON_DEPEND}
-	x11-base/xorg-server
+	X? ( x11-base/xorg-server )
 	!systemd? ( !openrc-init? ( gui-libs/display-manager-init ) )
 "
 BDEPEND="
 	dev-python/docutils
+	>=dev-build/cmake-3.25.0
 	>=dev-qt/linguist-tools-${QTMIN}:5
 	kde-frameworks/extra-cmake-modules:0
 	virtual/pkgconfig
@@ -58,7 +63,7 @@ BDEPEND="
 PATCHES=(
 	# Downstream patches
 	"${FILESDIR}/${PN}-0.20.0-respect-user-flags.patch"
-	"${FILESDIR}/${P}-Xsession.patch" # bug 611210
+	"${FILESDIR}/${PN}-0.21.0-Xsession.patch" # bug 611210
 )
 
 pkg_setup() {
@@ -96,9 +101,8 @@ EOF
 src_configure() {
 	local mycmakeargs=(
 		-DBUILD_MAN_PAGES=ON
-		-DBUILD_WITH_QT6=OFF # default theme (and others) not yet compatible
+		-DBUILD_WITH_QT6=OFF
 		-DDBUS_CONFIG_FILENAME="org.freedesktop.sddm.conf"
-		-DINSTALL_PAM_CONFIGURATION=OFF
 		-DRUNTIME_DIR=/run/sddm
 		-DSYSTEMD_TMPFILES_DIR="/usr/lib/tmpfiles.d"
 		-DNO_SYSTEMD=$(usex !systemd)
@@ -150,8 +154,8 @@ pkg_postinst() {
 		elog "  to the troubleshooting section."
 	fi
 
-	optfeature "Weston DisplayServer support (EXPERIMENTAL)" dev-libs/weston
-	optfeature "KWin DisplayServer support (EXPERIMENTAL)" kde-plasma/kwin
+	optfeature "Weston DisplayServer support (EXPERIMENTAL)" "dev-libs/weston[kiosk]"
+	optfeature "KWin DisplayServer support (EXPERIMENTAL)" "kde-plasma/kwin"
 
 	systemd_reenable sddm.service
 }
